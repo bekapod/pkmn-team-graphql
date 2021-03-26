@@ -1,0 +1,16 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Pokemon {
+  id: ID!
+}
+
+type PokemonList {
+  total: Int!
+  pokemon: [Pokemon]!
+}
+
+type Query {
+  allPokemon: PokemonList!
+}

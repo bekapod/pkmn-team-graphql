@@ -1,61 +1,56 @@
+//go:generate go generate ./graph
+
 package main
 
 import (
-	"database/sql"
+	"bekapod/pkmn-team-graphql/config"
+	"bekapod/pkmn-team-graphql/data"
+	"bekapod/pkmn-team-graphql/data/repository"
+	"bekapod/pkmn-team-graphql/graph"
+	"bekapod/pkmn-team-graphql/log"
+	"bekapod/pkmn-team-graphql/router"
+	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
-
-	"github.com/gin-gonic/gin"
-	_ "github.com/heroku/x/hmetrics/onload"
-	_ "github.com/lib/pq"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-func dbFunc(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		rows, err := db.Query("SELECT name from abilities")
-		if err != nil {
-			c.String(http.StatusInternalServerError,
-				fmt.Sprintf("Error reading abilities: %q", err))
-			return
-		}
-
-		defer rows.Close()
-		for rows.Next() {
-			var ability string
-			if err := rows.Scan(&ability); err != nil {
-				c.String(http.StatusInternalServerError,
-					fmt.Sprintf("Error scanning abilities: %q", err))
-				return
-			}
-			c.String(http.StatusOK, fmt.Sprintf("Read from DB: %s\n", ability))
-		}
-	}
-}
-
 func main() {
-	port := os.Getenv("PORT")
+	httpWait := make(chan struct{})
+	cfg := config.New()
+	log.Logger.WithField("config", cfg).Info("service starting")
 
-	if port == "" {
-		log.Fatal("$PORT must be set")
+	db := data.NewDB(cfg.DatabaseUrl)
+	data.MigrateDatabase(db, cfg)
+
+	resolver := &graph.Resolver{
+		Pokemon: repository.NewPokemon(db),
 	}
 
-	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
-	if err != nil {
-		log.Fatalf("Error opening database: %q", err)
+	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver)}
+
+	go func() {
+		stop := make(chan os.Signal, 1)
+		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+		<-stop
+		log.Logger.Info("shutting down HTTP server")
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Logger.Errorf("HTTP server did not shutdown correctly: %s", err)
+		}
+		close(httpWait)
+	}()
+
+	log.Logger.Infof("use https://%s/playground for the GraphQL playground", cfg.AppHostWithPort())
+	log.Logger.Infof("use https://%s/graphql for the GraphQL API", cfg.AppHostWithPort())
+
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Logger.Fatalf("failed to start HTTP server: %s", err)
 	}
 
-	router := gin.New()
-	router.Use(gin.Logger())
-	router.LoadHTMLGlob("templates/*.tmpl.html")
-	router.Static("/static", "static")
-
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl.html", nil)
-	})
-
-	router.GET("/db", dbFunc(db))
-
-	router.Run(":" + port)
+	<-httpWait
 }
