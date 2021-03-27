@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS "public"."damage_class" (
 );
 
 INSERT INTO damage_class (value)
-  VALUES ('physical'), ('special'), ('status');
+  VALUES ('physical'), ('special'), ('status')
+ON CONFLICT (value)
+  DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS "public"."moves" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid (),
