@@ -27,7 +27,7 @@ func MigrateDatabase(db *sql.DB, cfg config.Config) {
 		log.Logger.Fatalf("unable to load migration files from embedded filesystem: %s", err)
 	}
 
-	am, err := migrate.NewWithInstance("iofs", d, cfg.DatabaseName, databaseDriver)
+	am, err := migrate.NewWithInstance("iofs", d, cfg.DatabaseName(), databaseDriver)
 	if err != nil {
 		log.Logger.Fatalf("failed to load migration files from source driver: %s", err)
 	}
