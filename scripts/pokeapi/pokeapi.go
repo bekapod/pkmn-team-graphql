@@ -76,6 +76,15 @@ type RawTarget struct {
 	Names []*RawTranslatedName `json:"names"`
 }
 
+type RawAbility struct {
+	Id                 int                  `json:"id"`
+	Name               string               `json:"name"`
+	IsMainSeries       bool                 `json:"is_main_series"`
+	Names              []*RawTranslatedName `json:"names"`
+	EffectEntries      []*RawEffectEntry    `json:"effect_entries"`
+	FlavourTextEntries []*RawFlavour        `json:"flavor_text_entries"`
+}
+
 func GetEnglishName(names []*RawTranslatedName, resourceName string) (*RawTranslatedName, error) {
 	for i := range names {
 		if names[i].Language.Name == "en" {

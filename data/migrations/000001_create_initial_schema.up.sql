@@ -93,8 +93,7 @@ CREATE TABLE IF NOT EXISTS "public"."abilities" (
   "name" text NOT NULL,
   "effect" text,
   PRIMARY KEY ("id"),
-  UNIQUE ("id"),
-  UNIQUE ("slug")
+  UNIQUE ("id")
 );
 
 CREATE TABLE IF NOT EXISTS "public"."pokemon_ability" (
