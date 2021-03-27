@@ -1,16 +1,13 @@
-module github.com/bekapod/pkmn-team-graphql
+module bekapod/pkmn-team-graphql
 
-// +heroku goVersion 1.16
 go 1.16
 
 require (
-	github.com/gin-gonic/gin v0.0.0-20150626140855-4cc2de6207f4
-	github.com/heroku/x v0.0.0-20171004170240-705849e307dd
+	github.com/99designs/gqlgen v0.13.0
+	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/golang-migrate/migrate/v4 v4.14.2-0.20201125065321-a53e6fc42574
+	github.com/johejo/golang-migrate-extra v0.0.0-20210217013041-51a992e50d16
 	github.com/lib/pq v1.10.0
-	github.com/manucorporat/sse v0.0.0-20150604091100-c142f0f1baea // indirect
-	github.com/mattn/go-colorable v0.0.0-20150625154642-40e4aedc8fab // indirect
-	github.com/mattn/go-isatty v0.0.0-20150814002629-7fcbc72f853b // indirect
-	github.com/stretchr/testify v1.3.0 // indirect
-	golang.org/x/net v0.0.0-20150629084131-d9558e5c97f8 // indirect
-	gopkg.in/bluesuncorp/validator.v5 v5.9.1 // indirect
+	github.com/sirupsen/logrus v1.8.1
+	github.com/vektah/gqlparser/v2 v2.1.0
 )
