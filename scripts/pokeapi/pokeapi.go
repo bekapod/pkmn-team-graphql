@@ -85,6 +85,14 @@ type RawAbility struct {
 	FlavourTextEntries []*RawFlavour        `json:"flavor_text_entries"`
 }
 
+type RawStat struct {
+	ID           int                  `json:"id"`
+	Name         string               `json:"name"`
+	GameIndex    int                  `json:"game_index"`
+	IsBattleOnly bool                 `json:"is_battle_only"`
+	Names        []*RawTranslatedName `json:"names"`
+}
+
 func GetEnglishName(names []*RawTranslatedName, resourceName string) (*RawTranslatedName, error) {
 	for i := range names {
 		if names[i].Language.Name == "en" {
