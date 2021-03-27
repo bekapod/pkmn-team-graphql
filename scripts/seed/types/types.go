@@ -3,49 +3,23 @@ package main
 import (
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/scripts"
+	"bekapod/pkmn-team-graphql/scripts/pokeapi"
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/alexflint/go-arg"
 )
 
-type RawDamageRelations struct {
-	NoDamageTo       []*scripts.ResourcePointer `json:"no_damage_to"`
-	HalfDamageTo     []*scripts.ResourcePointer `json:"half_damage_to"`
-	DoubleDamageTo   []*scripts.ResourcePointer `json:"double_damage_to"`
-	NoDamageFrom     []*scripts.ResourcePointer `json:"no_damage_from"`
-	HalfDamageFrom   []*scripts.ResourcePointer `json:"half_damage_from"`
-	DoubleDamageFrom []*scripts.ResourcePointer `json:"double_damage_from"`
-}
-
-type RawTypeList struct {
-	Count   int                        `json:"count"`
-	Results []*scripts.ResourcePointer `json:"results"`
-}
-
-type RawPokemon struct {
-	Slot    int                     `json:"slot"`
-	Pokemon scripts.ResourcePointer `json:"pokemon"`
-}
-
-type RawFullType struct {
-	Id              int                          `json:"id"`
-	Name            string                       `json:"name"`
-	DamageRelations RawDamageRelations           `json:"damage_relations"`
-	Names           []*scripts.RawTranslatedName `json:"names"`
-	Pokemon         []*RawPokemon                `json:"pokemon"`
-	Moves           []*scripts.ResourcePointer   `json:"moves"`
-}
-
-func getAllTypes() RawTypeList {
-	typeList := RawTypeList{}
+func getAllTypes() pokeapi.ResourcePointerList {
+	typeList := pokeapi.ResourcePointerList{}
 	scripts.GetResource("type", &typeList)
 	return typeList
 }
 
-func getFullType(id string) RawFullType {
-	fullType := RawFullType{}
+func getFullType(id string) pokeapi.RawType {
+	fullType := pokeapi.RawType{}
 	scripts.GetResource(fmt.Sprintf("type/%s", id), &fullType)
 	return fullType
 }
@@ -65,9 +39,13 @@ func generateTypesSeed() string {
 			urlParts := strings.Split(results[i].Url, "/")
 			id := urlParts[len(urlParts)-2]
 			fullType := getFullType(id)
-			englishName, err := scripts.GetEnglishName(fullType.Names, fullType.Name)
+			englishName, err := pokeapi.GetEnglishName(fullType.Names, fullType.Name)
 			scripts.Check(err)
-			values = append(values, fmt.Sprintf("('%s', '%s')", fullType.Name, englishName.Name))
+			values = append(values, fmt.Sprintf(
+				"('%s', '%s')",
+				scripts.EscapeSingleQuote(fullType.Name),
+				scripts.EscapeSingleQuote(englishName.Name),
+			))
 		}(i)
 	}
 
@@ -77,6 +55,7 @@ func generateTypesSeed() string {
 }
 
 func main() {
+	start := time.Now()
 	scripts.Args = &scripts.SeedArgs{
 		OutputFile: "seeds/types.sql",
 	}
@@ -90,5 +69,6 @@ func main() {
 	scripts.Check(err)
 	f.Sync()
 
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes\n", o))
+	elapsed := time.Since(start)
+	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
 }

@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS "public"."moves" (
   "target" text,
   "type_id" uuid NOT NULL,
   PRIMARY KEY ("id"),
-  FOREIGN KEY ("damage_class_enum") REFERENCES "public"."damage_class" ("value") ON UPDATE CASCADE ON DELETE SET NULL,
-  FOREIGN KEY ("type_id") REFERENCES "public"."types" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY ("damage_class_enum") REFERENCES "public"."damage_class" ("value") ON UPDATE NO ACTION ON DELETE NO ACTION,
+  FOREIGN KEY ("type_id") REFERENCES "public"."types" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION,
   UNIQUE ("id"),
   UNIQUE ("slug")
 );

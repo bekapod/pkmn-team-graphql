@@ -15,16 +15,6 @@ type SeedArgs struct {
 	PokeApiHost string `arg:"--pokeapi-host,env:POKEAPI_HOST" default:"https://pokeapi.co"`
 }
 
-type ResourcePointer struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
-type RawTranslatedName struct {
-	Name     string          `json:"name"`
-	Language ResourcePointer `json:"language"`
-}
-
 var Args *SeedArgs
 
 var PokeApiPrefix string = "api/v2"
@@ -62,12 +52,6 @@ func GetResource(path string, bucket interface{}) {
 	Check(decodeErr)
 }
 
-func GetEnglishName(names []*RawTranslatedName, resourceName string) (*RawTranslatedName, error) {
-	for i := range names {
-		if names[i].Language.Name == "en" {
-			return names[i], nil
-		}
-	}
-
-	return &RawTranslatedName{}, fmt.Errorf("no english name found for %s", resourceName)
+func EscapeSingleQuote(str string) string {
+	return strings.Replace(str, "'", "''", -1)
 }
