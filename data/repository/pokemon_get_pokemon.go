@@ -38,3 +38,21 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 	return &pokemon, nil
 }
+
+func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon, error) {
+	pkmn := model.Pokemon{}
+
+	err := r.db.QueryRowContext(
+		ctx,
+		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon WHERE id = $1",
+		id,
+	).Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoPokemon
+		}
+		return nil, fmt.Errorf("error scanning result in GetPokemonById %s: %w", id, err)
+	}
+
+	return &pkmn, nil
+}

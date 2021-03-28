@@ -8,7 +8,6 @@ import (
 	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
@@ -24,7 +23,7 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 }
 
 func (r *queryResolver) PokemonByID(ctx context.Context, id string) (*model.Pokemon, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.PokemonRepository.GetPokemonById(ctx, id)
 }
 
 func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error) {
@@ -32,7 +31,7 @@ func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error)
 }
 
 func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.TypeRepository.GetTypeById(ctx, id)
 }
 
 func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
@@ -40,7 +39,7 @@ func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
 }
 
 func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.MoveRepository.GetMoveById(ctx, id)
 }
 
 func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {

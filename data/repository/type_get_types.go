@@ -10,6 +10,7 @@ import (
 
 var (
 	ErrNoTypes = errors.New("no types found")
+	ErrNoType  = errors.New("no type found")
 )
 
 func (r Type) GetTypes(ctx context.Context) (*model.TypeList, error) {
@@ -37,4 +38,22 @@ func (r Type) GetTypes(ctx context.Context) (*model.TypeList, error) {
 	}
 
 	return &types, nil
+}
+
+func (r Type) GetTypeById(ctx context.Context, id string) (*model.Type, error) {
+	t := model.Type{}
+
+	err := r.db.QueryRowContext(
+		ctx,
+		"SELECT id, name, slug FROM types WHERE id = $1",
+		id,
+	).Scan(&t.ID, &t.Name, &t.Slug)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoType
+		}
+		return nil, fmt.Errorf("error scanning result in GetTypeById %s: %w", id, err)
+	}
+
+	return &t, nil
 }
