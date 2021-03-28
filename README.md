@@ -28,3 +28,23 @@ To generate a new database migration:
 brew install golang-migrate
 migrate create -ext sql -dir data/migrations -seq create_xxx_table
 ```
+
+## Seed Data
+
+To generate seed data:
+
+```sh
+LOG_LEVEL=debug go run scripts/seed/types/types.go
+```
+
+You can optionally specify a different output file:
+
+```sh
+LOG_LEVEL=debug go run scripts/seed/types/types.go --output-file seeds/something/some-file.sql
+```
+
+By default, data will be fetched directly from [https://pokeapi.co](https://pokeapi.co), however it is recommended to run PokeAPI locally to save hitting request limits. You can specify a custom PokeAPI host:
+
+```sh
+LOG_LEVEL=debug go run scripts/seed/types/types.go --pokeapi-host http://localhost
+```
