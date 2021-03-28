@@ -1,7 +1,26 @@
-type Type {
+enum DamageClass {
+  PHYSICAL
+  SPECIAL
+  STATUS
+}
+
+type Move {
   id: ID!
   slug: String!
   name: String!
+  accuracy: Int!
+  pp: Int!
+  power: Int!
+  damageClass: DamageClass!
+  effect: String!
+  effectChance: Int!
+  target: String!
+  type: Type!
+}
+
+type MoveList {
+  total: Int!
+  moves: [Move!]!
 }
 
 type Pokemon {
@@ -21,11 +40,18 @@ type Pokemon {
   isMythical: Boolean!
   description: String!
   types: TypeList!
+  moves: MoveList!
 }
 
 type PokemonList {
   total: Int!
   pokemon: [Pokemon!]!
+}
+
+type Type {
+  id: ID!
+  slug: String!
+  name: String!
 }
 
 type TypeList {
@@ -36,4 +62,5 @@ type TypeList {
 type Query {
   allPokemon: PokemonList!
   allTypes: TypeList!
+  allMoves: MoveList!
 }

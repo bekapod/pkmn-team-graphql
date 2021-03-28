@@ -37,9 +37,9 @@ func NewEmptyPokemonList() PokemonList {
 	}
 }
 
-func (p *PokemonList) AddPokemon(pkmn *Pokemon) {
-	p.Total++
-	p.Pokemon = append(p.Pokemon, pkmn)
+func (l *PokemonList) AddPokemon(pkmn *Pokemon) {
+	l.Total++
+	l.Pokemon = append(l.Pokemon, pkmn)
 }
 
 func (Pokemon) IsEntity() {}
