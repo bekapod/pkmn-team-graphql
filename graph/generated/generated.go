@@ -548,7 +548,7 @@ type Pokemon {
   isMythical: Boolean!
   description: String!
   types: TypeList!
-  moves: MoveList
+  moves: MoveList!
 }
 
 type PokemonList {

@@ -15,11 +15,25 @@ func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, 
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
-	return dataloader.For(ctx).TypesByPokemonId.Load(obj.ID)
+	types, err := dataloader.For(ctx).TypesByPokemonId.Load(obj.ID)
+
+	if types == nil {
+		emptyTypes := model.NewEmptyTypeList()
+		return &emptyTypes, err
+	}
+
+	return types, err
 }
 
 func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error) {
-	return dataloader.For(ctx).MovesByPokemonId.Load(obj.ID)
+	moves, err := dataloader.For(ctx).MovesByPokemonId.Load(obj.ID)
+
+	if moves == nil {
+		emptyMoves := model.NewEmptyMoveList()
+		return &emptyMoves, err
+	}
+
+	return moves, err
 }
 
 func (r *queryResolver) PokemonByID(ctx context.Context, id string) (*model.Pokemon, error) {

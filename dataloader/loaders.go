@@ -61,8 +61,8 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 
 							_, ok := movesByPokemonId[pokemonId]
 							if !ok {
-								moveList := model.NewEmptyMoveList()
-								movesByPokemonId[pokemonId] = &moveList
+								ml := model.NewEmptyMoveList()
+								movesByPokemonId[pokemonId] = &ml
 							}
 
 							movesByPokemonId[pokemonId].AddMove(&m)
@@ -111,8 +111,8 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 
 							_, ok := typesByPokemonId[pokemonId]
 							if !ok {
-								typeList := model.NewEmptyTypeList()
-								typesByPokemonId[pokemonId] = &typeList
+								tl := model.NewEmptyTypeList()
+								typesByPokemonId[pokemonId] = &tl
 							}
 
 							typesByPokemonId[pokemonId].AddType(&t)
