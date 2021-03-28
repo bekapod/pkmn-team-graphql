@@ -2,8 +2,8 @@ package main
 
 import (
 	"bekapod/pkmn-team-graphql/log"
-	"bekapod/pkmn-team-graphql/scripts"
-	"bekapod/pkmn-team-graphql/scripts/pokeapi"
+	"bekapod/pkmn-team-graphql/pokeapi"
+	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
 	"fmt"
 	"strings"
 	"sync"
@@ -12,20 +12,19 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
-func getAllAbilities() pokeapi.ResourcePointerList {
-	abilityList := pokeapi.ResourcePointerList{}
-	scripts.GetResource("ability?limit=1000", &abilityList)
-	return abilityList
-}
+func main() {
+	start := time.Now()
+	config := &helpers.Config{
+		OutputFile: "seeds/abilities.sql",
+	}
+	arg.MustParse(config)
 
-func getAbility(id string) pokeapi.RawAbility {
-	fullAbility := pokeapi.RawAbility{}
-	scripts.GetResource(fmt.Sprintf("ability/%s", id), &fullAbility)
-	return fullAbility
-}
+	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
 
-func generateAbilitiesSeed() string {
-	abilityList := getAllAbilities()
+	f := helpers.OpenFile(config.OutputFile)
+	defer f.Close()
+
+	abilityList := client.GetResourceList("ability")
 	results := abilityList.Results
 	resultsLength := len(results)
 	values := make([]string, 0)
@@ -41,17 +40,29 @@ func generateAbilitiesSeed() string {
 			defer wg.Done()
 			urlParts := strings.Split(results[i].Url, "/")
 			id := urlParts[len(urlParts)-2]
-			fullAbility := getAbility(id)
+			fullAbility := client.GetAbility(id)
+			name := fullAbility.Name
+
+			if len(fullAbility.Pokemon) == 1 && fullAbility.Pokemon[0].Pokemon.Name == "calyrex-shadow-rider" {
+				name = "as-one-shadow-rider"
+			}
+
+			if len(fullAbility.Pokemon) == 1 && fullAbility.Pokemon[0].Pokemon.Name == "calyrex-ice-rider" {
+				name = "as-one-ice-rider"
+			}
+
 			if fullAbility.IsMainSeries {
 				englishName, err := pokeapi.GetEnglishName(fullAbility.Names, fullAbility.Name)
-				scripts.Check(err)
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
 				englishEffectEntry, _ := pokeapi.GetEnglishEffectEntry(fullAbility.EffectEntries, fullAbility.Name)
 
 				values = append(values, fmt.Sprintf(
 					"('%s', '%s', '%s')",
-					scripts.EscapeSingleQuote(fullAbility.Name),
-					scripts.EscapeSingleQuote(englishName.Name),
-					scripts.EscapeSingleQuote(englishEffectEntry.ShortEffect),
+					name,
+					helpers.EscapeSingleQuote(englishName.Name),
+					helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
 				))
 			}
 		}(i)
@@ -59,22 +70,12 @@ func generateAbilitiesSeed() string {
 
 	wg.Wait()
 
-	return fmt.Sprintf("INSERT INTO abilities (slug, name, effect)\n\tVALUES %s;", strings.Join(values, ", "))
-}
-
-func main() {
-	start := time.Now()
-	scripts.Args = &scripts.SeedArgs{
-		OutputFile: "seeds/abilities.sql",
-	}
-	arg.MustParse(scripts.Args)
-
-	f := scripts.OpenFile(scripts.Args.OutputFile)
-	defer f.Close()
-	sql := generateAbilitiesSeed()
+	sql := fmt.Sprintf("INSERT INTO abilities (slug, name, effect)\n\tVALUES %s;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
-	scripts.Check(err)
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	f.Sync()
 
 	elapsed := time.Since(start)

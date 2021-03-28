@@ -2,8 +2,8 @@ package main
 
 import (
 	"bekapod/pkmn-team-graphql/log"
-	"bekapod/pkmn-team-graphql/scripts"
-	"bekapod/pkmn-team-graphql/scripts/pokeapi"
+	"bekapod/pkmn-team-graphql/pokeapi"
+	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
 	"fmt"
 	"strings"
 	"sync"
@@ -12,32 +12,8 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
-func getAllMoves() pokeapi.ResourcePointerList {
-	moveList := pokeapi.ResourcePointerList{}
-	scripts.GetResource("move?limit=1000", &moveList)
-	return moveList
-}
-
-func getMove(name string) pokeapi.RawMove {
-	fullMove := pokeapi.RawMove{}
-	scripts.GetResource(fmt.Sprintf("move/%s", name), &fullMove)
-	return fullMove
-}
-
-func getAllMoveTargets() pokeapi.ResourcePointerList {
-	moveTargetList := pokeapi.ResourcePointerList{}
-	scripts.GetResource("move-target", &moveTargetList)
-	return moveTargetList
-}
-
-func getMoveTarget(name string) pokeapi.RawTarget {
-	target := pokeapi.RawTarget{}
-	scripts.GetResource(fmt.Sprintf("move-target/%s", name), &target)
-	return target
-}
-
-func getListOfMoveTargets() map[string]string {
-	moveTargetList := getAllMoveTargets()
+func getListOfMoveTargets(client *pokeapi.PokeApiClient) map[string]string {
+	moveTargetList := client.GetResourceList("move-target")
 	results := moveTargetList.Results
 	resultsLength := len(results)
 	targets := make(map[string]string)
@@ -47,9 +23,11 @@ func getListOfMoveTargets() map[string]string {
 	for i := 0; i < resultsLength; i++ {
 		go func(i int) {
 			defer wg.Done()
-			target := getMoveTarget(results[i].Name)
+			target := client.GetMoveTarget(results[i].Name)
 			englishName, err := pokeapi.GetEnglishName(target.Names, target.Name)
-			scripts.Check(err)
+			if err != nil {
+				log.Logger.Fatal(err)
+			}
 			targets[target.Name] = englishName.Name
 		}(i)
 	}
@@ -58,9 +36,20 @@ func getListOfMoveTargets() map[string]string {
 	return targets
 }
 
-func generateMovesSeed() string {
-	moveList := getAllMoves()
-	targets := getListOfMoveTargets()
+func main() {
+	start := time.Now()
+	config := &helpers.Config{
+		OutputFile: "seeds/moves.sql",
+	}
+	arg.MustParse(config)
+
+	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+
+	f := helpers.OpenFile(config.OutputFile)
+	defer f.Close()
+
+	moveList := client.GetResourceList("move")
+	targets := getListOfMoveTargets(client)
 	results := moveList.Results
 	resultsLength := len(results)
 	values := make([]string, 0)
@@ -74,25 +63,27 @@ func generateMovesSeed() string {
 		go func(i int) {
 			defer func() { <-sem }()
 			defer wg.Done()
-			fullMove := getMove(results[i].Name)
+			fullMove := client.GetMove(results[i].Name)
 			if fullMove.DamageClass.Name != "" {
 				target := targets[fullMove.Target.Name]
 
 				englishName, err := pokeapi.GetEnglishName(fullMove.Names, fullMove.Name)
-				scripts.Check(err)
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
 				englishEffectEntry, _ := pokeapi.GetEnglishEffectEntry(fullMove.EffectEntries, fullMove.Name)
 
 				values = append(values, fmt.Sprintf(
 					"('%s', '%s', %d, %d, %d, '%s', '%s', %d, '%s', %s)",
-					scripts.EscapeSingleQuote(fullMove.Name),
-					scripts.EscapeSingleQuote(englishName.Name),
+					fullMove.Name,
+					helpers.EscapeSingleQuote(englishName.Name),
 					fullMove.Accuracy,
 					fullMove.PP,
 					fullMove.Power,
-					scripts.EscapeSingleQuote(fullMove.DamageClass.Name),
-					scripts.EscapeSingleQuote(englishEffectEntry.ShortEffect),
+					helpers.EscapeSingleQuote(fullMove.DamageClass.Name),
+					helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
 					fullMove.EffectChance,
-					scripts.EscapeSingleQuote(target),
+					helpers.EscapeSingleQuote(target),
 					fmt.Sprintf("(SELECT id from types WHERE slug='%s')", fullMove.Type.Name),
 				))
 			}
@@ -101,22 +92,12 @@ func generateMovesSeed() string {
 
 	wg.Wait()
 
-	return fmt.Sprintf("INSERT INTO moves (slug, name, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id)\n\tVALUES %s;", strings.Join(values, ", "))
-}
-
-func main() {
-	start := time.Now()
-	scripts.Args = &scripts.SeedArgs{
-		OutputFile: "seeds/moves.sql",
-	}
-	arg.MustParse(scripts.Args)
-
-	f := scripts.OpenFile(scripts.Args.OutputFile)
-	defer f.Close()
-	sql := generateMovesSeed()
+	sql := fmt.Sprintf("INSERT INTO moves (slug, name, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id)\n\tVALUES %s;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
-	scripts.Check(err)
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	f.Sync()
 
 	elapsed := time.Since(start)

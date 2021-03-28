@@ -2,8 +2,8 @@ package main
 
 import (
 	"bekapod/pkmn-team-graphql/log"
-	"bekapod/pkmn-team-graphql/scripts"
-	"bekapod/pkmn-team-graphql/scripts/pokeapi"
+	"bekapod/pkmn-team-graphql/pokeapi"
+	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
 	"fmt"
 	"strings"
 	"sync"
@@ -12,63 +12,51 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
-func getAllStats() pokeapi.ResourcePointerList {
-	statList := pokeapi.ResourcePointerList{}
-	scripts.GetResource("stat?limit=1000", &statList)
-	return statList
-}
+func main() {
+	start := time.Now()
+	config := &helpers.Config{
+		OutputFile: "seeds/stats.sql",
+	}
+	arg.MustParse(config)
 
-func getStat(name string) pokeapi.RawStat {
-	fullStat := pokeapi.RawStat{}
-	scripts.GetResource(fmt.Sprintf("stat/%s", name), &fullStat)
-	return fullStat
-}
+	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
 
-func generateStatsSeed() string {
-	statList := getAllStats()
+	f := helpers.OpenFile(config.OutputFile)
+	defer f.Close()
+
+	statList := client.GetResourceList("stat")
 	results := statList.Results
 	resultsLength := len(results)
 	values := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
-	sem := make(chan bool, 20)
 
 	for i := 0; i < resultsLength; i++ {
-		sem <- true
 		go func(i int) {
-			defer func() { <-sem }()
 			defer wg.Done()
-			fullStat := getStat(results[i].Name)
+			fullStat := client.GetStat(results[i].Name)
 			englishName, err := pokeapi.GetEnglishName(fullStat.Names, fullStat.Name)
-			scripts.Check(err)
+			if err != nil {
+				log.Logger.Fatal(err)
+			}
 
 			values = append(values, fmt.Sprintf(
 				"('%s', '%s')",
-				scripts.EscapeSingleQuote(fullStat.Name),
-				scripts.EscapeSingleQuote(englishName.Name),
+				fullStat.Name,
+				helpers.EscapeSingleQuote(englishName.Name),
 			))
 		}(i)
 	}
 
 	wg.Wait()
 
-	return fmt.Sprintf("INSERT INTO stats (slug, name)\n\tVALUES %s;", strings.Join(values, ", "))
-}
-
-func main() {
-	start := time.Now()
-	scripts.Args = &scripts.SeedArgs{
-		OutputFile: "seeds/stats.sql",
-	}
-	arg.MustParse(scripts.Args)
-
-	f := scripts.OpenFile(scripts.Args.OutputFile)
-	defer f.Close()
-	sql := generateStatsSeed()
+	sql := fmt.Sprintf("INSERT INTO stats (slug, name)\n\tVALUES %s;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
-	scripts.Check(err)
+	if err != nil {
+		log.Logger.Fatal(err)
+	}
 	f.Sync()
 
 	elapsed := time.Since(start)
