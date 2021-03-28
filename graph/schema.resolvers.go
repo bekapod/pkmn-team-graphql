@@ -32,7 +32,7 @@ func (r *queryResolver) AllTypes(ctx context.Context) (*model.TypeList, error) {
 }
 
 func (r *queryResolver) AllMoves(ctx context.Context) (*model.MoveList, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.MoveRepository.GetAllMoves(ctx)
 }
 
 // Move returns generated.MoveResolver implementation.
