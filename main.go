@@ -27,7 +27,7 @@ func main() {
 	data.MigrateDatabase(db, cfg)
 
 	resolver := &graph.Resolver{
-		Pokemon: repository.NewPokemon(db),
+		PokemonRepository: repository.NewPokemon(db),
 	}
 
 	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver)}

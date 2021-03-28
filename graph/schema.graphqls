@@ -4,11 +4,26 @@
 
 type Pokemon {
   id: ID!
+  name: String!
+  slug: String!
+  pokedexId: Int!
+  sprite: String!
+  hp: Int!
+  attack: Int!
+  defense: Int!
+  specialAttack: Int!
+  specialDefense: Int!
+  speed: Int!
+  isBaby: Boolean!
+  isLegendary: Boolean!
+  isMythical: Boolean!
+  description: String!
+  types: [Type!]!
 }
 
 type PokemonList {
   total: Int!
-  pokemon: [Pokemon]!
+  pokemon: [Pokemon!]!
 }
 
 type Query {
