@@ -18,6 +18,10 @@ func (r *queryResolver) AllPokemon(ctx context.Context) (*model.PokemonList, err
 	return r.PokemonRepository.GetAllPokemon(ctx)
 }
 
+func (r *queryResolver) AllTypes(ctx context.Context) (*model.TypeList, error) {
+	return r.TypeRepository.GetAllTypes(ctx)
+}
+
 // Pokemon returns generated.PokemonResolver implementation.
 func (r *Resolver) Pokemon() generated.PokemonResolver { return &pokemonResolver{r} }
 

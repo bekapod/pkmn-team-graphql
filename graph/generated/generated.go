@@ -69,11 +69,18 @@ type ComplexityRoot struct {
 
 	Query struct {
 		AllPokemon func(childComplexity int) int
+		AllTypes   func(childComplexity int) int
 	}
 
 	Type struct {
+		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 		Slug func(childComplexity int) int
+	}
+
+	TypeList struct {
+		Total func(childComplexity int) int
+		Types func(childComplexity int) int
 	}
 }
 
@@ -82,6 +89,7 @@ type PokemonResolver interface {
 }
 type QueryResolver interface {
 	AllPokemon(ctx context.Context) (*model.PokemonList, error)
+	AllTypes(ctx context.Context) (*model.TypeList, error)
 }
 
 type executableSchema struct {
@@ -232,6 +240,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AllPokemon(childComplexity), true
 
+	case "Query.allTypes":
+		if e.complexity.Query.AllTypes == nil {
+			break
+		}
+
+		return e.complexity.Query.AllTypes(childComplexity), true
+
+	case "Type.id":
+		if e.complexity.Type.ID == nil {
+			break
+		}
+
+		return e.complexity.Type.ID(childComplexity), true
+
 	case "Type.name":
 		if e.complexity.Type.Name == nil {
 			break
@@ -245,6 +267,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Type.Slug(childComplexity), true
+
+	case "TypeList.total":
+		if e.complexity.TypeList.Total == nil {
+			break
+		}
+
+		return e.complexity.TypeList.Total(childComplexity), true
+
+	case "TypeList.types":
+		if e.complexity.TypeList.Types == nil {
+			break
+		}
+
+		return e.complexity.TypeList.Types(childComplexity), true
 
 	}
 	return 0, false
@@ -297,6 +333,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "graph/schema.graphqls", Input: `type Type {
+  id: ID!
   slug: String!
   name: String!
 }
@@ -325,8 +362,14 @@ type PokemonList {
   pokemon: [Pokemon!]!
 }
 
+type TypeList {
+  total: Int!
+  types: [Type!]!
+}
+
 type Query {
   allPokemon: PokemonList!
+  allTypes: TypeList!
 }
 `, BuiltIn: false},
 }
@@ -1054,6 +1097,41 @@ func (ec *executionContext) _Query_allPokemon(ctx context.Context, field graphql
 	return ec.marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonList(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_allTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AllTypes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TypeList)
+	fc.Result = res
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1125,6 +1203,41 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Type_id(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Type_slug(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1193,6 +1306,76 @@ func (ec *executionContext) _Type_name(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TypeList_total(ctx context.Context, field graphql.CollectedField, obj *model.TypeList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TypeList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TypeList_types(ctx context.Context, field graphql.CollectedField, obj *model.TypeList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TypeList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Types, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Type)
+	fc.Result = res
+	return ec.marshalNType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2462,6 +2645,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "allTypes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_allTypes(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -2488,6 +2685,11 @@ func (ec *executionContext) _Type(ctx context.Context, sel ast.SelectionSet, obj
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Type")
+		case "id":
+			out.Values[i] = ec._Type_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "slug":
 			out.Values[i] = ec._Type_slug(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2495,6 +2697,38 @@ func (ec *executionContext) _Type(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "name":
 			out.Values[i] = ec._Type_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var typeListImplementors = []string{"TypeList"}
+
+func (ec *executionContext) _TypeList(ctx context.Context, sel ast.SelectionSet, obj *model.TypeList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, typeListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TypeList")
+		case "total":
+			out.Values[i] = ec._TypeList_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "types":
+			out.Values[i] = ec._TypeList_types(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2920,6 +3154,20 @@ func (ec *executionContext) marshalNType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 		return graphql.Null
 	}
 	return ec._Type(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx context.Context, sel ast.SelectionSet, v model.TypeList) graphql.Marshaler {
+	return ec._TypeList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx context.Context, sel ast.SelectionSet, v *model.TypeList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._TypeList(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
