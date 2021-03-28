@@ -11,6 +11,6 @@ require (
 	github.com/johejo/golang-migrate-extra v0.0.0-20210217013041-51a992e50d16
 	github.com/lib/pq v1.10.0
 	github.com/sirupsen/logrus v1.8.1
-	github.com/vektah/dataloaden v0.3.0 // indirect
+	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.1.0
 )
