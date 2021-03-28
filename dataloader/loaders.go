@@ -19,6 +19,7 @@ const loadersKey key = "dataloaders"
 
 type Loaders struct {
 	TypesByPokemonId PokemonTypeLoader
+	TypeByTypeId     TypeLoader
 }
 
 func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
@@ -54,7 +55,7 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 							var pokemonId string
 							err := rows.Scan(&t.ID, &t.Name, &t.Slug, &pokemonId)
 							if err != nil {
-								panic(fmt.Errorf("error scanning result in GetAllTypes: %w", err))
+								panic(fmt.Errorf("error scanning result in TypesByPokemonId: %w", err))
 							}
 
 							_, ok := typesByPokemonId[pokemonId]
@@ -73,6 +74,49 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 						}
 
 						return typeList, nil
+					},
+				},
+				TypeByTypeId: TypeLoader{
+					maxBatch: 1000,
+					wait:     1 * time.Millisecond,
+					fetch: func(ids []string) ([]*model.Type, []error) {
+						typesByTypeId := map[string]*model.Type{}
+						placeholders := make([]string, len(ids))
+						args := make([]interface{}, len(ids))
+						for i := 0; i < len(ids); i++ {
+							placeholders[i] = fmt.Sprintf("$%d", i+1)
+							args[i] = ids[i]
+						}
+
+						query := "SELECT id, name, slug FROM types WHERE id IN (" + strings.Join(placeholders, ",") + ")"
+
+						log.Logger.WithField("args", args).Debug(query)
+						rows, err := db.QueryContext(r.Context(),
+							query,
+							args...,
+						)
+						if err != nil {
+							panic(fmt.Errorf("error fetching types: %w", err))
+						}
+
+						defer rows.Close()
+						for rows.Next() {
+							var t model.Type
+							err := rows.Scan(&t.ID, &t.Name, &t.Slug)
+							if err != nil {
+								panic(fmt.Errorf("error scanning result in TypeByTypeId: %w", err))
+							}
+
+							typesByTypeId[t.ID] = &t
+						}
+
+						types := make([]*model.Type, len(ids))
+						for i, id := range ids {
+							types[i] = typesByTypeId[id]
+							i++
+						}
+
+						return types, nil
 					},
 				},
 			})

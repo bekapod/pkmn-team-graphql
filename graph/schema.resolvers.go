@@ -12,7 +12,7 @@ import (
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
-	panic(fmt.Errorf("not implemented"))
+	return dataloader.For(ctx).TypeByTypeId.Load(obj.TypeId)
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
