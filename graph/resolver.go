@@ -13,4 +13,5 @@ import (
 type Resolver struct {
 	PokemonRepository repository.Pokemon
 	TypeRepository    repository.Type
+	MoveRepository    repository.Move
 }

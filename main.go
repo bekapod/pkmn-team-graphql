@@ -29,6 +29,7 @@ func main() {
 	resolver := &graph.Resolver{
 		PokemonRepository: repository.NewPokemon(db),
 		TypeRepository:    repository.NewType(db),
+		MoveRepository:    repository.NewMove(db),
 	}
 
 	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, db, cfg.Tracing)}
