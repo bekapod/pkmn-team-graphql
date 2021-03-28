@@ -20,7 +20,7 @@ type Pokemon {
   isLegendary: Boolean!
   isMythical: Boolean!
   description: String!
-  types: [Type!]!
+  types: TypeList!
 }
 
 type PokemonList {

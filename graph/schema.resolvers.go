@@ -5,13 +5,13 @@ package graph
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
-func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) ([]*model.Type, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
+	return dataloader.For(ctx).TypesByPokemonId.Load(obj.ID)
 }
 
 func (r *queryResolver) AllPokemon(ctx context.Context) (*model.PokemonList, error) {

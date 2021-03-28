@@ -31,7 +31,7 @@ func main() {
 		TypeRepository:    repository.NewType(db),
 	}
 
-	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver)}
+	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, db, cfg.Tracing)}
 
 	go func() {
 		stop := make(chan os.Signal, 1)

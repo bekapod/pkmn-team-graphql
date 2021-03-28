@@ -85,7 +85,7 @@ type ComplexityRoot struct {
 }
 
 type PokemonResolver interface {
-	Types(ctx context.Context, obj *model.Pokemon) ([]*model.Type, error)
+	Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error)
 }
 type QueryResolver interface {
 	AllPokemon(ctx context.Context) (*model.PokemonList, error)
@@ -354,7 +354,7 @@ type Pokemon {
   isLegendary: Boolean!
   isMythical: Boolean!
   description: String!
-  types: [Type!]!
+  types: TypeList!
 }
 
 type PokemonList {
@@ -987,9 +987,9 @@ func (ec *executionContext) _Pokemon_types(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Type)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonList) (ret graphql.Marshaler) {
