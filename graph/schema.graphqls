@@ -16,6 +16,7 @@ type Move {
   effectChance: Int!
   target: String!
   type: Type!
+  pokemon: PokemonList!
 }
 
 type MoveList {
@@ -52,6 +53,7 @@ type Type {
   id: ID!
   slug: String!
   name: String!
+  pokemon: PokemonList
 }
 
 type TypeList {

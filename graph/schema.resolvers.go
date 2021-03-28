@@ -8,10 +8,16 @@ import (
 	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
 	return dataloader.For(ctx).TypeByTypeId.Load(obj.TypeId)
+}
+
+func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {
+	// dataloader
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
@@ -60,6 +66,11 @@ func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
 	return r.MoveRepository.GetMoves(ctx)
 }
 
+func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonList, error) {
+	// dataloader
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Move returns generated.MoveResolver implementation.
 func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
 
@@ -69,6 +80,10 @@ func (r *Resolver) Pokemon() generated.PokemonResolver { return &pokemonResolver
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Type returns generated.TypeResolver implementation.
+func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
+
 type moveResolver struct{ *Resolver }
 type pokemonResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type typeResolver struct{ *Resolver }
