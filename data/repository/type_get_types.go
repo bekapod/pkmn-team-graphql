@@ -12,7 +12,7 @@ var (
 	ErrNoTypes = errors.New("no types found")
 )
 
-func (r Type) GetAllTypes(ctx context.Context) (*model.TypeList, error) {
+func (r Type) GetTypes(ctx context.Context) (*model.TypeList, error) {
 	types := model.NewEmptyTypeList()
 
 	rows, err := r.db.QueryContext(

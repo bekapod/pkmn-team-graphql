@@ -12,7 +12,7 @@ var (
 	ErrNoMoves = errors.New("no moves found")
 )
 
-func (r Move) GetAllMoves(ctx context.Context) (*model.MoveList, error) {
+func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 	moves := model.NewEmptyMoveList()
 
 	rows, err := r.db.QueryContext(

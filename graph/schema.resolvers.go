@@ -8,6 +8,7 @@ import (
 	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
@@ -22,16 +23,28 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	return dataloader.For(ctx).MovesByPokemonId.Load(obj.ID)
 }
 
-func (r *queryResolver) AllPokemon(ctx context.Context) (*model.PokemonList, error) {
-	return r.PokemonRepository.GetAllPokemon(ctx)
+func (r *queryResolver) PokemonByID(ctx context.Context, id string) (*model.Pokemon, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) AllTypes(ctx context.Context) (*model.TypeList, error) {
-	return r.TypeRepository.GetAllTypes(ctx)
+func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error) {
+	return r.PokemonRepository.GetPokemon(ctx)
 }
 
-func (r *queryResolver) AllMoves(ctx context.Context) (*model.MoveList, error) {
-	return r.MoveRepository.GetAllMoves(ctx)
+func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
+	return r.TypeRepository.GetTypes(ctx)
+}
+
+func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
+	return r.MoveRepository.GetMoves(ctx)
 }
 
 // Move returns generated.MoveResolver implementation.

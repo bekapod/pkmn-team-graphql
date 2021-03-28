@@ -12,7 +12,7 @@ var (
 	ErrNoPokemon = errors.New("no pokemon found")
 )
 
-func (r Pokemon) GetAllPokemon(ctx context.Context) (*model.PokemonList, error) {
+func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 	pokemon := model.NewEmptyPokemonList()
 
 	rows, err := r.db.QueryContext(

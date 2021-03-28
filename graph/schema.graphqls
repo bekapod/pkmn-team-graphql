@@ -60,7 +60,10 @@ type TypeList {
 }
 
 type Query {
-  allPokemon: PokemonList!
-  allTypes: TypeList!
-  allMoves: MoveList!
+  pokemonById(id: ID!): Pokemon
+  pokemon: PokemonList!
+  typeById(id: ID!): Type
+  types: TypeList!
+  moveById(id: ID!): Move
+  moves: MoveList!
 }
