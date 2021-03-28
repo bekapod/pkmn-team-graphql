@@ -506,7 +506,7 @@ type Pokemon {
   isMythical: Boolean!
   description: String!
   types: TypeList!
-  moves: MoveList!
+  moves: MoveList
 }
 
 type PokemonList {
@@ -1631,14 +1631,11 @@ func (ec *executionContext) _Pokemon_moves(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.MoveList)
 	fc.Result = res
-	return ec.marshalNMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx, field.Selections, res)
+	return ec.marshalOMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonList) (ret graphql.Marshaler) {
@@ -3384,9 +3381,6 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Pokemon_moves(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		default:
@@ -4332,6 +4326,13 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) marshalOMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx context.Context, sel ast.SelectionSet, v *model.MoveList) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MoveList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
