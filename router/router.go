@@ -1,11 +1,9 @@
 package router
 
 import (
-	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"bekapod/pkmn-team-graphql/log"
-	"database/sql"
 	"net/http"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -14,7 +12,7 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func New(resolver *graph.Resolver, db *sql.DB, tracing bool) *chi.Mux {
+func New(resolver *graph.Resolver, tracing bool) *chi.Mux {
 	gqlSrv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolver}))
 
 	if tracing {
@@ -23,7 +21,7 @@ func New(resolver *graph.Resolver, db *sql.DB, tracing bool) *chi.Mux {
 	}
 
 	router := chi.NewRouter()
-	router.Use(dataloader.Middleware(db))
+	router.Use(graph.DataLoaderMiddleware(resolver))
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/json")

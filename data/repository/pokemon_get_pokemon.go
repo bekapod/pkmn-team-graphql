@@ -2,10 +2,12 @@ package repository
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 var (
@@ -55,4 +57,102 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 	}
 
 	return &pkmn, nil
+}
+
+func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []string) ([]*model.PokemonList, []error) {
+	return func(moveIds []string) ([]*model.PokemonList, []error) {
+		pokemonByMoveId := map[string]*model.PokemonList{}
+		placeholders := make([]string, len(moveIds))
+		args := make([]interface{}, len(moveIds))
+		for i := 0; i < len(moveIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = moveIds[i]
+		}
+
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_move.move_id FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (" + strings.Join(placeholders, ",") + ")"
+
+		log.Logger.WithField("args", args).Debug(query)
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			panic(fmt.Errorf("error fetching pokemon for move: %w", err))
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var pkmn model.Pokemon
+			var moveId string
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &moveId)
+			if err != nil {
+				panic(fmt.Errorf("error scanning result in PokemonByMoveId: %w", err))
+			}
+
+			_, ok := pokemonByMoveId[moveId]
+			if !ok {
+				pl := model.NewEmptyPokemonList()
+				pokemonByMoveId[moveId] = &pl
+			}
+
+			pokemonByMoveId[moveId].AddPokemon(&pkmn)
+		}
+
+		pokemonList := make([]*model.PokemonList, len(moveIds))
+		for i, id := range moveIds {
+			pokemonList[i] = pokemonByMoveId[id]
+			i++
+		}
+
+		return pokemonList, nil
+	}
+}
+
+func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []string) ([]*model.PokemonList, []error) {
+	return func(typeIds []string) ([]*model.PokemonList, []error) {
+		pokemonByTypeId := map[string]*model.PokemonList{}
+		placeholders := make([]string, len(typeIds))
+		args := make([]interface{}, len(typeIds))
+		for i := 0; i < len(typeIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = typeIds[i]
+		}
+
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_type.type_id FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (" + strings.Join(placeholders, ",") + ")"
+
+		log.Logger.WithField("args", args).Debug(query)
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			panic(fmt.Errorf("error fetching pokemon for type: %w", err))
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var pkmn model.Pokemon
+			var typeId string
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &typeId)
+			if err != nil {
+				panic(fmt.Errorf("error scanning result in PokemonByTypeId: %w", err))
+			}
+
+			_, ok := pokemonByTypeId[typeId]
+			if !ok {
+				pl := model.NewEmptyPokemonList()
+				pokemonByTypeId[typeId] = &pl
+			}
+
+			pokemonByTypeId[typeId].AddPokemon(&pkmn)
+		}
+
+		pokemonList := make([]*model.PokemonList, len(typeIds))
+		for i, id := range typeIds {
+			pokemonList[i] = pokemonByTypeId[id]
+			i++
+		}
+
+		return pokemonList, nil
+	}
 }

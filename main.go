@@ -32,7 +32,7 @@ func main() {
 		MoveRepository:    repository.NewMove(db),
 	}
 
-	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, db, cfg.Tracing)}
+	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, cfg.Tracing)}
 
 	go func() {
 		stop := make(chan os.Signal, 1)

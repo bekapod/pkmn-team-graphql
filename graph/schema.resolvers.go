@@ -5,17 +5,16 @@ package graph
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
-	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
-	return dataloader.For(ctx).TypeByTypeId.Load(obj.TypeId)
+	return DataLoaderFor(ctx).TypeByTypeId.Load(obj.TypeId)
 }
 
 func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {
-	pokemon, err := dataloader.For(ctx).PokemonByMoveId.Load(obj.ID)
+	pokemon, err := DataLoaderFor(ctx).PokemonByMoveId.Load(obj.ID)
 
 	if pokemon == nil {
 		emptyPokemon := model.NewEmptyPokemonList()
@@ -26,7 +25,7 @@ func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.Pok
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
-	types, err := dataloader.For(ctx).TypesByPokemonId.Load(obj.ID)
+	types, err := DataLoaderFor(ctx).TypesByPokemonId.Load(obj.ID)
 
 	if types == nil {
 		emptyTypes := model.NewEmptyTypeList()
@@ -37,7 +36,7 @@ func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model
 }
 
 func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error) {
-	moves, err := dataloader.For(ctx).MovesByPokemonId.Load(obj.ID)
+	moves, err := DataLoaderFor(ctx).MovesByPokemonId.Load(obj.ID)
 
 	if moves == nil {
 		emptyMoves := model.NewEmptyMoveList()
@@ -72,7 +71,7 @@ func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
 }
 
 func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonList, error) {
-	pokemon, err := dataloader.For(ctx).PokemonByTypeId.Load(obj.ID)
+	pokemon, err := DataLoaderFor(ctx).PokemonByTypeId.Load(obj.ID)
 
 	if pokemon == nil {
 		emptyPokemon := model.NewEmptyPokemonList()
@@ -83,7 +82,7 @@ func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.Pok
 }
 
 func (r *typeResolver) Moves(ctx context.Context, obj *model.Type) (*model.MoveList, error) {
-	moves, err := dataloader.For(ctx).MovesByTypeId.Load(obj.ID)
+	moves, err := DataLoaderFor(ctx).MovesByTypeId.Load(obj.ID)
 
 	if moves == nil {
 		emptyMoves := model.NewEmptyMoveList()
