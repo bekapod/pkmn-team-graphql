@@ -8,7 +8,6 @@ import (
 	"bekapod/pkmn-team-graphql/dataloader"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
@@ -84,7 +83,14 @@ func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.Pok
 }
 
 func (r *typeResolver) Moves(ctx context.Context, obj *model.Type) (*model.MoveList, error) {
-	panic(fmt.Errorf("not implemented"))
+	moves, err := dataloader.For(ctx).MovesByTypeId.Load(obj.ID)
+
+	if moves == nil {
+		emptyMoves := model.NewEmptyMoveList()
+		return &emptyMoves, err
+	}
+
+	return moves, err
 }
 
 // Move returns generated.MoveResolver implementation.

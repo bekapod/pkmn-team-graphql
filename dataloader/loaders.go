@@ -17,6 +17,7 @@ const loadersKey key = "dataloaders"
 
 type Loaders struct {
 	MovesByPokemonId MoveListLoader
+	MovesByTypeId    MoveListLoader
 	PokemonByMoveId  PokemonListLoader
 	PokemonByTypeId  PokemonListLoader
 	TypesByPokemonId TypeListLoader
@@ -71,6 +72,55 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 						moveList := make([]*model.MoveList, len(ids))
 						for i, id := range ids {
 							moveList[i] = movesByPokemonId[id]
+							i++
+						}
+
+						return moveList, nil
+					},
+				},
+				MovesByTypeId: MoveListLoader{
+					maxBatch: 1000,
+					wait:     1 * time.Millisecond,
+					fetch: func(ids []string) ([]*model.MoveList, []error) {
+						movesByTypeId := map[string]*model.MoveList{}
+						placeholders := make([]string, len(ids))
+						args := make([]interface{}, len(ids))
+						for i := 0; i < len(ids); i++ {
+							placeholders[i] = fmt.Sprintf("$%d", i+1)
+							args[i] = ids[i]
+						}
+
+						query := "SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves WHERE type_id IN (" + strings.Join(placeholders, ",") + ")"
+
+						log.Logger.WithField("args", args).Debug(query)
+						rows, err := db.QueryContext(r.Context(),
+							query,
+							args...,
+						)
+						if err != nil {
+							panic(fmt.Errorf("error fetching moves for type: %w", err))
+						}
+
+						defer rows.Close()
+						for rows.Next() {
+							var m model.Move
+							err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeId)
+							if err != nil {
+								panic(fmt.Errorf("error scanning result in MovesByTypeId: %w", err))
+							}
+
+							_, ok := movesByTypeId[m.TypeId]
+							if !ok {
+								ml := model.NewEmptyMoveList()
+								movesByTypeId[m.TypeId] = &ml
+							}
+
+							movesByTypeId[m.TypeId].AddMove(&m)
+						}
+
+						moveList := make([]*model.MoveList, len(ids))
+						for i, id := range ids {
+							moveList[i] = movesByTypeId[id]
 							i++
 						}
 
