@@ -53,7 +53,8 @@ type Type {
   id: ID!
   slug: String!
   name: String!
-  pokemon: PokemonList
+  pokemon: PokemonList!
+  moves: MoveList!
 }
 
 type TypeList {
