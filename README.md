@@ -20,6 +20,21 @@ git push heroku main
 heroku open
 ```
 
+## Code Generation
+
+To generate resolvers based on the schema:
+
+```sh
+go generate
+```
+
+To generate a dataloader for a type:
+
+```sh
+cd dataloader
+go run github.com/vektah/dataloaden YourTypeLoader string "*bekapod/pkmn-team-graphql/data/model.YourType"
+```
+
 ## Migrations
 
 To generate a new database migration:

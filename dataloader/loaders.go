@@ -1,5 +1,3 @@
-//go:generate go run github.com/vektah/dataloaden PokemonTypeLoader string "*bekapod/pkmn-team-graphql/data/model.TypeList"
-
 package dataloader
 
 import (
@@ -18,8 +16,10 @@ type key string
 const loadersKey key = "dataloaders"
 
 type Loaders struct {
-	MovesByPokemonId PokemonMoveLoader
-	TypesByPokemonId PokemonTypeLoader
+	MovesByPokemonId MoveListLoader
+	PokemonByMoveId  PokemonListLoader
+	PokemonByTypeId  PokemonListLoader
+	TypesByPokemonId TypeListLoader
 	TypeByTypeId     TypeLoader
 }
 
@@ -27,7 +27,7 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, &Loaders{
-				MovesByPokemonId: PokemonMoveLoader{
+				MovesByPokemonId: MoveListLoader{
 					maxBatch: 1000,
 					wait:     1 * time.Millisecond,
 					fetch: func(ids []string) ([]*model.MoveList, []error) {
@@ -77,7 +77,107 @@ func Middleware(db *sql.DB) func(next http.Handler) http.Handler {
 						return moveList, nil
 					},
 				},
-				TypesByPokemonId: PokemonTypeLoader{
+				PokemonByMoveId: PokemonListLoader{
+					maxBatch: 1000,
+					wait:     1 * time.Millisecond,
+					fetch: func(ids []string) ([]*model.PokemonList, []error) {
+						pokemonByMoveId := map[string]*model.PokemonList{}
+						placeholders := make([]string, len(ids))
+						args := make([]interface{}, len(ids))
+						for i := 0; i < len(ids); i++ {
+							placeholders[i] = fmt.Sprintf("$%d", i+1)
+							args[i] = ids[i]
+						}
+
+						query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_move.move_id FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (" + strings.Join(placeholders, ",") + ")"
+
+						log.Logger.WithField("args", args).Debug(query)
+						rows, err := db.QueryContext(r.Context(),
+							query,
+							args...,
+						)
+						if err != nil {
+							panic(fmt.Errorf("error fetching pokemon for move: %w", err))
+						}
+
+						defer rows.Close()
+						for rows.Next() {
+							var pkmn model.Pokemon
+							var moveId string
+							err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &moveId)
+							if err != nil {
+								panic(fmt.Errorf("error scanning result in PokemonByMoveId: %w", err))
+							}
+
+							_, ok := pokemonByMoveId[moveId]
+							if !ok {
+								pl := model.NewEmptyPokemonList()
+								pokemonByMoveId[moveId] = &pl
+							}
+
+							pokemonByMoveId[moveId].AddPokemon(&pkmn)
+						}
+
+						pokemonList := make([]*model.PokemonList, len(ids))
+						for i, id := range ids {
+							pokemonList[i] = pokemonByMoveId[id]
+							i++
+						}
+
+						return pokemonList, nil
+					},
+				},
+				PokemonByTypeId: PokemonListLoader{
+					maxBatch: 1000,
+					wait:     1 * time.Millisecond,
+					fetch: func(ids []string) ([]*model.PokemonList, []error) {
+						pokemonByTypeId := map[string]*model.PokemonList{}
+						placeholders := make([]string, len(ids))
+						args := make([]interface{}, len(ids))
+						for i := 0; i < len(ids); i++ {
+							placeholders[i] = fmt.Sprintf("$%d", i+1)
+							args[i] = ids[i]
+						}
+
+						query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_type.type_id FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (" + strings.Join(placeholders, ",") + ")"
+
+						log.Logger.WithField("args", args).Debug(query)
+						rows, err := db.QueryContext(r.Context(),
+							query,
+							args...,
+						)
+						if err != nil {
+							panic(fmt.Errorf("error fetching pokemon for type: %w", err))
+						}
+
+						defer rows.Close()
+						for rows.Next() {
+							var pkmn model.Pokemon
+							var typeId string
+							err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &typeId)
+							if err != nil {
+								panic(fmt.Errorf("error scanning result in PokemonByTypeId: %w", err))
+							}
+
+							_, ok := pokemonByTypeId[typeId]
+							if !ok {
+								pl := model.NewEmptyPokemonList()
+								pokemonByTypeId[typeId] = &pl
+							}
+
+							pokemonByTypeId[typeId].AddPokemon(&pkmn)
+						}
+
+						pokemonList := make([]*model.PokemonList, len(ids))
+						for i, id := range ids {
+							pokemonList[i] = pokemonByTypeId[id]
+							i++
+						}
+
+						return pokemonList, nil
+					},
+				},
+				TypesByPokemonId: TypeListLoader{
 					maxBatch: 1000,
 					wait:     1 * time.Millisecond,
 					fetch: func(ids []string) ([]*model.TypeList, []error) {

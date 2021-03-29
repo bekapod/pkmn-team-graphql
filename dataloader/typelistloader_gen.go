@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// PokemonMoveLoaderConfig captures the config to create a new PokemonMoveLoader
-type PokemonMoveLoaderConfig struct {
+// TypeListLoaderConfig captures the config to create a new TypeListLoader
+type TypeListLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.MoveList, []error)
+	Fetch func(keys []string) ([]*model.TypeList, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type PokemonMoveLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewPokemonMoveLoader creates a new PokemonMoveLoader given a fetch, wait, and maxBatch
-func NewPokemonMoveLoader(config PokemonMoveLoaderConfig) *PokemonMoveLoader {
-	return &PokemonMoveLoader{
+// NewTypeListLoader creates a new TypeListLoader given a fetch, wait, and maxBatch
+func NewTypeListLoader(config TypeListLoaderConfig) *TypeListLoader {
+	return &TypeListLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// PokemonMoveLoader batches and caches requests
-type PokemonMoveLoader struct {
+// TypeListLoader batches and caches requests
+type TypeListLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.MoveList, []error)
+	fetch func(keys []string) ([]*model.TypeList, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type PokemonMoveLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.MoveList
+	cache map[string]*model.TypeList
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *pokemonMoveLoaderBatch
+	batch *typeListLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type pokemonMoveLoaderBatch struct {
+type typeListLoaderBatch struct {
 	keys    []string
-	data    []*model.MoveList
+	data    []*model.TypeList
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a MoveList by key, batching and caching will be applied automatically
-func (l *PokemonMoveLoader) Load(key string) (*model.MoveList, error) {
+// Load a TypeList by key, batching and caching will be applied automatically
+func (l *TypeListLoader) Load(key string) (*model.TypeList, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a MoveList.
+// LoadThunk returns a function that when called will block waiting for a TypeList.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonMoveLoader) LoadThunk(key string) func() (*model.MoveList, error) {
+func (l *TypeListLoader) LoadThunk(key string) func() (*model.TypeList, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.MoveList, error) {
+		return func() (*model.TypeList, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &pokemonMoveLoaderBatch{done: make(chan struct{})}
+		l.batch = &typeListLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.MoveList, error) {
+	return func() (*model.TypeList, error) {
 		<-batch.done
 
-		var data *model.MoveList
+		var data *model.TypeList
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *PokemonMoveLoader) LoadThunk(key string) func() (*model.MoveList, error
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *PokemonMoveLoader) LoadAll(keys []string) ([]*model.MoveList, []error) {
-	results := make([]func() (*model.MoveList, error), len(keys))
+func (l *TypeListLoader) LoadAll(keys []string) ([]*model.TypeList, []error) {
+	results := make([]func() (*model.TypeList, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	moveLists := make([]*model.MoveList, len(keys))
+	typeLists := make([]*model.TypeList, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		moveLists[i], errors[i] = thunk()
+		typeLists[i], errors[i] = thunk()
 	}
-	return moveLists, errors
+	return typeLists, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a MoveLists.
+// LoadAllThunk returns a function that when called will block waiting for a TypeLists.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonMoveLoader) LoadAllThunk(keys []string) func() ([]*model.MoveList, []error) {
-	results := make([]func() (*model.MoveList, error), len(keys))
+func (l *TypeListLoader) LoadAllThunk(keys []string) func() ([]*model.TypeList, []error) {
+	results := make([]func() (*model.TypeList, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.MoveList, []error) {
-		moveLists := make([]*model.MoveList, len(keys))
+	return func() ([]*model.TypeList, []error) {
+		typeLists := make([]*model.TypeList, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			moveLists[i], errors[i] = thunk()
+			typeLists[i], errors[i] = thunk()
 		}
-		return moveLists, errors
+		return typeLists, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *PokemonMoveLoader) Prime(key string, value *model.MoveList) bool {
+func (l *TypeListLoader) Prime(key string, value *model.TypeList) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *PokemonMoveLoader) Prime(key string, value *model.MoveList) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *PokemonMoveLoader) Clear(key string) {
+func (l *TypeListLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *PokemonMoveLoader) unsafeSet(key string, value *model.MoveList) {
+func (l *TypeListLoader) unsafeSet(key string, value *model.TypeList) {
 	if l.cache == nil {
-		l.cache = map[string]*model.MoveList{}
+		l.cache = map[string]*model.TypeList{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *pokemonMoveLoaderBatch) keyIndex(l *PokemonMoveLoader, key string) int {
+func (b *typeListLoaderBatch) keyIndex(l *TypeListLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *pokemonMoveLoaderBatch) keyIndex(l *PokemonMoveLoader, key string) int 
 	return pos
 }
 
-func (b *pokemonMoveLoaderBatch) startTimer(l *PokemonMoveLoader) {
+func (b *typeListLoaderBatch) startTimer(l *TypeListLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *pokemonMoveLoaderBatch) startTimer(l *PokemonMoveLoader) {
 	b.end(l)
 }
 
-func (b *pokemonMoveLoaderBatch) end(l *PokemonMoveLoader) {
+func (b *typeListLoaderBatch) end(l *TypeListLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }
