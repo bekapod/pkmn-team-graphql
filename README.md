@@ -20,6 +20,21 @@ git push heroku main
 heroku open
 ```
 
+## Code Generation
+
+To generate resolvers based on the schema:
+
+```sh
+go generate
+```
+
+To generate a dataloader for a type:
+
+```sh
+cd dataloader
+go run github.com/vektah/dataloaden YourTypeLoader string "*bekapod/pkmn-team-graphql/data/model.YourType"
+```
+
 ## Migrations
 
 To generate a new database migration:
@@ -47,4 +62,18 @@ By default, data will be fetched directly from [https://pokeapi.co](https://poke
 
 ```sh
 LOG_LEVEL=debug go run scripts/seed/types/types.go --pokeapi-host http://localhost
+```
+
+## Tests
+
+Run tests:
+
+```sh
+go test ./...
+```
+
+Run tests with coverage:
+
+```sh
+go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 ```

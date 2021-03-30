@@ -1,16 +1,72 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
+enum DamageClass {
+  PHYSICAL
+  SPECIAL
+  STATUS
+}
+
+type Move {
+  id: ID!
+  slug: String!
+  name: String!
+  accuracy: Int!
+  pp: Int!
+  power: Int!
+  damageClass: DamageClass!
+  effect: String!
+  effectChance: Int!
+  target: String!
+  type: Type!
+  pokemon: PokemonList!
+}
+
+type MoveList {
+  total: Int!
+  moves: [Move!]!
+}
 
 type Pokemon {
   id: ID!
+  name: String!
+  slug: String!
+  pokedexId: Int!
+  sprite: String!
+  hp: Int!
+  attack: Int!
+  defense: Int!
+  specialAttack: Int!
+  specialDefense: Int!
+  speed: Int!
+  isBaby: Boolean!
+  isLegendary: Boolean!
+  isMythical: Boolean!
+  description: String!
+  types: TypeList!
+  moves: MoveList!
 }
 
 type PokemonList {
   total: Int!
-  pokemon: [Pokemon]!
+  pokemon: [Pokemon!]!
+}
+
+type Type {
+  id: ID!
+  slug: String!
+  name: String!
+  pokemon: PokemonList!
+  moves: MoveList!
+}
+
+type TypeList {
+  total: Int!
+  types: [Type!]!
 }
 
 type Query {
-  allPokemon: PokemonList!
+  pokemonById(id: ID!): Pokemon
+  pokemon: PokemonList!
+  typeById(id: ID!): Type
+  types: TypeList!
+  moveById(id: ID!): Move
+  moves: MoveList!
 }

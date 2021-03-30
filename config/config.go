@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -11,13 +12,17 @@ type Config struct {
 	AppHost     string
 	Port        string
 	DatabaseUrl string
+	Tracing     bool
 }
 
 func New() Config {
+	tracing, _ := strconv.ParseBool(os.Getenv("TRACING"))
+
 	return Config{
 		AppHost:     os.Getenv("APP_HOST"),
 		Port:        os.Getenv("PORT"),
 		DatabaseUrl: os.Getenv("DATABASE_URL"),
+		Tracing:     tracing,
 	}
 }
 

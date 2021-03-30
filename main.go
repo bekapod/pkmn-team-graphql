@@ -27,10 +27,12 @@ func main() {
 	data.MigrateDatabase(db, cfg)
 
 	resolver := &graph.Resolver{
-		Pokemon: repository.NewPokemon(db),
+		PokemonRepository: repository.NewPokemon(db),
+		TypeRepository:    repository.NewType(db),
+		MoveRepository:    repository.NewMove(db),
 	}
 
-	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver)}
+	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, cfg.Tracing)}
 
 	go func() {
 		stop := make(chan os.Signal, 1)

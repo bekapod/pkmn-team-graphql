@@ -9,11 +9,102 @@ import (
 	"context"
 )
 
-func (r *queryResolver) AllPokemon(ctx context.Context) (*model.PokemonList, error) {
-	return r.Pokemon.GetAllPokemon(ctx)
+func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
+	return DataLoaderFor(ctx).TypeByTypeId.Load(obj.TypeID)
 }
+
+func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {
+	pokemon, err := DataLoaderFor(ctx).PokemonByMoveId.Load(obj.ID)
+
+	if pokemon == nil {
+		emptyPokemon := model.NewEmptyPokemonList()
+		return &emptyPokemon, err
+	}
+
+	return pokemon, err
+}
+
+func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
+	types, err := DataLoaderFor(ctx).TypesByPokemonId.Load(obj.ID)
+
+	if types == nil {
+		emptyTypes := model.NewEmptyTypeList()
+		return &emptyTypes, err
+	}
+
+	return types, err
+}
+
+func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error) {
+	moves, err := DataLoaderFor(ctx).MovesByPokemonId.Load(obj.ID)
+
+	if moves == nil {
+		emptyMoves := model.NewEmptyMoveList()
+		return &emptyMoves, err
+	}
+
+	return moves, err
+}
+
+func (r *queryResolver) PokemonByID(ctx context.Context, id string) (*model.Pokemon, error) {
+	return r.PokemonRepository.GetPokemonById(ctx, id)
+}
+
+func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error) {
+	return r.PokemonRepository.GetPokemon(ctx)
+}
+
+func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {
+	return r.TypeRepository.GetTypeById(ctx, id)
+}
+
+func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
+	return r.TypeRepository.GetTypes(ctx)
+}
+
+func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {
+	return r.MoveRepository.GetMoveById(ctx, id)
+}
+
+func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
+	return r.MoveRepository.GetMoves(ctx)
+}
+
+func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonList, error) {
+	pokemon, err := DataLoaderFor(ctx).PokemonByTypeId.Load(obj.ID)
+
+	if pokemon == nil {
+		emptyPokemon := model.NewEmptyPokemonList()
+		return &emptyPokemon, err
+	}
+
+	return pokemon, err
+}
+
+func (r *typeResolver) Moves(ctx context.Context, obj *model.Type) (*model.MoveList, error) {
+	moves, err := DataLoaderFor(ctx).MovesByTypeId.Load(obj.ID)
+
+	if moves == nil {
+		emptyMoves := model.NewEmptyMoveList()
+		return &emptyMoves, err
+	}
+
+	return moves, err
+}
+
+// Move returns generated.MoveResolver implementation.
+func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
+
+// Pokemon returns generated.PokemonResolver implementation.
+func (r *Resolver) Pokemon() generated.PokemonResolver { return &pokemonResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Type returns generated.TypeResolver implementation.
+func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
+
+type moveResolver struct{ *Resolver }
+type pokemonResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type typeResolver struct{ *Resolver }
