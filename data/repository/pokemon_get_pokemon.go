@@ -22,7 +22,7 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon ORDER BY pokedex_id, slug ASC",
 	)
 	if err != nil {
-		return &pokemon, fmt.Errorf("error fetching all pokemon: %w", err)
+		return &pokemon, fmt.Errorf("error fetching all pokemon in GetAllPokemon: %w", err)
 	}
 
 	defer rows.Close()
@@ -30,12 +30,14 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 		var pkmn model.Pokemon
 		err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return &pokemon, ErrNoPokemon
-			}
 			return &pokemon, fmt.Errorf("error scanning result in GetAllPokemon: %w", err)
 		}
 		pokemon.AddPokemon(&pkmn)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return &pokemon, fmt.Errorf("error after fetching all pokemon in GetAllPokemon: %w", err)
 	}
 
 	return &pokemon, nil
@@ -77,7 +79,14 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching pokemon for move: %w", err))
+			pokemonList := make([]*model.PokemonList, len(moveIds))
+			emptyPokemonList := model.NewEmptyPokemonList()
+			errors := make([]error, len(moveIds))
+			for i := range moveIds {
+				pokemonList[i] = &emptyPokemonList
+				errors[i] = fmt.Errorf("error fetching pokemon for move in PokemonByMoveIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
 		}
 
 		defer rows.Close()
@@ -86,7 +95,14 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			var moveId string
 			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &moveId)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in PokemonByMoveId: %w", err))
+				pokemonList := make([]*model.PokemonList, len(moveIds))
+				emptyPokemonList := model.NewEmptyPokemonList()
+				errors := make([]error, len(moveIds))
+				for i := range moveIds {
+					pokemonList[i] = &emptyPokemonList
+					errors[i] = fmt.Errorf("error scanning result moves for type in PokemonByMoveIdDataLoader: %w", err)
+				}
+				return pokemonList, errors
 			}
 
 			_, ok := pokemonByMoveId[moveId]
@@ -102,6 +118,15 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 		for i, id := range moveIds {
 			pokemonList[i] = pokemonByMoveId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(moveIds))
+			for i := range moveIds {
+				errors[i] = fmt.Errorf("error after fetching pokemon for move in PokemonByMoveIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
 		}
 
 		return pokemonList, nil
@@ -126,7 +151,14 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching pokemon for type: %w", err))
+			pokemonList := make([]*model.PokemonList, len(typeIds))
+			emptyPokemonList := model.NewEmptyPokemonList()
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				pokemonList[i] = &emptyPokemonList
+				errors[i] = fmt.Errorf("error fetching pokemon for type in PokemonByTypeIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
 		}
 
 		defer rows.Close()
@@ -135,7 +167,14 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			var typeId string
 			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &typeId)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in PokemonByTypeId: %w", err))
+				pokemonList := make([]*model.PokemonList, len(typeIds))
+				emptyPokemonList := model.NewEmptyPokemonList()
+				errors := make([]error, len(typeIds))
+				for i := range typeIds {
+					pokemonList[i] = &emptyPokemonList
+					errors[i] = fmt.Errorf("error scanning result pokemon for type in PokemonByTypeIdDataLoader: %w", err)
+				}
+				return pokemonList, errors
 			}
 
 			_, ok := pokemonByTypeId[typeId]
@@ -151,6 +190,15 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 		for i, id := range typeIds {
 			pokemonList[i] = pokemonByTypeId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error after fetching pokemon for type in PokemonByTypeIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
 		}
 
 		return pokemonList, nil

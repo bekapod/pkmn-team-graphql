@@ -31,12 +31,13 @@ func (r Type) GetTypes(ctx context.Context) (*model.TypeList, error) {
 		var t model.Type
 		err := rows.Scan(&t.ID, &t.Name, &t.Slug)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return &types, ErrNoTypes
-			}
 			return &types, fmt.Errorf("error scanning result in GetAllTypes: %w", err)
 		}
 		types.AddType(&t)
+	}
+	err = rows.Err()
+	if err != nil {
+		return &types, fmt.Errorf("error after fetching all types in GetAllTypes: %w", err)
 	}
 
 	return &types, nil
@@ -78,7 +79,14 @@ func (r Type) TypesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching types for pokemon: %w", err))
+			typeList := make([]*model.TypeList, len(pokemonIds))
+			emptyTypeList := model.NewEmptyTypeList()
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				typeList[i] = &emptyTypeList
+				errors[i] = fmt.Errorf("error fetching types for pokemon in TypesByPokemonIdDataLoader: %w", err)
+			}
+			return typeList, errors
 		}
 
 		defer rows.Close()
@@ -87,7 +95,14 @@ func (r Type) TypesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			var pokemonId string
 			err := rows.Scan(&t.ID, &t.Name, &t.Slug, &pokemonId)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in TypesByPokemonId: %w", err))
+				typeList := make([]*model.TypeList, len(pokemonIds))
+				emptyTypeList := model.NewEmptyTypeList()
+				errors := make([]error, len(pokemonIds))
+				for i := range pokemonIds {
+					typeList[i] = &emptyTypeList
+					errors[i] = fmt.Errorf("error scanning result in TypesByPokemonIdDataLoader: %w", err)
+				}
+				return typeList, errors
 			}
 
 			_, ok := typesByPokemonId[pokemonId]
@@ -103,6 +118,15 @@ func (r Type) TypesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 		for i, id := range pokemonIds {
 			typeList[i] = typesByPokemonId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error after fetching types for pokemon in TypesByPokemonIdDataLoader: %w", err)
+			}
+			return typeList, errors
 		}
 
 		return typeList, nil
@@ -127,7 +151,12 @@ func (r Type) TypesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching types: %w", err))
+			typeList := make([]*model.Type, len(typeIds))
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error fetching types for type in TypesByTypeIdDataLoader: %w", err)
+			}
+			return typeList, errors
 		}
 
 		defer rows.Close()
@@ -135,9 +164,13 @@ func (r Type) TypesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			var t model.Type
 			err := rows.Scan(&t.ID, &t.Name, &t.Slug)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in TypeByTypeId: %w", err))
+				typeList := make([]*model.Type, len(typeIds))
+				errors := make([]error, len(typeIds))
+				for i := range typeIds {
+					errors[i] = fmt.Errorf("error scanning result in TypesByTypeIdDataLoader: %w", err)
+				}
+				return typeList, errors
 			}
-
 			typesByTypeId[t.ID] = &t
 		}
 
@@ -145,6 +178,15 @@ func (r Type) TypesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 		for i, id := range typeIds {
 			types[i] = typesByTypeId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error after fetching types for type in TypesByTypeIdDataLoader: %w", err)
+			}
+			return types, errors
 		}
 
 		return types, nil

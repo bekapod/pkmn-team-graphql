@@ -1,28 +1,46 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
+	"fmt"
+	"io"
+	"strconv"
 )
 
 type DamageClass string
 
 const (
-	Special  DamageClass = "special"
 	Physical DamageClass = "physical"
+	Special  DamageClass = "special"
 	Status   DamageClass = "status"
 )
 
-func (dc *DamageClass) UnmarshalJSON(b []byte) error {
-	var s string
-	json.Unmarshal(b, &s)
-	damageClass := DamageClass(s)
-	switch damageClass {
-	case Special, Physical, Status:
-		*dc = damageClass
-		return nil
+func (dc DamageClass) IsValid() bool {
+	switch dc {
+	case Physical, Special, Status:
+		return true
 	}
-	return errors.New("invalid damage class")
+	return false
+}
+
+func (dc DamageClass) String() string {
+	return string(dc)
+}
+
+func (dc *DamageClass) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*dc = DamageClass(str)
+	if !dc.IsValid() {
+		return fmt.Errorf("%s is not a valid DamageClass", str)
+	}
+	return nil
+}
+
+func (dc DamageClass) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(dc.String()))
 }
 
 func (DamageClass) IsEntity() {}

@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	ErrNoMoves = errors.New("no moves found")
-	ErrNoMove  = errors.New("no move found")
+	ErrNoMove = errors.New("no move found")
 )
 
 func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
@@ -23,20 +22,21 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 		"SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves ORDER BY slug ASC",
 	)
 	if err != nil {
-		return &moves, fmt.Errorf("error fetching all moves: %w", err)
+		return &moves, fmt.Errorf("error fetching all moves in GetAllMoves: %w", err)
 	}
 
 	defer rows.Close()
 	for rows.Next() {
 		var m model.Move
-		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeId)
+		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				return &moves, ErrNoMoves
-			}
 			return &moves, fmt.Errorf("error scanning result in GetAllMoves: %w", err)
 		}
 		moves.AddMove(&m)
+	}
+	err = rows.Err()
+	if err != nil {
+		return &moves, fmt.Errorf("error after fetching all moves in GetAllMoves: %w", err)
 	}
 
 	return &moves, nil
@@ -49,7 +49,7 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 		ctx,
 		"SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves WHERE id = $1",
 		id,
-	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeId)
+	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoMove
@@ -78,16 +78,30 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching moves for pokemon: %w", err))
+			moveList := make([]*model.MoveList, len(pokemonIds))
+			emptyMoveList := model.NewEmptyMoveList()
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				moveList[i] = &emptyMoveList
+				errors[i] = fmt.Errorf("error fetching moves for pokemon in MovesByPokemonIdDataLoader: %w", err)
+			}
+			return moveList, errors
 		}
 
 		defer rows.Close()
 		for rows.Next() {
 			var m model.Move
 			var pokemonId string
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeId, &pokemonId)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID, &pokemonId)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in MovesByPokemonId: %w", err))
+				moveList := make([]*model.MoveList, len(pokemonIds))
+				emptyMoveList := model.NewEmptyMoveList()
+				errors := make([]error, len(pokemonIds))
+				for i := range pokemonIds {
+					moveList[i] = &emptyMoveList
+					errors[i] = fmt.Errorf("error scanning result moves for pokemon in MovesByPokemonIdDataLoader: %w", err)
+				}
+				return moveList, errors
 			}
 
 			_, ok := movesByPokemonId[pokemonId]
@@ -103,6 +117,15 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 		for i, id := range pokemonIds {
 			moveList[i] = movesByPokemonId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error after fetching moves for pokemon in MovesByPokemonIdDataLoader: %w", err)
+			}
+			return moveList, errors
 		}
 
 		return moveList, nil
@@ -127,30 +150,53 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			args...,
 		)
 		if err != nil {
-			panic(fmt.Errorf("error fetching moves for type: %w", err))
+			moveList := make([]*model.MoveList, len(typeIds))
+			emptyMoveList := model.NewEmptyMoveList()
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				moveList[i] = &emptyMoveList
+				errors[i] = fmt.Errorf("error fetching moves for type in MovesByTypeIdDataLoader: %w", err)
+			}
+			return moveList, errors
 		}
 
 		defer rows.Close()
 		for rows.Next() {
 			var m model.Move
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeId)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
 			if err != nil {
-				panic(fmt.Errorf("error scanning result in MovesByTypeId: %w", err))
+				moveList := make([]*model.MoveList, len(typeIds))
+				emptyMoveList := model.NewEmptyMoveList()
+				errors := make([]error, len(typeIds))
+				for i := range typeIds {
+					moveList[i] = &emptyMoveList
+					errors[i] = fmt.Errorf("error scanning result moves for type in MovesByTypeIdDataLoader: %w", err)
+				}
+				return moveList, errors
 			}
 
-			_, ok := movesByTypeId[m.TypeId]
+			_, ok := movesByTypeId[m.TypeID]
 			if !ok {
 				ml := model.NewEmptyMoveList()
-				movesByTypeId[m.TypeId] = &ml
+				movesByTypeId[m.TypeID] = &ml
 			}
 
-			movesByTypeId[m.TypeId].AddMove(&m)
+			movesByTypeId[m.TypeID].AddMove(&m)
 		}
 
 		moveList := make([]*model.MoveList, len(typeIds))
 		for i, id := range typeIds {
 			moveList[i] = movesByTypeId[id]
 			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error after fetching moves for type in MovesByTypeIdDataLoader: %w", err)
+			}
+			return moveList, errors
 		}
 
 		return moveList, nil

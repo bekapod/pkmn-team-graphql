@@ -10,7 +10,7 @@ import (
 )
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
-	return DataLoaderFor(ctx).TypeByTypeId.Load(obj.TypeId)
+	return DataLoaderFor(ctx).TypeByTypeId.Load(obj.TypeID)
 }
 
 func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {

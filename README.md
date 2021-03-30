@@ -63,3 +63,17 @@ By default, data will be fetched directly from [https://pokeapi.co](https://poke
 ```sh
 LOG_LEVEL=debug go run scripts/seed/types/types.go --pokeapi-host http://localhost
 ```
+
+## Tests
+
+Run tests:
+
+```sh
+go test ./...
+```
+
+Run tests with coverage:
+
+```sh
+go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+```
