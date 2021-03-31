@@ -7,11 +7,17 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
-	panic(fmt.Errorf("not implemented"))
+	pokemon, err := DataLoaderFor(ctx).PokemonByAbilityId.Load(obj.ID)
+
+	if pokemon == nil {
+		emptyPokemon := model.NewEmptyPokemonList()
+		return &emptyPokemon, err
+	}
+
+	return pokemon, err
 }
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
@@ -30,7 +36,14 @@ func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.Pok
 }
 
 func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.AbilityList, error) {
-	panic(fmt.Errorf("not implemented"))
+	abilities, err := DataLoaderFor(ctx).AbilitiesByPokemonId.Load(obj.ID)
+
+	if abilities == nil {
+		emptyAbilities := model.NewEmptyAbilityList()
+		return &emptyAbilities, err
+	}
+
+	return abilities, err
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
@@ -56,11 +69,11 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 }
 
 func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.AbilityRepository.GetAbilityById(ctx, id)
 }
 
 func (r *queryResolver) Abilities(ctx context.Context) (*model.AbilityList, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.AbilityRepository.GetAbilities(ctx)
 }
 
 func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {

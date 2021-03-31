@@ -70,7 +70,7 @@ func (r Ability) AbilitiesByPokemonIdDataLoader(ctx context.Context) func(pokemo
 			args[i] = pokemonIds[i]
 		}
 
-		query := "SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id, pokemon_ability.pokemon_id FROM abilities LEFT JOIN pokemon_ability ON abilities.id = pokemon_ability.ability_id WHERE pokemon_ability.pokemon_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := "SELECT id, name, slug, effect, pokemon_ability.pokemon_id FROM abilities LEFT JOIN pokemon_ability ON abilities.id = pokemon_ability.ability_id WHERE pokemon_ability.pokemon_id IN (" + strings.Join(placeholders, ",") + ")"
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
