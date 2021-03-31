@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// AbilityLoaderConfig captures the config to create a new AbilityLoader
-type AbilityLoaderConfig struct {
+// AbilityListLoaderConfig captures the config to create a new AbilityListLoader
+type AbilityListLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.Ability, []error)
+	Fetch func(keys []string) ([]*model.AbilityList, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type AbilityLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewAbilityLoader creates a new AbilityLoader given a fetch, wait, and maxBatch
-func NewAbilityLoader(config AbilityLoaderConfig) *AbilityLoader {
-	return &AbilityLoader{
+// NewAbilityListLoader creates a new AbilityListLoader given a fetch, wait, and maxBatch
+func NewAbilityListLoader(config AbilityListLoaderConfig) *AbilityListLoader {
+	return &AbilityListLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// AbilityLoader batches and caches requests
-type AbilityLoader struct {
+// AbilityListLoader batches and caches requests
+type AbilityListLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.Ability, []error)
+	fetch func(keys []string) ([]*model.AbilityList, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type AbilityLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.Ability
+	cache map[string]*model.AbilityList
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *abilityLoaderBatch
+	batch *abilityListLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type abilityLoaderBatch struct {
+type abilityListLoaderBatch struct {
 	keys    []string
-	data    []*model.Ability
+	data    []*model.AbilityList
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a Ability by key, batching and caching will be applied automatically
-func (l *AbilityLoader) Load(key string) (*model.Ability, error) {
+// Load a AbilityList by key, batching and caching will be applied automatically
+func (l *AbilityListLoader) Load(key string) (*model.AbilityList, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a Ability.
+// LoadThunk returns a function that when called will block waiting for a AbilityList.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *AbilityLoader) LoadThunk(key string) func() (*model.Ability, error) {
+func (l *AbilityListLoader) LoadThunk(key string) func() (*model.AbilityList, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.Ability, error) {
+		return func() (*model.AbilityList, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &abilityLoaderBatch{done: make(chan struct{})}
+		l.batch = &abilityListLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.Ability, error) {
+	return func() (*model.AbilityList, error) {
 		<-batch.done
 
-		var data *model.Ability
+		var data *model.AbilityList
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *AbilityLoader) LoadThunk(key string) func() (*model.Ability, error) {
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *AbilityLoader) LoadAll(keys []string) ([]*model.Ability, []error) {
-	results := make([]func() (*model.Ability, error), len(keys))
+func (l *AbilityListLoader) LoadAll(keys []string) ([]*model.AbilityList, []error) {
+	results := make([]func() (*model.AbilityList, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	abilitys := make([]*model.Ability, len(keys))
+	abilityLists := make([]*model.AbilityList, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		abilitys[i], errors[i] = thunk()
+		abilityLists[i], errors[i] = thunk()
 	}
-	return abilitys, errors
+	return abilityLists, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a Abilitys.
+// LoadAllThunk returns a function that when called will block waiting for a AbilityLists.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *AbilityLoader) LoadAllThunk(keys []string) func() ([]*model.Ability, []error) {
-	results := make([]func() (*model.Ability, error), len(keys))
+func (l *AbilityListLoader) LoadAllThunk(keys []string) func() ([]*model.AbilityList, []error) {
+	results := make([]func() (*model.AbilityList, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.Ability, []error) {
-		abilitys := make([]*model.Ability, len(keys))
+	return func() ([]*model.AbilityList, []error) {
+		abilityLists := make([]*model.AbilityList, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			abilitys[i], errors[i] = thunk()
+			abilityLists[i], errors[i] = thunk()
 		}
-		return abilitys, errors
+		return abilityLists, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *AbilityLoader) Prime(key string, value *model.Ability) bool {
+func (l *AbilityListLoader) Prime(key string, value *model.AbilityList) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *AbilityLoader) Prime(key string, value *model.Ability) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *AbilityLoader) Clear(key string) {
+func (l *AbilityListLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *AbilityLoader) unsafeSet(key string, value *model.Ability) {
+func (l *AbilityListLoader) unsafeSet(key string, value *model.AbilityList) {
 	if l.cache == nil {
-		l.cache = map[string]*model.Ability{}
+		l.cache = map[string]*model.AbilityList{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *abilityLoaderBatch) keyIndex(l *AbilityLoader, key string) int {
+func (b *abilityListLoaderBatch) keyIndex(l *AbilityListLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *abilityLoaderBatch) keyIndex(l *AbilityLoader, key string) int {
 	return pos
 }
 
-func (b *abilityLoaderBatch) startTimer(l *AbilityLoader) {
+func (b *abilityListLoaderBatch) startTimer(l *AbilityListLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *abilityLoaderBatch) startTimer(l *AbilityLoader) {
 	b.end(l)
 }
 
-func (b *abilityLoaderBatch) end(l *AbilityLoader) {
+func (b *abilityListLoaderBatch) end(l *AbilityListLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }
