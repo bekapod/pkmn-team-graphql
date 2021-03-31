@@ -4,6 +4,19 @@ enum DamageClass {
   STATUS
 }
 
+type Ability {
+  id: ID!
+  slug: String!
+  name: String!
+  effect: String!
+  pokemon: PokemonList!
+}
+
+type AbilityList {
+  total: Int!
+  abilities: [Ability!]!
+}
+
 type Move {
   id: ID!
   slug: String!
@@ -40,6 +53,7 @@ type Pokemon {
   isLegendary: Boolean!
   isMythical: Boolean!
   description: String!
+  abilities: AbilityList!
   types: TypeList!
   moves: MoveList!
 }
@@ -63,10 +77,12 @@ type TypeList {
 }
 
 type Query {
+  abilityById(id: ID!): Ability
+  abilities: AbilityList!
+  moveById(id: ID!): Move
+  moves: MoveList!
   pokemonById(id: ID!): Pokemon
   pokemon: PokemonList!
   typeById(id: ID!): Type
   types: TypeList!
-  moveById(id: ID!): Move
-  moves: MoveList!
 }

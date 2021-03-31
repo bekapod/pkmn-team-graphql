@@ -11,7 +11,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
+	AbilityRepository repository.Ability
+	MoveRepository    repository.Move
 	PokemonRepository repository.Pokemon
 	TypeRepository    repository.Type
-	MoveRepository    repository.Move
 }

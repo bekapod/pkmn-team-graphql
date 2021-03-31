@@ -7,7 +7,12 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
+
+func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
+	panic(fmt.Errorf("not implemented"))
+}
 
 func (r *moveResolver) Type(ctx context.Context, obj *model.Move) (*model.Type, error) {
 	return DataLoaderFor(ctx).TypeByTypeId.Load(obj.TypeID)
@@ -22,6 +27,10 @@ func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.Pok
 	}
 
 	return pokemon, err
+}
+
+func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.AbilityList, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
@@ -46,6 +55,22 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	return moves, err
 }
 
+func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Abilities(ctx context.Context) (*model.AbilityList, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {
+	return r.MoveRepository.GetMoveById(ctx, id)
+}
+
+func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
+	return r.MoveRepository.GetMoves(ctx)
+}
+
 func (r *queryResolver) PokemonByID(ctx context.Context, id string) (*model.Pokemon, error) {
 	return r.PokemonRepository.GetPokemonById(ctx, id)
 }
@@ -60,14 +85,6 @@ func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, e
 
 func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
 	return r.TypeRepository.GetTypes(ctx)
-}
-
-func (r *queryResolver) MoveByID(ctx context.Context, id string) (*model.Move, error) {
-	return r.MoveRepository.GetMoveById(ctx, id)
-}
-
-func (r *queryResolver) Moves(ctx context.Context) (*model.MoveList, error) {
-	return r.MoveRepository.GetMoves(ctx)
 }
 
 func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonList, error) {
@@ -92,6 +109,9 @@ func (r *typeResolver) Moves(ctx context.Context, obj *model.Type) (*model.MoveL
 	return moves, err
 }
 
+// Ability returns generated.AbilityResolver implementation.
+func (r *Resolver) Ability() generated.AbilityResolver { return &abilityResolver{r} }
+
 // Move returns generated.MoveResolver implementation.
 func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
 
@@ -104,6 +124,7 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Type returns generated.TypeResolver implementation.
 func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
 
+type abilityResolver struct{ *Resolver }
 type moveResolver struct{ *Resolver }
 type pokemonResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
