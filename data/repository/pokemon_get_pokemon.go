@@ -276,3 +276,63 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 		return pokemonList, nil
 	}
 }
+
+func (r Pokemon) PokemonByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []string) ([]*model.Pokemon, []error) {
+	return func(pokemonIds []string) ([]*model.Pokemon, []error) {
+		pokemonByPokemonId := map[string]*model.Pokemon{}
+		placeholders := make([]string, len(pokemonIds))
+		args := make([]interface{}, len(pokemonIds))
+		for i := 0; i < len(pokemonIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = pokemonIds[i]
+		}
+
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon WHERE id IN (" + strings.Join(placeholders, ",") + ")"
+
+		log.Logger.WithField("args", args).Debug(query)
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			pokemonList := make([]*model.Pokemon, len(pokemonIds))
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error fetching pokemons for pokemon id in PokemonByPokemonIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var pkmn model.Pokemon
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
+			if err != nil {
+				pokemonList := make([]*model.Pokemon, len(pokemonIds))
+				errors := make([]error, len(pokemonIds))
+				for i := range pokemonIds {
+					errors[i] = fmt.Errorf("error scanning result in PokemonByPokemonIdDataLoader: %w", err)
+				}
+				return pokemonList, errors
+			}
+			pokemonByPokemonId[pkmn.ID] = &pkmn
+		}
+
+		pokemon := make([]*model.Pokemon, len(pokemonIds))
+		for i, id := range pokemonIds {
+			pokemon[i] = pokemonByPokemonId[id]
+			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error after fetching pokemon for pokemon id in PokemonByPokemonIdDataLoader: %w", err)
+			}
+			return pokemon, errors
+		}
+
+		return pokemon, nil
+	}
+}

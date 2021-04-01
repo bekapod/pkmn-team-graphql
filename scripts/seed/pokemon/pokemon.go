@@ -1,5 +1,3 @@
-// +build tools
-
 package main
 
 import (
@@ -75,9 +73,10 @@ func main() {
 
 				for i := range pokemon.Types {
 					pokemonTypeValues = append(pokemonTypeValues, fmt.Sprintf(
-						"(%s, %s)",
+						"(%s, %s, %d)",
 						fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", pokemon.Name),
 						fmt.Sprintf("(SELECT id from types WHERE slug='%s')", pokemon.Types[i].Type.Name),
+						pokemon.Types[i].Slot,
 					))
 				}
 
@@ -113,9 +112,9 @@ func main() {
 	wg.Wait()
 
 	sql := fmt.Sprintf(
-		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description)\n\tVALUES %s;\n\n"+
-			"INSERT INTO pokemon_type (pokemon_id, type_id)\n\tVALUES %s;\n\n"+
-			"INSERT INTO pokemon_ability (pokemon_id, ability_id)\n\tVALUES %s;\n\n",
+		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tpokedex_id = EXCLUDED.pokedex_id,\n\t\tname = EXCLUDED.name,\n\t\tsprite = EXCLUDED.sprite,\n\t\thp = EXCLUDED.hp,\n\t\tattack = EXCLUDED.attack,\n\t\tdefense = EXCLUDED.defense,\n\t\tspecial_attack = EXCLUDED.special_attack,\n\t\tspecial_defense = EXCLUDED.special_defense,\n\t\tspeed = EXCLUDED.speed,\n\t\tis_baby = EXCLUDED.is_baby,\n\t\tis_legendary = EXCLUDED.is_legendary,\n\t\tis_mythical = EXCLUDED.is_mythical,\n\t\tdescription = EXCLUDED.description;\n\n"+
+			"INSERT INTO pokemon_type (pokemon_id, type_id, slot)\n\tVALUES %s\nON CONFLICT (pokemon_id, type_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot;\n\n"+
+			"INSERT INTO pokemon_ability (pokemon_id, ability_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, ability_id)\n\tDO NOTHING;\n\n",
 		strings.Join(pokemonValues, ", "),
 		strings.Join(pokemonTypeValues, ", "),
 		strings.Join(pokemonAbilityValues, ", "),
@@ -131,7 +130,7 @@ func main() {
 	moveChunks := helpers.Chunk(10, pokemonMoveValues)
 	for i := range moveChunks {
 		moveF := helpers.OpenFile(strings.Replace(config.OutputFile, ".sql", fmt.Sprintf("_moves_%d.sql", i), 1))
-		moveSql := fmt.Sprintf("INSERT INTO pokemon_move (pokemon_id, move_id)\n\tVALUES %s;", strings.Join(moveChunks[i], ", "))
+		moveSql := fmt.Sprintf("INSERT INTO pokemon_move (pokemon_id, move_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, move_id)\n\tDO NOTHING;", strings.Join(moveChunks[i], ", "))
 		moveO, err := moveF.WriteString(moveSql)
 		if err != nil {
 			log.Logger.Fatal(err)

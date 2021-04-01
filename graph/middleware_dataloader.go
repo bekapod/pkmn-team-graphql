@@ -12,14 +12,15 @@ type key string
 const loadersKey key = "dataloaders"
 
 type loaders struct {
-	AbilitiesByPokemonId dataloader.AbilityListLoader
-	MovesByPokemonId     dataloader.MoveListLoader
-	MovesByTypeId        dataloader.MoveListLoader
-	PokemonByAbilityId   dataloader.PokemonListLoader
-	PokemonByMoveId      dataloader.PokemonListLoader
-	PokemonByTypeId      dataloader.PokemonListLoader
-	TypesByPokemonId     dataloader.TypeListLoader
-	TypeByTypeId         dataloader.TypeLoader
+	AbilitiesByPokemonId    dataloader.AbilityListLoader
+	MovesByPokemonId        dataloader.MoveListLoader
+	MovesByTypeId           dataloader.MoveListLoader
+	PokemonByPokemonId      dataloader.PokemonLoader
+	PokemonByAbilityId      dataloader.PokemonListLoader
+	PokemonByMoveId         dataloader.PokemonListLoader
+	PokemonByTypeId         dataloader.PokemonListLoader
+	PokemonTypesByPokemonId dataloader.PokemonTypeListLoader
+	TypeByTypeId            dataloader.TypeLoader
 }
 
 func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handler {
@@ -41,6 +42,11 @@ func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handl
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.MoveRepository.MovesByTypeIdDataLoader(r.Context()),
 				}),
+				PokemonByPokemonId: *dataloader.NewPokemonLoader(dataloader.PokemonLoaderConfig{
+					MaxBatch: 1000,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonRepository.PokemonByPokemonIdDataLoader(r.Context()),
+				}),
 				PokemonByAbilityId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
 					MaxBatch: 1000,
 					Wait:     1 * time.Millisecond,
@@ -56,10 +62,10 @@ func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handl
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.PokemonRepository.PokemonByTypeIdDataLoader(r.Context()),
 				}),
-				TypesByPokemonId: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+				PokemonTypesByPokemonId: *dataloader.NewPokemonTypeListLoader(dataloader.PokemonTypeListLoaderConfig{
 					MaxBatch: 1000,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.TypeRepository.TypesByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonTypeRepository.PokemonTypesByPokemonIdDataLoader(r.Context()),
 				}),
 				TypeByTypeId: *dataloader.NewTypeLoader(dataloader.TypeLoaderConfig{
 					MaxBatch: 1000,
