@@ -1,5 +1,3 @@
-// +build tools
-
 package main
 
 import (
@@ -94,7 +92,7 @@ func main() {
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO moves (slug, name, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id)\n\tVALUES %s;", strings.Join(values, ", "))
+	sql := fmt.Sprintf("INSERT INTO moves (slug, name, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name,\n\t\taccuracy = EXCLUDED.accuracy,\n\t\tpp = EXCLUDED.pp,\n\t\tpower = EXCLUDED.power,\n\t\tdamage_class_enum = EXCLUDED.damage_class_enum,\n\t\teffect = EXCLUDED.effect,\n\t\teffect_chance = EXCLUDED.effect_chance,\n\t\ttarget = EXCLUDED.target,\n\t\ttype_id = EXCLUDED.type_id;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
 	if err != nil {
