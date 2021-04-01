@@ -7,6 +7,7 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
@@ -46,11 +47,11 @@ func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*m
 	return abilities, err
 }
 
-func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.TypeList, error) {
-	types, err := DataLoaderFor(ctx).TypesByPokemonId.Load(obj.ID)
+func (r *pokemonResolver) Types(ctx context.Context, obj *model.Pokemon) (*model.PokemonTypeList, error) {
+	types, err := DataLoaderFor(ctx).PokemonTypesByPokemonId.Load(obj.ID)
 
 	if types == nil {
-		emptyTypes := model.NewEmptyTypeList()
+		emptyTypes := model.NewEmptyPokemonTypeList()
 		return &emptyTypes, err
 	}
 
@@ -66,6 +67,14 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	}
 
 	return moves, err
+}
+
+func (r *pokemonTypeResolver) Type(ctx context.Context, obj *model.PokemonType) (*model.Type, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *pokemonTypeResolver) Pokemon(ctx context.Context, obj *model.PokemonType) (*model.Pokemon, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {
@@ -131,6 +140,9 @@ func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
 // Pokemon returns generated.PokemonResolver implementation.
 func (r *Resolver) Pokemon() generated.PokemonResolver { return &pokemonResolver{r} }
 
+// PokemonType returns generated.PokemonTypeResolver implementation.
+func (r *Resolver) PokemonType() generated.PokemonTypeResolver { return &pokemonTypeResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -140,5 +152,6 @@ func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
 type abilityResolver struct{ *Resolver }
 type moveResolver struct{ *Resolver }
 type pokemonResolver struct{ *Resolver }
+type pokemonTypeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type typeResolver struct{ *Resolver }

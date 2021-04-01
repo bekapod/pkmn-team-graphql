@@ -54,13 +54,24 @@ type Pokemon {
   isMythical: Boolean!
   description: String!
   abilities: AbilityList!
-  types: TypeList!
+  types: PokemonTypeList!
   moves: MoveList!
 }
 
 type PokemonList {
   total: Int!
   pokemon: [Pokemon!]!
+}
+
+type PokemonType {
+  type: Type!
+  pokemon: Pokemon!
+  slot: Int!
+}
+
+type PokemonTypeList {
+  total: Int!
+  pokemonTypes: [PokemonType!]!
 }
 
 type Type {
