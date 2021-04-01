@@ -1,3 +1,3 @@
 ALTER TABLE "public"."pokemon_type"
-  DROP COLUMN slot;
+  DROP COLUMN IF EXISTS slot;
 

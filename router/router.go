@@ -25,7 +25,7 @@ func New(resolver *graph.Resolver, tracing bool) *chi.Mux {
 	c.Complexity.Type.Moves = countComplexity
 	c.Complexity.Type.Pokemon = countComplexity
 	gqlSrv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	gqlSrv.Use(extension.FixedComplexityLimit(250))
+	gqlSrv.Use(extension.FixedComplexityLimit(300))
 
 	if tracing {
 		log.Logger.Info("using apollo tracing")
