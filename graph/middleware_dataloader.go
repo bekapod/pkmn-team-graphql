@@ -12,18 +12,25 @@ type key string
 const loadersKey key = "dataloaders"
 
 type loaders struct {
-	MovesByPokemonId dataloader.MoveListLoader
-	MovesByTypeId    dataloader.MoveListLoader
-	PokemonByMoveId  dataloader.PokemonListLoader
-	PokemonByTypeId  dataloader.PokemonListLoader
-	TypesByPokemonId dataloader.TypeListLoader
-	TypeByTypeId     dataloader.TypeLoader
+	AbilitiesByPokemonId dataloader.AbilityListLoader
+	MovesByPokemonId     dataloader.MoveListLoader
+	MovesByTypeId        dataloader.MoveListLoader
+	PokemonByAbilityId   dataloader.PokemonListLoader
+	PokemonByMoveId      dataloader.PokemonListLoader
+	PokemonByTypeId      dataloader.PokemonListLoader
+	TypesByPokemonId     dataloader.TypeListLoader
+	TypeByTypeId         dataloader.TypeLoader
 }
 
 func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, &loaders{
+				AbilitiesByPokemonId: *dataloader.NewAbilityListLoader(dataloader.AbilityListLoaderConfig{
+					MaxBatch: 1000,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.AbilityRepository.AbilitiesByPokemonIdDataLoader(r.Context()),
+				}),
 				MovesByPokemonId: *dataloader.NewMoveListLoader(dataloader.MoveListLoaderConfig{
 					MaxBatch: 1000,
 					Wait:     1 * time.Millisecond,
@@ -33,6 +40,11 @@ func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handl
 					MaxBatch: 1000,
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.MoveRepository.MovesByTypeIdDataLoader(r.Context()),
+				}),
+				PokemonByAbilityId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
+					MaxBatch: 1000,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonRepository.PokemonByAbilityIdDataLoader(r.Context()),
 				}),
 				PokemonByMoveId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
 					MaxBatch: 1000,

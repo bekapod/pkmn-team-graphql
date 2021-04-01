@@ -204,3 +204,75 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 		return pokemonList, nil
 	}
 }
+
+func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityIds []string) ([]*model.PokemonList, []error) {
+	return func(abilityIds []string) ([]*model.PokemonList, []error) {
+		pokemonByAbilityId := map[string]*model.PokemonList{}
+		placeholders := make([]string, len(abilityIds))
+		args := make([]interface{}, len(abilityIds))
+		for i := 0; i < len(abilityIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = abilityIds[i]
+		}
+
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_ability.ability_id FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (" + strings.Join(placeholders, ",") + ")"
+
+		log.Logger.WithField("args", args).Debug(query)
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			pokemonList := make([]*model.PokemonList, len(abilityIds))
+			emptyPokemonList := model.NewEmptyPokemonList()
+			errors := make([]error, len(abilityIds))
+			for i := range abilityIds {
+				pokemonList[i] = &emptyPokemonList
+				errors[i] = fmt.Errorf("error fetching pokemon for ability in PokemonByAbilityIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var pkmn model.Pokemon
+			var abilityId string
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &abilityId)
+			if err != nil {
+				pokemonList := make([]*model.PokemonList, len(abilityIds))
+				emptyPokemonList := model.NewEmptyPokemonList()
+				errors := make([]error, len(abilityIds))
+				for i := range abilityIds {
+					pokemonList[i] = &emptyPokemonList
+					errors[i] = fmt.Errorf("error scanning result pokemon for ability in PokemonByAbilityIdDataLoader: %w", err)
+				}
+				return pokemonList, errors
+			}
+
+			_, ok := pokemonByAbilityId[abilityId]
+			if !ok {
+				pl := model.NewEmptyPokemonList()
+				pokemonByAbilityId[abilityId] = &pl
+			}
+
+			pokemonByAbilityId[abilityId].AddPokemon(&pkmn)
+		}
+
+		pokemonList := make([]*model.PokemonList, len(abilityIds))
+		for i, id := range abilityIds {
+			pokemonList[i] = pokemonByAbilityId[id]
+			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(abilityIds))
+			for i := range abilityIds {
+				errors[i] = fmt.Errorf("error after fetching pokemon for ability in PokemonByAbilityIdDataLoader: %w", err)
+			}
+			return pokemonList, errors
+		}
+
+		return pokemonList, nil
+	}
+}
