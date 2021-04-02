@@ -66,7 +66,7 @@ func main() {
 				speed, _ := pokeapi.GetPokemonStat(pokemon, "speed")
 
 				pokemonValues = append(pokemonValues, fmt.Sprintf(
-					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s', '%s')",
+					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s', '%s', '%s')",
 					pokedexId,
 					pokemon.Name,
 					helpers.EscapeSingleQuote(englishName.Name),
@@ -82,6 +82,7 @@ func main() {
 					fullPokemonSpecies.IsMythical,
 					helpers.EscapeSingleQuote(englishFlavourText.FlavourText),
 					fullPokemonSpecies.Color.Name,
+					fullPokemonSpecies.Shape.Name,
 				))
 
 				for i := range pokemon.Types {
