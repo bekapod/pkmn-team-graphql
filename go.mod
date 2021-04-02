@@ -15,4 +15,5 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/vektah/dataloaden v0.3.0
 	github.com/vektah/gqlparser/v2 v2.1.0
+	honnef.co/go/tools v0.1.3
 )
