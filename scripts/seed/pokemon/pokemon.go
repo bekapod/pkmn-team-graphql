@@ -30,6 +30,7 @@ func main() {
 	pokemonTypeValues := make([]string, 0)
 	pokemonAbilityValues := make([]string, 0)
 	pokemonMoveValues := make([]string, 0)
+	pokemonEggGroupValues := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -114,6 +115,14 @@ func main() {
 						"(%s, %s)",
 						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
 						fmt.Sprintf("(SELECT id FROM moves WHERE slug='%s')", pokemon.Moves[i].Move.Name),
+					))
+				}
+
+				for i := range fullPokemonSpecies.EggGroups {
+					pokemonEggGroupValues = append(pokemonEggGroupValues, fmt.Sprintf(
+						"(%s, %s)",
+						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
+						fmt.Sprintf("(SELECT is FROM egg_groups WHERE slug='%s')", fullPokemonSpecies.EggGroups[i].Name),
 					))
 				}
 			}

@@ -38,6 +38,12 @@ func (client PokeApiClient) GetAbility(idOrName string) ability {
 	return result
 }
 
+func (client PokeApiClient) GetEggGroup(idOrName string) eggGroup {
+	result := eggGroup{}
+	client.getResource(fmt.Sprintf("egg-group/%s", idOrName), &result)
+	return result
+}
+
 func (client PokeApiClient) GetMove(idOrName string) move {
 	result := move{}
 	client.getResource(fmt.Sprintf("move/%s", idOrName), &result)
@@ -250,6 +256,13 @@ type stat struct {
 	GameIndex    int               `json:"game_index"`
 	IsBattleOnly bool              `json:"is_battle_only"`
 	Names        []*translatedName `json:"names"`
+}
+
+type eggGroup struct {
+	ID             int                `json:"id"`
+	Name           string             `json:"name"`
+	Names          []*translatedName  `json:"names"`
+	PokemonSpecies []*resourcePointer `json:"pokemon_species"`
 }
 
 type pokemon struct {
