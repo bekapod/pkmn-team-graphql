@@ -7,6 +7,7 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
@@ -66,6 +67,10 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	}
 
 	return moves, err
+}
+
+func (r *pokemonResolver) EggGroups(ctx context.Context, obj *model.Pokemon) (*model.EggGroupList, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *pokemonTypeResolver) Type(ctx context.Context, obj *model.PokemonType) (*model.Type, error) {

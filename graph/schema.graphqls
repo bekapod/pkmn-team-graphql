@@ -1,7 +1,48 @@
+enum Color {
+  BLACK
+  BROWN
+  GRAY
+  GREEN
+  PINK
+  PURPLE
+  RED
+  WHITE
+  YELLOW
+}
+
 enum DamageClass {
   PHYSICAL
   SPECIAL
   STATUS
+}
+
+enum Habitat {
+  CAVE
+  FOREST
+  GRASSLAND
+  MOUNTAIN
+  RARE
+  ROUGH_TERRAIN
+  SEA
+  URBAN
+  WATERS_EDGE
+}
+
+enum Shape {
+  BALL
+  SQUIGGLE
+  FISH
+  ARMS
+  BLOB
+  UPRIGHT
+  LEGS
+  QUADRUPED
+  WINGS
+  TENTACLES
+  HEADS
+  HUMANOID
+  BUG_WINGS
+  ARMOR
 }
 
 type Ability {
@@ -15,6 +56,17 @@ type Ability {
 type AbilityList {
   total: Int!
   abilities: [Ability!]!
+}
+
+type EggGroup {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type EggGroupList {
+  total: Int!
+  eggGroups: [EggGroup!]!
 }
 
 type Move {
@@ -53,9 +105,17 @@ type Pokemon {
   isLegendary: Boolean!
   isMythical: Boolean!
   description: String!
+  color: Color!
+  shape: Shape!
+  habitat: Habitat
+  height: Int!
+  weight: Int!
+  isDefaultVariant: Boolean!
+  genus: String!
   abilities: AbilityList!
   types: PokemonTypeList!
   moves: MoveList!
+  eggGroups: EggGroupList!
 }
 
 type PokemonList {
