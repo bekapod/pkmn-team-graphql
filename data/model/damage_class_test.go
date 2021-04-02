@@ -1,6 +1,7 @@
 package model
 
 import (
+	"os"
 	"testing"
 )
 
@@ -9,14 +10,9 @@ type TestDataDamageClass struct {
 	exp   interface{}
 }
 
-type TestDataUnmarshal struct {
+type TestDataDamageClassUnmarshal struct {
 	input    DamageClass
 	hasError bool
-}
-
-type TestDataMarshal struct {
-	input DamageClass
-	exp   string
 }
 
 func TestDamageClass_IsValid(t *testing.T) {
@@ -49,7 +45,7 @@ func TestDamageClass_String(t *testing.T) {
 }
 
 func TestDamageClass_UnmarshalGQL(t *testing.T) {
-	damageClasses := []TestDataUnmarshal{
+	damageClasses := []TestDataDamageClassUnmarshal{
 		{Physical, false},
 		{Special, false},
 		{Status, false},
@@ -63,17 +59,16 @@ func TestDamageClass_UnmarshalGQL(t *testing.T) {
 	}
 }
 
-func TestDamageClass_MarshalGQL(t *testing.T) {
-	damageClasses := []TestDataMarshal{
-		{Physical, "physical"},
-		{Special, "special"},
-		{Status, "status"},
-		{"Something else", "Something else"},
+func TestDamageClass_UnmarshalGQL_Error(t *testing.T) {
+	damageClass := Physical
+	got := (&damageClass).UnmarshalGQL(5)
+	if got == nil {
+		t.Error("expected an error but didn't get one")
 	}
+}
 
-	for _, item := range damageClasses {
-		if got := item.input.String(); item.exp != got {
-			t.Errorf("expected '%s' but got '%s' instead", item.exp, got)
-		}
-	}
+func ExampleDamageClass_MarshalGQL() {
+	damageClass := Physical
+	(&damageClass).MarshalGQL(os.Stdout)
+	// Output: "physical"
 }
