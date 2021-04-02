@@ -116,6 +116,18 @@ func GetEnglishName(names []*translatedName, resourceName string) (*translatedNa
 	return &translatedName{}, fmt.Errorf("no english name found for %s", resourceName)
 }
 
+func GetEnglishGenus(genera []*genus, resourceName string) (*genus, error) {
+	for i := range genera {
+		if genera[i].Language.Name == "en" {
+			return genera[i], nil
+		}
+	}
+
+	return &genus{
+		Genus: "",
+	}, fmt.Errorf("no english genus found for %s", resourceName)
+}
+
 func GetEnglishEffectEntry(effectEntries []*effectEntry, resourceName string) (*effectEntry, error) {
 	for i := range effectEntries {
 		if effectEntries[i].Language.Name == "en" {
@@ -236,6 +248,11 @@ type target struct {
 	Names []*translatedName `json:"names"`
 }
 
+type genus struct {
+	Genus    string          `json:"genus"`
+	Language resourcePointer `json:"language"`
+}
+
 type ability struct {
 	Id                 int                 `json:"id"`
 	Name               string              `json:"name"`
@@ -340,14 +357,11 @@ type pokemonSpecies struct {
 	Habitat              resourcePointer     `json:"habitat"`
 	Names                []*translatedName   `json:"names"`
 	FlavourTextEntries   []*flavourTextEntry `json:"flavor_text_entries"`
+	Genera               []*genus            `json:"genera"`
 	PokedexNumbers       []*struct {
 		EntryNumber int             `json:"entry_number"`
 		Pokedex     resourcePointer `json:"pokedex"`
 	} `json:"pokedex_numbers"`
-	Genera []*struct {
-		Genus    string          `json:"genus"`
-		Language resourcePointer `json:"language"`
-	} `json:"genera"`
 	Varieties []*struct {
 		IsDefault bool            `json:"is_default"`
 		Pokemon   resourcePointer `json:"pokemon"`
