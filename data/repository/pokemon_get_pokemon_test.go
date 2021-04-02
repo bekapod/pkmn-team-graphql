@@ -17,57 +17,9 @@ func TestPokemon_GetPokemon(t *testing.T) {
 		WillReturnRows(mockRowsForGetPokemon(false, false, false))
 
 	pokemon := []*model.Pokemon{
-		{
-			ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-			Slug:           "castform-snowy",
-			Name:           "Castform",
-			PokedexId:      351,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-			HP:             70,
-			Attack:         70,
-			Defense:        70,
-			SpecialAttack:  70,
-			SpecialDefense: 70,
-			Speed:          70,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-		},
-		{
-			ID:             "51948cca-743a-4e6d-9c00-579140daccc5",
-			Slug:           "snorunt",
-			Name:           "Snorunt",
-			PokedexId:      361,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
-			HP:             50,
-			Attack:         50,
-			Defense:        50,
-			SpecialAttack:  50,
-			SpecialDefense: 50,
-			Speed:          50,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
-		},
-		{
-			ID:             "85da4120-96bb-42b1-8e8f-9f8bded11a31",
-			Slug:           "bronzong",
-			Name:           "Bronzong",
-			PokedexId:      437,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png",
-			HP:             67,
-			Attack:         89,
-			Defense:        116,
-			SpecialAttack:  79,
-			SpecialDefense: 116,
-			Speed:          33,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "",
-		},
+		&castform,
+		&snorunt,
+		&bronzong,
 	}
 
 	exp := model.NewPokemonList(pokemon)
@@ -172,23 +124,7 @@ func TestPokemon_GetPokemonById(t *testing.T) {
 		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1").
 		WillReturnRows(mockRowsForGetPokemonById(false))
 
-	exp := model.Pokemon{
-		ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-		Slug:           "castform-snowy",
-		Name:           "Castform",
-		PokedexId:      351,
-		Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-		HP:             70,
-		Attack:         70,
-		Defense:        70,
-		SpecialAttack:  70,
-		SpecialDefense: 70,
-		Speed:          70,
-		IsBaby:         false,
-		IsLegendary:    false,
-		IsMythical:     false,
-		Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-	}
+	exp := castform
 	got, err := NewPokemon(db).GetPokemonById(context.Background(), "3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
@@ -247,63 +183,15 @@ func TestPokemon_PokemonByMoveIdDataLoader(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
 		{
 			Total: 2,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "51948cca-743a-4e6d-9c00-579140daccc5",
-					Slug:           "snorunt",
-					Name:           "Snorunt",
-					PokedexId:      361,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
-					HP:             50,
-					Attack:         50,
-					Defense:        50,
-					SpecialAttack:  50,
-					SpecialDefense: 50,
-					Speed:          50,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
-				},
-				{
-					ID:             "85da4120-96bb-42b1-8e8f-9f8bded11a31",
-					Slug:           "bronzong",
-					Name:           "Bronzong",
-					PokedexId:      437,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png",
-					HP:             67,
-					Attack:         89,
-					Defense:        116,
-					SpecialAttack:  79,
-					SpecialDefense: 116,
-					Speed:          33,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "",
-				},
+				&snorunt,
+				&bronzong,
 			},
 		},
 	}
@@ -394,23 +282,7 @@ func TestPokemon_PokemonByMoveDataLoader_WithRowError(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
@@ -438,63 +310,15 @@ func TestPokemon_PokemonByTypeIdDataLoader(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
 		{
 			Total: 2,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "51948cca-743a-4e6d-9c00-579140daccc5",
-					Slug:           "snorunt",
-					Name:           "Snorunt",
-					PokedexId:      361,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
-					HP:             50,
-					Attack:         50,
-					Defense:        50,
-					SpecialAttack:  50,
-					SpecialDefense: 50,
-					Speed:          50,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
-				},
-				{
-					ID:             "85da4120-96bb-42b1-8e8f-9f8bded11a31",
-					Slug:           "bronzong",
-					Name:           "Bronzong",
-					PokedexId:      437,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png",
-					HP:             67,
-					Attack:         89,
-					Defense:        116,
-					SpecialAttack:  79,
-					SpecialDefense: 116,
-					Speed:          33,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "",
-				},
+				&snorunt,
+				&bronzong,
 			},
 		},
 	}
@@ -585,23 +409,7 @@ func TestPokemon_PokemonByTypeIdDataLoader_WithRowError(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
@@ -629,63 +437,15 @@ func TestPokemon_PokemonByAbilityIdDataLoader(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
 		{
 			Total: 2,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "51948cca-743a-4e6d-9c00-579140daccc5",
-					Slug:           "snorunt",
-					Name:           "Snorunt",
-					PokedexId:      361,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
-					HP:             50,
-					Attack:         50,
-					Defense:        50,
-					SpecialAttack:  50,
-					SpecialDefense: 50,
-					Speed:          50,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
-				},
-				{
-					ID:             "85da4120-96bb-42b1-8e8f-9f8bded11a31",
-					Slug:           "bronzong",
-					Name:           "Bronzong",
-					PokedexId:      437,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png",
-					HP:             67,
-					Attack:         89,
-					Defense:        116,
-					SpecialAttack:  79,
-					SpecialDefense: 116,
-					Speed:          33,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "",
-				},
+				&snorunt,
+				&bronzong,
 			},
 		},
 	}
@@ -776,23 +536,7 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithRowError(t *testing.T) {
 		{
 			Total: 1,
 			Pokemon: []*model.Pokemon{
-				{
-					ID:             "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
-					Slug:           "castform-snowy",
-					Name:           "Castform",
-					PokedexId:      351,
-					Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-					HP:             70,
-					Attack:         70,
-					Defense:        70,
-					SpecialAttack:  70,
-					SpecialDefense: 70,
-					Speed:          70,
-					IsBaby:         false,
-					IsLegendary:    false,
-					IsMythical:     false,
-					Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-				},
+				&castform,
 			},
 		},
 		nil,
@@ -808,50 +552,18 @@ func TestPokemon_PokemonByPokemonIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
+		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
+		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
 
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
+	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
 	exp := []*model.Pokemon{
-		{
-			ID:             "56dddb9a-3623-43c5-8228-ea24d598afe7",
-			Slug:           "castform-snowy",
-			Name:           "Castform",
-			PokedexId:      351,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-			HP:             70,
-			Attack:         70,
-			Defense:        70,
-			SpecialAttack:  70,
-			SpecialDefense: 70,
-			Speed:          70,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-		},
+		&castform,
 		nil,
-		{
-			ID:             "05cd51bd-23ca-4736-b8ec-aa93aca68a8b",
-			Slug:           "snorunt",
-			Name:           "Snorunt",
-			PokedexId:      361,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
-			HP:             50,
-			Attack:         50,
-			Defense:        50,
-			SpecialAttack:  50,
-			SpecialDefense: 50,
-			Speed:          50,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
-		},
+		&snorunt,
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -863,11 +575,11 @@ func TestPokemon_PokemonByPokemonIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})).
+		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
+		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})).
 		WillReturnError(errors.New("I am Error."))
 
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
+	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -887,10 +599,10 @@ func TestPokemon_PokemonsByPokemonIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, true, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
+		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
+		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, true, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
 
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
+	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -910,32 +622,16 @@ func TestPokemon_PokemonByPokemonIdDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, true, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
+		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
+		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, true, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
 
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
+	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
 
 	exp := []*model.Pokemon{
-		{
-			ID:             "56dddb9a-3623-43c5-8228-ea24d598afe7",
-			Slug:           "castform-snowy",
-			Name:           "Castform",
-			PokedexId:      351,
-			Sprite:         "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
-			HP:             70,
-			Attack:         70,
-			Defense:        70,
-			SpecialAttack:  70,
-			SpecialDefense: 70,
-			Speed:          70,
-			IsBaby:         false,
-			IsLegendary:    false,
-			IsMythical:     false,
-			Description:    "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
-		},
+		&castform,
 		nil,
 		nil,
 	}
@@ -945,17 +641,91 @@ func TestPokemon_PokemonByPokemonIdDataLoader_WithRowError(t *testing.T) {
 	}
 }
 
+var castform = model.Pokemon{
+	ID:               "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
+	Slug:             "castform-snowy",
+	Name:             "Castform",
+	PokedexId:        351,
+	Sprite:           "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png",
+	HP:               70,
+	Attack:           70,
+	Defense:          70,
+	SpecialAttack:    70,
+	SpecialDefense:   70,
+	Speed:            70,
+	IsBaby:           false,
+	IsLegendary:      false,
+	IsMythical:       false,
+	Description:      "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!",
+	Color:            model.Gray,
+	Shape:            model.Ball,
+	Habitat:          model.Grassland,
+	IsDefaultVariant: false,
+	Genus:            "Weather Pokémon",
+	Height:           3,
+	Weight:           8,
+}
+
+var snorunt = model.Pokemon{
+	ID:               "51948cca-743a-4e6d-9c00-579140daccc5",
+	Slug:             "snorunt",
+	Name:             "Snorunt",
+	PokedexId:        361,
+	Sprite:           "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png",
+	HP:               50,
+	Attack:           50,
+	Defense:          50,
+	SpecialAttack:    50,
+	SpecialDefense:   50,
+	Speed:            50,
+	IsBaby:           false,
+	IsLegendary:      false,
+	IsMythical:       false,
+	Description:      "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.",
+	Color:            model.Gray,
+	Shape:            model.Humanoid,
+	Habitat:          model.Cave,
+	IsDefaultVariant: true,
+	Genus:            "Snow Hat Pokémon",
+	Height:           7,
+	Weight:           168,
+}
+
+var bronzong = model.Pokemon{
+	ID:               "85da4120-96bb-42b1-8e8f-9f8bded11a31",
+	Slug:             "bronzong",
+	Name:             "Bronzong",
+	PokedexId:        437,
+	Sprite:           "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png",
+	HP:               67,
+	Attack:           89,
+	Defense:          116,
+	SpecialAttack:    79,
+	SpecialDefense:   116,
+	Speed:            33,
+	IsBaby:           false,
+	IsLegendary:      false,
+	IsMythical:       false,
+	Description:      "",
+	Color:            model.Green,
+	Shape:            model.Arms,
+	IsDefaultVariant: true,
+	Genus:            "Bronze Bell Pokémon",
+	Height:           13,
+	Weight:           1870,
+}
+
 func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sqlmock.Rows {
 	if hasScanError {
 		rows := sqlmock.NewRows([]string{"id"})
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!").
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.").
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "")
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon").
+			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon").
+			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon")
 	}
 
 	if hasRowError {
@@ -965,9 +735,9 @@ func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sql
 }
 
 func mockRowsForGetPokemonById(empty bool) *sqlmock.Rows {
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!")
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon")
 	}
 	return rows
 }
@@ -978,11 +748,11 @@ func mockRowsForPokemonByMoveIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "pokemon_move.move_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_move.move_id"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", ids[2])
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
+			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
+			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -996,11 +766,11 @@ func mockRowsForPokemonByTypeIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "pokemon_type.type_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_type.type_id"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", ids[2])
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
+			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
+			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -1014,11 +784,11 @@ func mockRowsForPokemonByAbilityIdDataLoader(empty bool, hasRowError bool, hasSc
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "pokemon_type.type_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_type.type_id"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", ids[2])
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
+			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
+			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -1032,10 +802,10 @@ func mockRowsForPokemonByPokemonIdDataLoader(empty bool, hasRowError bool, hasSc
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
 	if !empty {
-		rows.AddRow(ids[0], "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!").
-			AddRow(ids[2], "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.")
+		rows.AddRow(ids[0], "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon").
+			AddRow(ids[2], "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon")
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))

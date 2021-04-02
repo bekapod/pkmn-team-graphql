@@ -19,7 +19,7 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon ORDER BY pokedex_id, slug ASC",
+		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon ORDER BY pokedex_id, slug ASC",
 	)
 	if err != nil {
 		return &pokemon, fmt.Errorf("error fetching all pokemon in GetAllPokemon: %w", err)
@@ -28,10 +28,12 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var pkmn model.Pokemon
-		err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
+		var habitat sql.NullString
+		err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
 		if err != nil {
 			return &pokemon, fmt.Errorf("error scanning result in GetAllPokemon: %w", err)
 		}
+		pkmn.Habitat = model.Habitat(habitat.String)
 		pokemon.AddPokemon(&pkmn)
 	}
 
@@ -45,12 +47,13 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon, error) {
 	pkmn := model.Pokemon{}
+	var habitat sql.NullString
 
 	err := r.db.QueryRowContext(
 		ctx,
-		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon WHERE id = $1",
+		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon WHERE id = $1",
 		id,
-	).Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
+	).Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoPokemon
@@ -58,6 +61,7 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 		return nil, fmt.Errorf("error scanning result in GetPokemonById %s: %w", id, err)
 	}
 
+	pkmn.Habitat = model.Habitat(habitat.String)
 	return &pkmn, nil
 }
 
@@ -71,7 +75,7 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			args[i] = moveIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_move.move_id FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_move.move_id FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (" + strings.Join(placeholders, ",") + ")"
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -93,7 +97,8 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 		for rows.Next() {
 			var pkmn model.Pokemon
 			var moveId string
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &moveId)
+			var habitat sql.NullString
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &moveId)
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(moveIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -105,6 +110,7 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 				return pokemonList, errors
 			}
 
+			pkmn.Habitat = model.Habitat(habitat.String)
 			_, ok := pokemonByMoveId[moveId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
@@ -143,7 +149,7 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			args[i] = typeIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_type.type_id FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_type.type_id FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (" + strings.Join(placeholders, ",") + ")"
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -165,7 +171,8 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 		for rows.Next() {
 			var pkmn model.Pokemon
 			var typeId string
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &typeId)
+			var habitat sql.NullString
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &typeId)
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(typeIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -177,6 +184,7 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 				return pokemonList, errors
 			}
 
+			pkmn.Habitat = model.Habitat(habitat.String)
 			_, ok := pokemonByTypeId[typeId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
@@ -215,7 +223,7 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 			args[i] = abilityIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, pokemon_ability.ability_id FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_ability.ability_id FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (" + strings.Join(placeholders, ",") + ")"
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -237,7 +245,8 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 		for rows.Next() {
 			var pkmn model.Pokemon
 			var abilityId string
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &abilityId)
+			var habitat sql.NullString
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &abilityId)
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(abilityIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -249,6 +258,7 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 				return pokemonList, errors
 			}
 
+			pkmn.Habitat = model.Habitat(habitat.String)
 			_, ok := pokemonByAbilityId[abilityId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
@@ -287,7 +297,7 @@ func (r Pokemon) PokemonByPokemonIdDataLoader(ctx context.Context) func(pokemonI
 			args[i] = pokemonIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description FROM pokemon WHERE id IN (" + strings.Join(placeholders, ",") + ")"
+		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon WHERE id IN (" + strings.Join(placeholders, ",") + ")"
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -306,7 +316,8 @@ func (r Pokemon) PokemonByPokemonIdDataLoader(ctx context.Context) func(pokemonI
 		defer rows.Close()
 		for rows.Next() {
 			var pkmn model.Pokemon
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description)
+			var habitat sql.NullString
+			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
 			if err != nil {
 				pokemonList := make([]*model.Pokemon, len(pokemonIds))
 				errors := make([]error, len(pokemonIds))
@@ -315,6 +326,7 @@ func (r Pokemon) PokemonByPokemonIdDataLoader(ctx context.Context) func(pokemonI
 				}
 				return pokemonList, errors
 			}
+			pkmn.Habitat = model.Habitat(habitat.String)
 			pokemonByPokemonId[pkmn.ID] = &pkmn
 		}
 

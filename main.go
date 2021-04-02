@@ -28,6 +28,7 @@ func main() {
 
 	resolver := &graph.Resolver{
 		AbilityRepository:     repository.NewAbility(db),
+		EggGroupRepository:    repository.NewEggGroup(db),
 		MoveRepository:        repository.NewMove(db),
 		PokemonRepository:     repository.NewPokemon(db),
 		PokemonTypeRepository: repository.NewPokemonType(db),

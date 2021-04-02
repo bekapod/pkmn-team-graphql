@@ -12,6 +12,7 @@ import (
 
 type Resolver struct {
 	AbilityRepository     repository.Ability
+	EggGroupRepository    repository.EggGroup
 	MoveRepository        repository.Move
 	PokemonRepository     repository.Pokemon
 	PokemonTypeRepository repository.PokemonType

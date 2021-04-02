@@ -13,6 +13,7 @@ const loadersKey key = "dataloaders"
 
 type loaders struct {
 	AbilitiesByPokemonId    dataloader.AbilityListLoader
+	EggGroupsByPokemonId    dataloader.EggGroupListLoader
 	MovesByPokemonId        dataloader.MoveListLoader
 	MovesByTypeId           dataloader.MoveListLoader
 	PokemonByPokemonId      dataloader.PokemonLoader
@@ -31,6 +32,11 @@ func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handl
 					MaxBatch: 1000,
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.AbilityRepository.AbilitiesByPokemonIdDataLoader(r.Context()),
+				}),
+				EggGroupsByPokemonId: *dataloader.NewEggGroupListLoader(dataloader.EggGroupListLoaderConfig{
+					MaxBatch: 1000,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.EggGroupRepository.EggGroupsByPokemonIdDataLoader(r.Context()),
 				}),
 				MovesByPokemonId: *dataloader.NewMoveListLoader(dataloader.MoveListLoaderConfig{
 					MaxBatch: 1000,
