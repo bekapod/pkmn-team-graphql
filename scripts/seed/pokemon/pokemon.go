@@ -59,6 +59,10 @@ func main() {
 			if err != nil {
 				log.Logger.Fatal(err)
 			}
+			habitat := "NULL"
+			if fullPokemonSpecies.Habitat.Name != "" {
+				habitat = fmt.Sprintf("'%s'", fullPokemonSpecies.Habitat.Name)
+			}
 
 			for i := range varieties {
 				pokemon := varieties[i]
@@ -70,7 +74,7 @@ func main() {
 				speed, _ := pokeapi.GetPokemonStat(pokemon, "speed")
 
 				pokemonValues = append(pokemonValues, fmt.Sprintf(
-					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s', '%s', '%s', '%s', %t, '%s', %d, %d)",
+					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s', '%s', '%s', %s, %t, '%s', %d, %d)",
 					pokedexId,
 					pokemon.Name,
 					helpers.EscapeSingleQuote(englishName.Name),
@@ -87,7 +91,7 @@ func main() {
 					helpers.EscapeSingleQuote(englishFlavourText.FlavourText),
 					fullPokemonSpecies.Color.Name,
 					fullPokemonSpecies.Shape.Name,
-					fullPokemonSpecies.Habitat.Name,
+					habitat,
 					pokemon.IsDefault,
 					englishGenus.Genus,
 					pokemon.Height,
@@ -133,7 +137,7 @@ func main() {
 					pokemonEggGroupValues = append(pokemonEggGroupValues, fmt.Sprintf(
 						"(%s, %s)",
 						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
-						fmt.Sprintf("(SELECT is FROM egg_groups WHERE slug='%s')", fullPokemonSpecies.EggGroups[i].Name),
+						fmt.Sprintf("(SELECT id FROM egg_groups WHERE slug='%s')", fullPokemonSpecies.EggGroups[i].Name),
 					))
 				}
 			}
@@ -143,7 +147,7 @@ func main() {
 	wg.Wait()
 
 	sql := fmt.Sprintf(
-		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, shape_enum, habitat_enum, is_default_variant, genus, height, weight)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tpokedex_id = EXCLUDED.pokedex_id,\n\t\tname = EXCLUDED.name,\n\t\tsprite = EXCLUDED.sprite,\n\t\thp = EXCLUDED.hp,\n\t\tattack = EXCLUDED.attack,\n\t\tdefense = EXCLUDED.defense,\n\t\tspecial_attack = EXCLUDED.special_attack,\n\t\tspecial_defense = EXCLUDED.special_defense,\n\t\tspeed = EXCLUDED.speed,\n\t\tis_baby = EXCLUDED.is_baby,\n\t\tis_legendary = EXCLUDED.is_legendary,\n\t\tis_mythical = EXCLUDED.is_mythical,\n\t\tdescription = EXCLUDED.description,\n\t\tcolor_enum = EXCLUDED.color_enum,\n\t\tshape_enum = EXCLUDED.shape_enum,\n\t\thabitat_enum = EXCLUDED.habitat_enum,\n\t\tis_default_variant = EXCLUDED.is_default_variant,\n\t\tgenus = EXCLUDED.genus\n\t\theight = EXCLUDED.height\n\t\tweight = EXCLUDED.weight;\n\n"+
+		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, shape_enum, habitat_enum, is_default_variant, genus, height, weight)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tpokedex_id = EXCLUDED.pokedex_id,\n\t\tname = EXCLUDED.name,\n\t\tsprite = EXCLUDED.sprite,\n\t\thp = EXCLUDED.hp,\n\t\tattack = EXCLUDED.attack,\n\t\tdefense = EXCLUDED.defense,\n\t\tspecial_attack = EXCLUDED.special_attack,\n\t\tspecial_defense = EXCLUDED.special_defense,\n\t\tspeed = EXCLUDED.speed,\n\t\tis_baby = EXCLUDED.is_baby,\n\t\tis_legendary = EXCLUDED.is_legendary,\n\t\tis_mythical = EXCLUDED.is_mythical,\n\t\tdescription = EXCLUDED.description,\n\t\tcolor_enum = EXCLUDED.color_enum,\n\t\tshape_enum = EXCLUDED.shape_enum,\n\t\thabitat_enum = EXCLUDED.habitat_enum,\n\t\tis_default_variant = EXCLUDED.is_default_variant,\n\t\tgenus = EXCLUDED.genus,\n\t\theight = EXCLUDED.height,\n\t\tweight = EXCLUDED.weight;\n\n"+
 			"INSERT INTO pokemon_type (pokemon_id, type_id, slot)\n\tVALUES %s\nON CONFLICT (pokemon_id, type_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot;\n\n"+
 			"INSERT INTO pokemon_ability (pokemon_id, ability_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, ability_id)\n\tDO NOTHING;\n\n"+
 			"INSERT INTO pokemon_egg_group (pokemon_id, egg_group_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, egg_group_id)\n\tDO NOTHING;",
