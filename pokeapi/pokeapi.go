@@ -69,7 +69,7 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species pokemonSpecies
 		urlParts := strings.Split(species.Varieties[i].Pokemon.Url, "/")
 		id := urlParts[len(urlParts)-2]
 		variety := client.GetPokemon(id)
-		if !strings.Contains(variety.Name, "gmax") && !strings.Contains(variety.Name, "totem") && !strings.Contains(variety.Name, "galar") {
+		if !strings.Contains(variety.Name, "gmax") && !strings.Contains(variety.Name, "totem") && !strings.Contains(variety.Name, "mega") {
 			pokemon = append(pokemon, variety)
 		}
 	}
