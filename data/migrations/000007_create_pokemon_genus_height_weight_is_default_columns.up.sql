@@ -1,0 +1,6 @@
+ALTER TABLE "public"."pokemon"
+  ADD COLUMN IF NOT EXISTS is_default_variant boolean NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS genus text NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS height integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS weight integer NOT NULL DEFAULT 0;
+
