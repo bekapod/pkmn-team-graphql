@@ -45,6 +45,10 @@ func main() {
 			fullPokemonSpecies := client.GetPokemonSpecies(id)
 			varieties := client.GetPokemonVarietiesForSpecies(fullPokemonSpecies)
 
+			pokedexId, err := pokeapi.GetPokedexId(fullPokemonSpecies, "national")
+			if err != nil {
+				log.Logger.Fatal(err)
+			}
 			englishName, err := pokeapi.GetEnglishName(fullPokemonSpecies.Names, fullPokemonSpecies.Name)
 			if err != nil {
 				log.Logger.Fatal(err)
@@ -53,18 +57,25 @@ func main() {
 
 			for i := range varieties {
 				pokemon := varieties[i]
+				hp, _ := pokeapi.GetPokemonStat(pokemon, "hp")
+				attack, _ := pokeapi.GetPokemonStat(pokemon, "attack")
+				defense, _ := pokeapi.GetPokemonStat(pokemon, "defense")
+				specialAttack, _ := pokeapi.GetPokemonStat(pokemon, "special-attack")
+				specialDefense, _ := pokeapi.GetPokemonStat(pokemon, "special-defense")
+				speed, _ := pokeapi.GetPokemonStat(pokemon, "speed")
+
 				pokemonValues = append(pokemonValues, fmt.Sprintf(
 					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s')",
-					fullPokemonSpecies.ID,
+					pokedexId,
 					pokemon.Name,
 					helpers.EscapeSingleQuote(englishName.Name),
 					pokemon.Sprites.FrontDefault,
-					pokeapi.GetPokemonStat(pokemon, "hp"),
-					pokeapi.GetPokemonStat(pokemon, "attack"),
-					pokeapi.GetPokemonStat(pokemon, "defense"),
-					pokeapi.GetPokemonStat(pokemon, "special-attack"),
-					pokeapi.GetPokemonStat(pokemon, "special-defense"),
-					pokeapi.GetPokemonStat(pokemon, "speed"),
+					hp,
+					attack,
+					defense,
+					specialAttack,
+					specialDefense,
+					speed,
 					fullPokemonSpecies.IsBaby,
 					fullPokemonSpecies.IsLegendary,
 					fullPokemonSpecies.IsMythical,

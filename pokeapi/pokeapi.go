@@ -135,14 +135,24 @@ func GetEnglishFlavourTextEntry(flavourTextEntries []*flavourTextEntry, resource
 	}, fmt.Errorf("no english flavour text entry found for %s", resourceName)
 }
 
-func GetPokemonStat(pkmn pokemon, stat string) int {
+func GetPokemonStat(pkmn pokemon, stat string) (int, error) {
 	for i := range pkmn.Stats {
 		if pkmn.Stats[i].Stat.Name == stat {
-			return pkmn.Stats[i].BaseStat
+			return pkmn.Stats[i].BaseStat, nil
 		}
 	}
 
-	return 0
+	return 0, fmt.Errorf("couldn't find %s stat for %s", stat, pkmn.Name)
+}
+
+func GetPokedexId(pkmn pokemonSpecies, pokedex string) (int, error) {
+	for i := range pkmn.PokedexNumbers {
+		if pkmn.PokedexNumbers[i].Pokedex.Name == pokedex {
+			return pkmn.PokedexNumbers[i].EntryNumber, nil
+		}
+	}
+
+	return 0, fmt.Errorf("couldn't find %s pokedex id for %s", pokedex, pkmn.Name)
 }
 
 func check(e error) {
