@@ -333,7 +333,7 @@ type pokemonSpecies struct {
 	FormsSwitchable      bool                `json:"forms_switchable"`
 	GrowthRate           resourcePointer     `json:"growth_rate"`
 	EggGroups            []*resourcePointer  `json:"egg_groups"`
-	Colour               resourcePointer     `json:"color"`
+	Color                resourcePointer     `json:"color"`
 	Shape                resourcePointer     `json:"shape"`
 	EvolvesFromSpecies   resourcePointer     `json:"evolves_from_species"`
 	EvolutionChain       resourcePointer     `json:"evolution_chain"`
