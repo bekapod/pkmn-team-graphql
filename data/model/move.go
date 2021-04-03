@@ -11,7 +11,7 @@ type Move struct {
 	Effect       string      `json:"effect"`
 	EffectChance int         `json:"effectChance"`
 	Target       string      `json:"target"`
-	TypeID       string      `json:"type"`
+	Type         Type        `json:"type"`
 }
 
 type MoveList struct {

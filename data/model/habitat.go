@@ -49,4 +49,19 @@ func (h Habitat) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(h.String()))
 }
 
+func (h *Habitat) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case string:
+		*h = Habitat(v)
+		if !h.IsValid() {
+			return fmt.Errorf("%s is not a valid Habitat", src)
+		}
+		return nil
+	case nil:
+		return nil
+	}
+
+	return fmt.Errorf("failed to scan habitat")
+}
+
 func (Habitat) IsEntity() {}
