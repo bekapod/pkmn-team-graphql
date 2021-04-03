@@ -183,111 +183,6 @@ func TestType_GetTypeById_WithNoRows(t *testing.T) {
 	}
 }
 
-func TestType_TypesByTypeIdDataLoader(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM types WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForTypesByTypeIdDataLoader(false, false, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
-
-	got, err := NewType(db).TypesByTypeIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	exp := []*model.Type{
-		{
-			ID:   "56dddb9a-3623-43c5-8228-ea24d598afe7",
-			Slug: "dragon",
-			Name: "Dragon",
-		},
-		nil,
-		{
-			ID:   "05cd51bd-23ca-4736-b8ec-aa93aca68a8b",
-			Slug: "poison",
-			Name: "Poison",
-		},
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestType_TypesByTypeIdDataLoader_WithQueryError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM types WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForTypesByTypeIdDataLoader(false, false, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})).
-		WillReturnError(errors.New("I am Error."))
-
-	got, err := NewType(db).TypesByTypeIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Type{
-		nil,
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestType_TypesByTypeIdDataLoader_WithScanError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM types WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForTypesByTypeIdDataLoader(false, false, true, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
-
-	got, err := NewType(db).TypesByTypeIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Type{
-		nil,
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestType_TypesByTypeIdDataLoader_WithRowError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM types WHERE id IN (.*)").
-		WithArgs("56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
-		WillReturnRows(mockRowsForTypesByTypeIdDataLoader(false, true, false, []string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
-
-	got, err := NewType(db).TypesByTypeIdDataLoader(context.Background())([]string{"56dddb9a-3623-43c5-8228-ea24d598afe7", "a248c127-8e9c-4f87-8513-c5dbc3385011", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Type{
-		{
-			ID:   "56dddb9a-3623-43c5-8228-ea24d598afe7",
-			Slug: "dragon",
-			Name: "Dragon",
-		},
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
 func mockRowsForGetTypes(empty bool, hasRowError bool, hasScanError bool) *sqlmock.Rows {
 	if hasScanError {
 		rows := sqlmock.NewRows([]string{"id"})
@@ -310,23 +205,6 @@ func mockRowsForGetTypeById(empty bool) *sqlmock.Rows {
 	rows := sqlmock.NewRows([]string{"id", "name", "slug"})
 	if !empty {
 		rows.AddRow("a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1", "Dragon", "dragon")
-	}
-	return rows
-}
-
-func mockRowsForTypesByTypeIdDataLoader(empty bool, hasRowError bool, hasScanError bool, ids []string) *sqlmock.Rows {
-	if hasScanError {
-		rows := sqlmock.NewRows([]string{"id"})
-		rows.AddRow("a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1")
-		return rows
-	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug"})
-	if !empty {
-		rows.AddRow(ids[0], "Dragon", "dragon").
-			AddRow(ids[2], "Poison", "poison")
-	}
-	if hasRowError {
-		rows.RowError(1, errors.New("scan error"))
 	}
 	return rows
 }

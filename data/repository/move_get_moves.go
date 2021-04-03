@@ -19,7 +19,10 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		"SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves ORDER BY slug ASC",
+		`SELECT moves.*, types.name, types.slug
+		FROM moves
+			LEFT JOIN types ON moves.type_id = types.id
+		ORDER BY moves.slug ASC`,
 	)
 	if err != nil {
 		return &moves, fmt.Errorf("error fetching all moves in GetAllMoves: %w", err)
@@ -28,7 +31,7 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var m model.Move
-		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
+		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
 		if err != nil {
 			return &moves, fmt.Errorf("error scanning result in GetAllMoves: %w", err)
 		}
@@ -47,9 +50,12 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 
 	err := r.db.QueryRowContext(
 		ctx,
-		"SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves WHERE id = $1",
+		`SELECT moves.*, types.name, types.slug
+		FROM moves
+			LEFT JOIN types ON moves.type_id = types.id
+		WHERE moves.id = $1`,
 		id,
-	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
+	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoMove
@@ -70,9 +76,12 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			args[i] = pokemonIds[i]
 		}
 
-		query := "SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id, pokemon_move.pokemon_id FROM moves LEFT JOIN pokemon_move ON moves.id = pokemon_move.move_id WHERE pokemon_move.pokemon_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `SELECT moves.*, types.name, types.slug, pokemon_move.pokemon_id
+		FROM moves
+			LEFT JOIN types ON moves.type_id = types.id
+			LEFT JOIN pokemon_move ON moves.id = pokemon_move.move_id
+		WHERE pokemon_move.pokemon_id IN (` + strings.Join(placeholders, ",") + `)`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,
@@ -92,7 +101,7 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 		for rows.Next() {
 			var m model.Move
 			var pokemonId string
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID, &pokemonId)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, &pokemonId)
 			if err != nil {
 				moveList := make([]*model.MoveList, len(pokemonIds))
 				emptyMoveList := model.NewEmptyMoveList()
@@ -142,7 +151,10 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			args[i] = typeIds[i]
 		}
 
-		query := "SELECT id, name, slug, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id FROM moves WHERE type_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `SELECT moves.*, types.name, types.slug
+		FROM moves
+			LEFT JOIN types ON moves.type_id = types.id
+		WHERE type_id IN (` + strings.Join(placeholders, ",") + `)`
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -163,7 +175,7 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 		defer rows.Close()
 		for rows.Next() {
 			var m model.Move
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.TypeID)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
 			if err != nil {
 				moveList := make([]*model.MoveList, len(typeIds))
 				emptyMoveList := model.NewEmptyMoveList()
@@ -175,13 +187,13 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 				return moveList, errors
 			}
 
-			_, ok := movesByTypeId[m.TypeID]
+			_, ok := movesByTypeId[m.Type.ID]
 			if !ok {
 				ml := model.NewEmptyMoveList()
-				movesByTypeId[m.TypeID] = &ml
+				movesByTypeId[m.Type.ID] = &ml
 			}
 
-			movesByTypeId[m.TypeID].AddMove(&m)
+			movesByTypeId[m.Type.ID].AddMove(&m)
 		}
 
 		moveList := make([]*model.MoveList, len(typeIds))

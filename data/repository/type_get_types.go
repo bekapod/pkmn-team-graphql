@@ -2,12 +2,10 @@ package repository
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
-	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 )
 
 var (
@@ -59,64 +57,4 @@ func (r Type) GetTypeById(ctx context.Context, id string) (*model.Type, error) {
 	}
 
 	return &t, nil
-}
-
-func (r Type) TypesByTypeIdDataLoader(ctx context.Context) func(typeIds []string) ([]*model.Type, []error) {
-	return func(typeIds []string) ([]*model.Type, []error) {
-		typesByTypeId := map[string]*model.Type{}
-		placeholders := make([]string, len(typeIds))
-		args := make([]interface{}, len(typeIds))
-		for i := 0; i < len(typeIds); i++ {
-			placeholders[i] = fmt.Sprintf("$%d", i+1)
-			args[i] = typeIds[i]
-		}
-
-		query := "SELECT id, name, slug FROM types WHERE id IN (" + strings.Join(placeholders, ",") + ")"
-
-		log.Logger.WithField("args", args).Debug(query)
-		rows, err := r.db.QueryContext(ctx,
-			query,
-			args...,
-		)
-		if err != nil {
-			typeList := make([]*model.Type, len(typeIds))
-			errors := make([]error, len(typeIds))
-			for i := range typeIds {
-				errors[i] = fmt.Errorf("error fetching types for type in TypesByTypeIdDataLoader: %w", err)
-			}
-			return typeList, errors
-		}
-
-		defer rows.Close()
-		for rows.Next() {
-			var t model.Type
-			err := rows.Scan(&t.ID, &t.Name, &t.Slug)
-			if err != nil {
-				typeList := make([]*model.Type, len(typeIds))
-				errors := make([]error, len(typeIds))
-				for i := range typeIds {
-					errors[i] = fmt.Errorf("error scanning result in TypesByTypeIdDataLoader: %w", err)
-				}
-				return typeList, errors
-			}
-			typesByTypeId[t.ID] = &t
-		}
-
-		types := make([]*model.Type, len(typeIds))
-		for i, id := range typeIds {
-			types[i] = typesByTypeId[id]
-			i++
-		}
-
-		err = rows.Err()
-		if err != nil {
-			errors := make([]error, len(typeIds))
-			for i := range typeIds {
-				errors[i] = fmt.Errorf("error after fetching types for type in TypesByTypeIdDataLoader: %w", err)
-			}
-			return types, errors
-		}
-
-		return types, nil
-	}
 }

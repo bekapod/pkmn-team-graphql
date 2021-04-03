@@ -3083,9 +3083,9 @@ func (ec *executionContext) _PokemonTypeList_pokemonTypes(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.PokemonType)
+	res := resTmp.([]model.PokemonType)
 	fc.Result = res
-	return ec.marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_abilityById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6128,7 +6128,11 @@ func (ec *executionContext) marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraph
 	return ec._PokemonList(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PokemonType) graphql.Marshaler {
+func (ec *executionContext) marshalNPokemonType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx context.Context, sel ast.SelectionSet, v model.PokemonType) graphql.Marshaler {
+	return ec._PokemonType(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PokemonType) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6152,7 +6156,7 @@ func (ec *executionContext) marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPokemonType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx, sel, v[i])
+			ret[i] = ec.marshalNPokemonType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6163,16 +6167,6 @@ func (ec *executionContext) marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgr
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalNPokemonType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx context.Context, sel ast.SelectionSet, v *model.PokemonType) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._PokemonType(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPokemonTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx context.Context, sel ast.SelectionSet, v model.PokemonTypeList) graphql.Marshaler {

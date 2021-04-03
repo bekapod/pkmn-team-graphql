@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 var (
@@ -19,7 +21,14 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon ORDER BY pokedex_id, slug ASC",
+		`SELECT
+			pokemon.*,
+			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types
+		FROM pokemon
+			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+			LEFT JOIN types ON pokemon_type.type_id = types.id
+		GROUP BY pokemon.id
+		ORDER BY pokedex_id, pokemon.slug ASC;`,
 	)
 	if err != nil {
 		return &pokemon, fmt.Errorf("error fetching all pokemon in GetAllPokemon: %w", err)
@@ -28,12 +37,11 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var pkmn model.Pokemon
-		var habitat sql.NullString
-		err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
+		err := rows.Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes))
 		if err != nil {
 			return &pokemon, fmt.Errorf("error scanning result in GetAllPokemon: %w", err)
 		}
-		pkmn.Habitat = model.Habitat(habitat.String)
+		pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 		pokemon.AddPokemon(&pkmn)
 	}
 
@@ -47,21 +55,26 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon, error) {
 	pkmn := model.Pokemon{}
-	var habitat sql.NullString
 
 	err := r.db.QueryRowContext(
 		ctx,
-		"SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon WHERE id = $1",
+		`SELECT
+			pokemon.*,
+			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types
+		FROM pokemon
+			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+			LEFT JOIN types ON pokemon_type.type_id = types.id
+		WHERE pokemon.id = $1
+		GROUP BY pokemon.id;`,
 		id,
-	).Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
+	).Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoPokemon
 		}
 		return nil, fmt.Errorf("error scanning result in GetPokemonById %s: %w", id, err)
 	}
-
-	pkmn.Habitat = model.Habitat(habitat.String)
+	pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 	return &pkmn, nil
 }
 
@@ -75,7 +88,17 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			args[i] = moveIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_move.move_id FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `SELECT
+			pokemon.*,
+			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types
+			pokemon_move.move_id
+		FROM pokemon
+			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+			LEFT JOIN types ON pokemon_type.type_id = types.id
+			LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id
+		WHERE pokemon_move.move_id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY pokemon.id
+		ORDER BY pokedex_id, pokemon.slug ASC;`
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -97,8 +120,7 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 		for rows.Next() {
 			var pkmn model.Pokemon
 			var moveId string
-			var habitat sql.NullString
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &moveId)
+			err := rows.Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes), &moveId)
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(moveIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -109,8 +131,8 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 				}
 				return pokemonList, errors
 			}
+			pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 
-			pkmn.Habitat = model.Habitat(habitat.String)
 			_, ok := pokemonByMoveId[moveId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
@@ -149,7 +171,15 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			args[i] = typeIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_type.type_id FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `SELECT
+			pokemon.*,
+			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types
+		FROM pokemon
+			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+			LEFT JOIN types ON pokemon_type.type_id = types.id
+		WHERE pokemon_type.type_id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY pokemon.id
+		ORDER BY pokedex_id, pokemon.slug ASC;`
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -170,9 +200,7 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 		defer rows.Close()
 		for rows.Next() {
 			var pkmn model.Pokemon
-			var typeId string
-			var habitat sql.NullString
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &typeId)
+			err := rows.Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes))
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(typeIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -183,15 +211,17 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 				}
 				return pokemonList, errors
 			}
+			pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 
-			pkmn.Habitat = model.Habitat(habitat.String)
-			_, ok := pokemonByTypeId[typeId]
-			if !ok {
-				pl := model.NewEmptyPokemonList()
-				pokemonByTypeId[typeId] = &pl
+			for _, t := range pkmn.Types.PokemonTypes {
+				_, ok := pokemonByTypeId[t.Type.ID]
+				if !ok {
+					pl := model.NewEmptyPokemonList()
+					pokemonByTypeId[t.Type.ID] = &pl
+				}
+
+				pokemonByTypeId[t.Type.ID].AddPokemon(&pkmn)
 			}
-
-			pokemonByTypeId[typeId].AddPokemon(&pkmn)
 		}
 
 		pokemonList := make([]*model.PokemonList, len(typeIds))
@@ -223,7 +253,17 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 			args[i] = abilityIds[i]
 		}
 
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus, pokemon_ability.ability_id FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `SELECT
+			pokemon.*,
+			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types
+			pokemon_ability.ability_id
+		FROM pokemon
+			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+			LEFT JOIN types ON pokemon_type.type_id = types.id
+			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
+		WHERE pokemon_ability.ability_id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY pokemon.id
+		ORDER BY pokedex_id, pokemon.slug ASC;`
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
@@ -245,8 +285,7 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 		for rows.Next() {
 			var pkmn model.Pokemon
 			var abilityId string
-			var habitat sql.NullString
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus, &abilityId)
+			err := rows.Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes), &abilityId)
 			if err != nil {
 				pokemonList := make([]*model.PokemonList, len(abilityIds))
 				emptyPokemonList := model.NewEmptyPokemonList()
@@ -257,8 +296,8 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 				}
 				return pokemonList, errors
 			}
+			pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 
-			pkmn.Habitat = model.Habitat(habitat.String)
 			_, ok := pokemonByAbilityId[abilityId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
@@ -284,67 +323,5 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 		}
 
 		return pokemonList, nil
-	}
-}
-
-func (r Pokemon) PokemonByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []string) ([]*model.Pokemon, []error) {
-	return func(pokemonIds []string) ([]*model.Pokemon, []error) {
-		pokemonByPokemonId := map[string]*model.Pokemon{}
-		placeholders := make([]string, len(pokemonIds))
-		args := make([]interface{}, len(pokemonIds))
-		for i := 0; i < len(pokemonIds); i++ {
-			placeholders[i] = fmt.Sprintf("$%d", i+1)
-			args[i] = pokemonIds[i]
-		}
-
-		query := "SELECT id, name, slug, pokedex_id, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, habitat_enum, shape_enum, height, weight, is_default_variant, genus FROM pokemon WHERE id IN (" + strings.Join(placeholders, ",") + ")"
-
-		log.Logger.WithField("args", args).Debug(query)
-		rows, err := r.db.QueryContext(ctx,
-			query,
-			args...,
-		)
-		if err != nil {
-			pokemonList := make([]*model.Pokemon, len(pokemonIds))
-			errors := make([]error, len(pokemonIds))
-			for i := range pokemonIds {
-				errors[i] = fmt.Errorf("error fetching pokemons for pokemon id in PokemonByPokemonIdDataLoader: %w", err)
-			}
-			return pokemonList, errors
-		}
-
-		defer rows.Close()
-		for rows.Next() {
-			var pkmn model.Pokemon
-			var habitat sql.NullString
-			err := rows.Scan(&pkmn.ID, &pkmn.Name, &pkmn.Slug, &pkmn.PokedexId, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &habitat, &pkmn.Shape, &pkmn.Height, &pkmn.Weight, &pkmn.IsDefaultVariant, &pkmn.Genus)
-			if err != nil {
-				pokemonList := make([]*model.Pokemon, len(pokemonIds))
-				errors := make([]error, len(pokemonIds))
-				for i := range pokemonIds {
-					errors[i] = fmt.Errorf("error scanning result in PokemonByPokemonIdDataLoader: %w", err)
-				}
-				return pokemonList, errors
-			}
-			pkmn.Habitat = model.Habitat(habitat.String)
-			pokemonByPokemonId[pkmn.ID] = &pkmn
-		}
-
-		pokemon := make([]*model.Pokemon, len(pokemonIds))
-		for i, id := range pokemonIds {
-			pokemon[i] = pokemonByPokemonId[id]
-			i++
-		}
-
-		err = rows.Err()
-		if err != nil {
-			errors := make([]error, len(pokemonIds))
-			for i := range pokemonIds {
-				errors[i] = fmt.Errorf("error after fetching pokemon for pokemon id in PokemonByPokemonIdDataLoader: %w", err)
-			}
-			return pokemon, errors
-		}
-
-		return pokemon, nil
 	}
 }

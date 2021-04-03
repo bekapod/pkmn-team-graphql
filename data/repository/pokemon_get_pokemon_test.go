@@ -13,7 +13,7 @@ import (
 func TestPokemon_GetPokemon(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon ORDER BY pokedex_id, slug ASC").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* GROUP BY pokemon.id ORDER BY pokedex_id, pokemon.slug ASC").
 		WillReturnRows(mockRowsForGetPokemon(false, false, false))
 
 	pokemon := []*model.Pokemon{
@@ -36,7 +36,7 @@ func TestPokemon_GetPokemon(t *testing.T) {
 func TestPokemon_GetPokemon_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon ORDER BY pokedex_id, slug ASC").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* GROUP BY pokemon.id ORDER BY pokedex_id, pokemon.slug ASC").
 		WillReturnError(errors.New("I am Error."))
 
 	got, err := NewPokemon(db).GetPokemon(context.Background())
@@ -57,7 +57,7 @@ func TestPokemon_GetPokemon_WithQueryError(t *testing.T) {
 func TestMove_GetPokemon_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon ORDER BY pokedex_id, slug ASC").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* GROUP BY pokemon.id ORDER BY pokedex_id, pokemon.slug ASC").
 		WillReturnRows(mockRowsForGetPokemon(false, false, true))
 
 	got, err := NewPokemon(db).GetPokemon(context.Background())
@@ -78,7 +78,7 @@ func TestMove_GetPokemon_WithScanError(t *testing.T) {
 func TestMove_GetPokemon_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon ORDER BY pokedex_id, slug ASC").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* GROUP BY pokemon.id ORDER BY pokedex_id, pokemon.slug ASC").
 		WillReturnRows(mockRowsForGetPokemon(false, true, false))
 
 	got, err := NewPokemon(db).GetPokemon(context.Background())
@@ -99,7 +99,7 @@ func TestMove_GetPokemon_WithRowError(t *testing.T) {
 func TestPokemon_GetPokemon_WithNoRows(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon ORDER BY pokedex_id, slug ASC").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* GROUP BY pokemon.id ORDER BY pokedex_id, pokemon.slug ASC").
 		WillReturnRows(mockRowsForGetMoves(true, false, false))
 
 	got, err := NewPokemon(db).GetPokemon(context.Background())
@@ -120,7 +120,7 @@ func TestPokemon_GetPokemon_WithNoRows(t *testing.T) {
 func TestPokemon_GetPokemonById(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id.*").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id.* GROUP BY pokemon.id").
 		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1").
 		WillReturnRows(mockRowsForGetPokemonById(false))
 
@@ -138,7 +138,7 @@ func TestPokemon_GetPokemonById(t *testing.T) {
 func TestPokemon_GetPokemonById_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id.*").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id.* GROUP BY pokemon.id").
 		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1").
 		WillReturnError(errors.New("I am Error."))
 
@@ -151,7 +151,7 @@ func TestPokemon_GetPokemonById_WithQueryError(t *testing.T) {
 func TestPokemon_GetPokemonById_WithNoRows(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id.*").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id.* GROUP BY pokemon.id").
 		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1").
 		WillReturnRows(mockRowsForGetPokemonById(true))
 
@@ -170,7 +170,7 @@ func TestPokemon_GetPokemonById_WithNoRows(t *testing.T) {
 func TestPokemon_PokemonByMoveIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_move.move_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByMoveIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -204,7 +204,7 @@ func TestPokemon_PokemonByMoveIdDataLoader(t *testing.T) {
 func TestPokemon_PokemonByMoveIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_move.move_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByMoveIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})).
 		WillReturnError(errors.New("I am Error."))
@@ -237,7 +237,7 @@ func TestPokemon_PokemonByMoveIdDataLoader_WithQueryError(t *testing.T) {
 func TestPokemon_PokemonByMoveIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_move.move_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByMoveIdDataLoader(false, false, true, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -269,7 +269,7 @@ func TestPokemon_PokemonByMoveIdDataLoader_WithScanError(t *testing.T) {
 func TestPokemon_PokemonByMoveDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id WHERE pokemon_move.move_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_move.move_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByMoveIdDataLoader(false, true, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -297,27 +297,27 @@ func TestPokemon_PokemonByMoveDataLoader_WithRowError(t *testing.T) {
 func TestPokemon_PokemonByTypeIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_type.type_id IN (.*)").
+		WithArgs("1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
+		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, false, []string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
 
-	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
 	exp := []*model.PokemonList{
 		{
-			Total: 1,
+			Total: 2,
 			Pokemon: []*model.Pokemon{
 				&castform,
+				&snorunt,
 			},
 		},
 		nil,
 		{
-			Total: 2,
+			Total: 1,
 			Pokemon: []*model.Pokemon{
-				&snorunt,
 				&bronzong,
 			},
 		},
@@ -331,12 +331,12 @@ func TestPokemon_PokemonByTypeIdDataLoader(t *testing.T) {
 func TestPokemon_PokemonByTypeIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})).
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_type.type_id IN (.*)").
+		WithArgs("1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
+		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, false, []string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})).
 		WillReturnError(errors.New("I am Error."))
 
-	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -364,11 +364,11 @@ func TestPokemon_PokemonByTypeIdDataLoader_WithQueryError(t *testing.T) {
 func TestPokemon_PokemonByTypeIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, true, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_type.type_id IN (.*)").
+		WithArgs("1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
+		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, false, true, []string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
 
-	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -396,11 +396,11 @@ func TestPokemon_PokemonByTypeIdDataLoader_WithScanError(t *testing.T) {
 func TestPokemon_PokemonByTypeIdDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_type.type_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, true, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_type.type_id IN (.*)").
+		WithArgs("1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b").
+		WillReturnRows(mockRowsForPokemonByTypeIdDataLoader(false, true, false, []string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"}))
 
-	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByTypeIdDataLoader(context.Background())([]string{"1dcc9d3c-55d4-4d33-809a-d1580c6e6542", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "05cd51bd-23ca-4736-b8ec-aa93aca68a8b"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -424,7 +424,7 @@ func TestPokemon_PokemonByTypeIdDataLoader_WithRowError(t *testing.T) {
 func TestPokemon_PokemonByAbilityIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -458,7 +458,7 @@ func TestPokemon_PokemonByAbilityIdDataLoader(t *testing.T) {
 func TestPokemon_PokemonByAbilityIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_type.pokemon_id WHERE pokemon_ability.ability_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})).
 		WillReturnError(errors.New("I am Error."))
@@ -491,7 +491,7 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithQueryError(t *testing.T) {
 func TestPokemon_PokemonByAbilityIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, true, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -523,7 +523,7 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithScanError(t *testing.T) {
 func TestPokemon_PokemonByAbilityIdDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id WHERE pokemon_ability.ability_id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
 		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
 		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, true, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
 
@@ -539,99 +539,6 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithRowError(t *testing.T) {
 				&castform,
 			},
 		},
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestPokemon_PokemonByPokemonIdDataLoader(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
-
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
-	if err != nil {
-		t.Fatalf("unexpected error: %s", err)
-	}
-
-	exp := []*model.Pokemon{
-		&castform,
-		nil,
-		&snorunt,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestPokemon_PokemonByPokemonIdDataLoader_WithQueryError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})).
-		WillReturnError(errors.New("I am Error."))
-
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Pokemon{
-		nil,
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestPokemon_PokemonsByPokemonIdDataLoader_WithScanError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, false, true, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
-
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Pokemon{
-		nil,
-		nil,
-		nil,
-	}
-
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestPokemon_PokemonByPokemonIdDataLoader_WithRowError(t *testing.T) {
-	db, mock, _ := sqlmock.New()
-
-	mock.ExpectQuery("SELECT .* FROM pokemon WHERE id IN (.*)").
-		WithArgs("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5").
-		WillReturnRows(mockRowsForPokemonByPokemonIdDataLoader(false, true, false, []string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"}))
-
-	got, err := NewPokemon(db).PokemonByPokemonIdDataLoader(context.Background())([]string{"3ab43625-a18d-4b11-98a3-86d7d959fbe1", "a248c127-8e9c-4f87-8513-c5dbc3385011", "51948cca-743a-4e6d-9c00-579140daccc5"})
-	if err == nil {
-		t.Error("expected an error but got nil")
-	}
-
-	exp := []*model.Pokemon{
-		&castform,
 		nil,
 		nil,
 	}
@@ -664,6 +571,19 @@ var castform = model.Pokemon{
 	Genus:            "Weather Pokémon",
 	Height:           3,
 	Weight:           8,
+	Types: model.PokemonTypeList{
+		Total: 1,
+		PokemonTypes: []model.PokemonType{
+			{
+				Slot: 1,
+				Type: model.Type{
+					ID:   "1dcc9d3c-55d4-4d33-809a-d1580c6e6542",
+					Name: "Ice",
+					Slug: "ice",
+				},
+			},
+		},
+	},
 }
 
 var snorunt = model.Pokemon{
@@ -689,6 +609,19 @@ var snorunt = model.Pokemon{
 	Genus:            "Snow Hat Pokémon",
 	Height:           7,
 	Weight:           168,
+	Types: model.PokemonTypeList{
+		Total: 1,
+		PokemonTypes: []model.PokemonType{
+			{
+				Slot: 1,
+				Type: model.Type{
+					ID:   "1dcc9d3c-55d4-4d33-809a-d1580c6e6542",
+					Name: "Ice",
+					Slug: "ice",
+				},
+			},
+		},
+	},
 }
 
 var bronzong = model.Pokemon{
@@ -713,6 +646,27 @@ var bronzong = model.Pokemon{
 	Genus:            "Bronze Bell Pokémon",
 	Height:           13,
 	Weight:           1870,
+	Types: model.PokemonTypeList{
+		Total: 2,
+		PokemonTypes: []model.PokemonType{
+			{
+				Slot: 1,
+				Type: model.Type{
+					ID:   "05cd51bd-23ca-4736-b8ec-aa93aca68a8b",
+					Name: "Steel",
+					Slug: "steel",
+				},
+			},
+			{
+				Slot: 2,
+				Type: model.Type{
+					ID:   "2222c839-3c6e-4727-b6b5-a946bb8af5fa",
+					Name: "Psychic",
+					Slug: "psychic",
+				},
+			},
+		},
+	},
 }
 
 func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sqlmock.Rows {
@@ -721,11 +675,11 @@ func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sql
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
+	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon").
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon").
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon")
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`)
 	}
 
 	if hasRowError {
@@ -735,9 +689,9 @@ func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sql
 }
 
 func mockRowsForGetPokemonById(empty bool) *sqlmock.Rows {
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
+	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon")
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`)
 	}
 	return rows
 }
@@ -748,11 +702,11 @@ func mockRowsForPokemonByMoveIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_move.move_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "pokemon_move.move_id"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[0]).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[2]).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -766,11 +720,11 @@ func mockRowsForPokemonByTypeIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_type.type_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[2]+`\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`)
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -784,28 +738,11 @@ func mockRowsForPokemonByAbilityIdDataLoader(empty bool, hasRowError bool, hasSc
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "pokemon_type.type_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "pokemon_ability.ability_id"})
 	if !empty {
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1", "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon", ids[0]).
-			AddRow("51948cca-743a-4e6d-9c00-579140daccc5", "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon", ids[2]).
-			AddRow("85da4120-96bb-42b1-8e8f-9f8bded11a31", "Bronzong", "bronzong", 437, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/437.png", 67, 89, 116, 79, 116, 33, false, false, false, "", "green", nil, "arms", 13, 1870, true, "Bronze Bell Pokémon", ids[2])
-	}
-	if hasRowError {
-		rows.RowError(1, errors.New("scan error"))
-	}
-	return rows
-}
-
-func mockRowsForPokemonByPokemonIdDataLoader(empty bool, hasRowError bool, hasScanError bool, ids []string) *sqlmock.Rows {
-	if hasScanError {
-		rows := sqlmock.NewRows([]string{"id"})
-		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
-		return rows
-	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus"})
-	if !empty {
-		rows.AddRow(ids[0], "Castform", "castform-snowy", 351, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png", 70, 70, 70, 70, 70, 70, false, false, false, "Its form changes depending on the weather.\nThe rougher conditions get, the rougher\nCastform’s disposition!", "gray", "grassland", "ball", 3, 8, false, "Weather Pokémon").
-			AddRow(ids[2], "Snorunt", "snorunt", 361, "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/361.png", 50, 50, 50, 50, 50, 50, false, false, false, "Rich people from cold areas all share childhood\nmemories of playing with Snorunt.", "gray", "cave", "humanoid", 7, 168, true, "Snow Hat Pokémon")
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[0]).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[2]).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
