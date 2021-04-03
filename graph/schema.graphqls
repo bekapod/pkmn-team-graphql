@@ -125,7 +125,6 @@ type PokemonList {
 
 type PokemonType {
   type: Type!
-  pokemon: Pokemon!
   slot: Int!
 }
 
