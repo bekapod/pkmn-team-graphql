@@ -66,6 +66,8 @@ LOG_LEVEL=debug go run scripts/seed/types/types.go --pokeapi-host http://localho
 
 ## Tests
 
+### Unit Tests
+
 Run tests:
 
 ```sh
@@ -76,4 +78,16 @@ Run tests with coverage:
 
 ```sh
 go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
+```
+
+### API Tests
+
+```sh
+yarn global add newman
+newman run tests/Pokemon\ Data.postman_collection.json -e tests/Local.postman_environment.json
+```
+
+```sh
+brew install k6
+k6 run tests/pokemon-data-k6.js
 ```
