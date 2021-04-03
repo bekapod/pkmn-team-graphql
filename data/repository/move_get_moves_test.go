@@ -16,9 +16,9 @@ func TestMove_GetMoves(t *testing.T) {
 	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN types ON moves.type_id = types.id ORDER BY moves.slug ASC").
 		WillReturnRows(mockRowsForGetMoves(false, false, false))
 
-	moves := []*model.Move{
-		&accelerock,
-		&infestation,
+	moves := []model.Move{
+		accelerock,
+		infestation,
 	}
 
 	exp := model.NewMoveList(moves)
@@ -45,7 +45,7 @@ func TestMove_GetMoves_WithQueryError(t *testing.T) {
 
 	exp := &model.MoveList{
 		Total: 0,
-		Moves: []*model.Move{},
+		Moves: []model.Move{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -66,7 +66,7 @@ func TestMove_GetMoves_WithScanError(t *testing.T) {
 
 	exp := &model.MoveList{
 		Total: 0,
-		Moves: []*model.Move{},
+		Moves: []model.Move{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -87,7 +87,7 @@ func TestMove_GetMoves_WithRowError(t *testing.T) {
 
 	exp := &model.MoveList{
 		Total: 0,
-		Moves: []*model.Move{},
+		Moves: []model.Move{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -108,7 +108,7 @@ func TestMove_GetMoves_WithNoRows(t *testing.T) {
 
 	exp := &model.MoveList{
 		Total: 0,
-		Moves: []*model.Move{},
+		Moves: []model.Move{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -181,16 +181,16 @@ func TestMove_MovesByPokemonIdDataLoader(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 1,
-			Moves: []*model.Move{
-				&accelerock,
+			Moves: []model.Move{
+				accelerock,
 			},
 		},
 		nil,
 		{
 			Total: 2,
-			Moves: []*model.Move{
-				&accelerock,
-				&infestation,
+			Moves: []model.Move{
+				accelerock,
+				infestation,
 			},
 		},
 	}
@@ -216,15 +216,15 @@ func TestMove_MovesByPokemonIdDataLoader_WithQueryError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 	}
 
@@ -248,15 +248,15 @@ func TestMove_MovesByPokemonIdDataLoader_WithScanError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 	}
 
@@ -280,8 +280,8 @@ func TestMove_MovesByPokemonIdDataLoader_WithRowError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 1,
-			Moves: []*model.Move{
-				&accelerock,
+			Moves: []model.Move{
+				accelerock,
 			},
 		},
 		nil,
@@ -308,16 +308,16 @@ func TestMove_MovesByTypeIdDataLoader(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 2,
-			Moves: []*model.Move{
-				&accelerock,
-				&accelerock,
+			Moves: []model.Move{
+				accelerock,
+				accelerock,
 			},
 		},
 		nil,
 		{
 			Total: 1,
-			Moves: []*model.Move{
-				&infestation,
+			Moves: []model.Move{
+				infestation,
 			},
 		},
 	}
@@ -343,15 +343,15 @@ func TestMove_MovesByTypeIdDataLoader_WithQueryError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 	}
 
@@ -375,15 +375,15 @@ func TestMove_MovesByTypeIdDataLoader_WithScanError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 		{
 			Total: 0,
-			Moves: []*model.Move{},
+			Moves: []model.Move{},
 		},
 	}
 
@@ -407,8 +407,8 @@ func TestMove_MovesByTypeIdDataLoader_WithRowError(t *testing.T) {
 	exp := []*model.MoveList{
 		{
 			Total: 1,
-			Moves: []*model.Move{
-				&accelerock,
+			Moves: []model.Move{
+				accelerock,
 			},
 		},
 		nil,

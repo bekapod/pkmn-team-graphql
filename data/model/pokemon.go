@@ -21,9 +21,11 @@ type Pokemon struct {
 	Shape            Shape           `json:"shape"`
 	Height           int             `json:"height"`
 	Weight           int             `json:"weight"`
-	IsDefaultVariant bool            `json:"is_default_variant"`
+	IsDefaultVariant bool            `json:"isDefaultVariant"`
 	Genus            string          `json:"genus"`
 	Types            PokemonTypeList `json:"types"`
+	Abilities        AbilityList     `json:"abilities"`
+	EggGroups        EggGroupList    `json:"eggGroups"`
 }
 
 type PokemonList struct {

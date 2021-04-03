@@ -32,7 +32,7 @@ func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityList, error) {
 		if err != nil {
 			return &abilities, fmt.Errorf("error scanning result in GetAllAbilities: %w", err)
 		}
-		abilities.AddAbility(&a)
+		abilities.AddAbility(a)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -110,7 +110,7 @@ func (r Ability) AbilitiesByPokemonIdDataLoader(ctx context.Context) func(pokemo
 				abilitiesByPokemonId[pokemonId] = &al
 			}
 
-			abilitiesByPokemonId[pokemonId].AddAbility(&a)
+			abilitiesByPokemonId[pokemonId].AddAbility(a)
 		}
 
 		abilityList := make([]*model.AbilityList, len(pokemonIds))

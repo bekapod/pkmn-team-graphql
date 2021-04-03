@@ -35,7 +35,7 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 		if err != nil {
 			return &moves, fmt.Errorf("error scanning result in GetAllMoves: %w", err)
 		}
-		moves.AddMove(&m)
+		moves.AddMove(m)
 	}
 	err = rows.Err()
 	if err != nil {
@@ -119,7 +119,7 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 				movesByPokemonId[pokemonId] = &ml
 			}
 
-			movesByPokemonId[pokemonId].AddMove(&m)
+			movesByPokemonId[pokemonId].AddMove(m)
 		}
 
 		moveList := make([]*model.MoveList, len(pokemonIds))
@@ -193,7 +193,7 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 				movesByTypeId[m.Type.ID] = &ml
 			}
 
-			movesByTypeId[m.Type.ID].AddMove(&m)
+			movesByTypeId[m.Type.ID].AddMove(m)
 		}
 
 		moveList := make([]*model.MoveList, len(typeIds))

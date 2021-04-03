@@ -1,14 +1,13 @@
 package model
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
 
 func TestNewEggGroupList(t *testing.T) {
-	eggGroups := []*EggGroup{
+	eggGroups := []EggGroup{
 		{
 			ID: "123-456",
 		},
@@ -31,7 +30,7 @@ func TestNewEggGroupList(t *testing.T) {
 func TestNewEmptyEggGroupList(t *testing.T) {
 	exp := EggGroupList{
 		Total:     0,
-		EggGroups: []*EggGroup{},
+		EggGroups: []EggGroup{},
 	}
 
 	got := NewEmptyEggGroupList()
@@ -42,16 +41,12 @@ func TestNewEmptyEggGroupList(t *testing.T) {
 
 func TestEggGroupList_AddEggGroup(t *testing.T) {
 	eggGroups := EggGroupList{}
-	eggGroup1 := &EggGroup{}
-	eggGroup2 := &EggGroup{}
+	eggGroup1 := EggGroup{}
+	eggGroup2 := EggGroup{}
 	eggGroups.AddEggGroup(eggGroup1)
 	eggGroups.AddEggGroup(eggGroup2)
 
 	if eggGroups.Total != 2 {
 		t.Errorf("expected Total of 2, but got %d instead", eggGroups.Total)
-	}
-
-	if !reflect.DeepEqual([]*EggGroup{eggGroup1, eggGroup2}, eggGroups.EggGroups) {
-		t.Errorf("the eggGroups added do not match")
 	}
 }

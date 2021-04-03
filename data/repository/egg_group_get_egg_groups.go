@@ -58,7 +58,7 @@ func (r EggGroup) EggGroupsByPokemonIdDataLoader(ctx context.Context) func(pokem
 				eggGroupsByPokemonId[pokemonId] = &el
 			}
 
-			eggGroupsByPokemonId[pokemonId].AddEggGroup(&e)
+			eggGroupsByPokemonId[pokemonId].AddEggGroup(e)
 		}
 
 		eggGroupList := make([]*model.EggGroupList, len(pokemonIds))

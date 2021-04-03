@@ -25,7 +25,7 @@ func TestEggGroup_EggGroupsByPokemonIdDataLoader(t *testing.T) {
 	exp := []*model.EggGroupList{
 		{
 			Total: 1,
-			EggGroups: []*model.EggGroup{
+			EggGroups: []model.EggGroup{
 				{
 					ID:   "9f61694f-34f0-4531-b5e4-aff9a3d9edde",
 					Slug: "plant",
@@ -36,7 +36,7 @@ func TestEggGroup_EggGroupsByPokemonIdDataLoader(t *testing.T) {
 		nil,
 		{
 			Total: 2,
-			EggGroups: []*model.EggGroup{
+			EggGroups: []model.EggGroup{
 				{
 					ID:   "9f61694f-34f0-4531-b5e4-aff9a3d9edde",
 					Slug: "plant",
@@ -72,15 +72,15 @@ func TestEggGroup_EggGroupsByPokemonIdDataLoader_WithQueryError(t *testing.T) {
 	exp := []*model.EggGroupList{
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 	}
 
@@ -104,15 +104,15 @@ func TestEggGroup_EggGroupsByPokemonIdDataLoader_WithScanError(t *testing.T) {
 	exp := []*model.EggGroupList{
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 		{
 			Total:     0,
-			EggGroups: []*model.EggGroup{},
+			EggGroups: []model.EggGroup{},
 		},
 	}
 
@@ -136,7 +136,7 @@ func TestEggGroup_EggGroupsByPokemonIdDataLoader_WithRowError(t *testing.T) {
 	exp := []*model.EggGroupList{
 		{
 			Total: 1,
-			EggGroups: []*model.EggGroup{
+			EggGroups: []model.EggGroup{
 				{
 					ID:   "9f61694f-34f0-4531-b5e4-aff9a3d9edde",
 					Slug: "plant",

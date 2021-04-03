@@ -16,7 +16,7 @@ func TestAbility_GetAbilities(t *testing.T) {
 	mock.ExpectQuery("SELECT .* FROM abilities ORDER BY slug ASC").
 		WillReturnRows(mockRowsForGetAbilities(false, false, false))
 
-	abilities := []*model.Ability{
+	abilities := []model.Ability{
 		{
 			ID:     "2064de60-5a0f-46df-859d-7ba0acdc9aed",
 			Slug:   "sap-sipper",
@@ -55,7 +55,7 @@ func TestAbility_GetAbilities_WithQueryError(t *testing.T) {
 
 	exp := &model.AbilityList{
 		Total:     0,
-		Abilities: []*model.Ability{},
+		Abilities: []model.Ability{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -76,7 +76,7 @@ func TestAbility_GetAbilities_WithScanError(t *testing.T) {
 
 	exp := &model.AbilityList{
 		Total:     0,
-		Abilities: []*model.Ability{},
+		Abilities: []model.Ability{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -97,7 +97,7 @@ func TestAbility_GetAbilities_WithRowError(t *testing.T) {
 
 	exp := &model.AbilityList{
 		Total:     0,
-		Abilities: []*model.Ability{},
+		Abilities: []model.Ability{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -118,7 +118,7 @@ func TestAbility_GetAbilities_WithNoRows(t *testing.T) {
 
 	exp := &model.AbilityList{
 		Total:     0,
-		Abilities: []*model.Ability{},
+		Abilities: []model.Ability{},
 	}
 
 	if diff := deep.Equal(exp, got); diff != nil {
@@ -196,7 +196,7 @@ func TestAbility_AbilitiesByPokemonIdDataLoader(t *testing.T) {
 	exp := []*model.AbilityList{
 		{
 			Total: 1,
-			Abilities: []*model.Ability{
+			Abilities: []model.Ability{
 				{
 					ID:     "2064de60-5a0f-46df-859d-7ba0acdc9aed",
 					Slug:   "sap-sipper",
@@ -208,7 +208,7 @@ func TestAbility_AbilitiesByPokemonIdDataLoader(t *testing.T) {
 		nil,
 		{
 			Total: 2,
-			Abilities: []*model.Ability{
+			Abilities: []model.Ability{
 				{
 					ID:     "2064de60-5a0f-46df-859d-7ba0acdc9aed",
 					Slug:   "sap-sipper",
@@ -246,15 +246,15 @@ func TestAbility_AbilitiesByPokemonIdDataLoader_WithQueryError(t *testing.T) {
 	exp := []*model.AbilityList{
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 	}
 
@@ -278,15 +278,15 @@ func TestAbility_AbilitiesByPokemonIdDataLoader_WithScanError(t *testing.T) {
 	exp := []*model.AbilityList{
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 		{
 			Total:     0,
-			Abilities: []*model.Ability{},
+			Abilities: []model.Ability{},
 		},
 	}
 
@@ -310,7 +310,7 @@ func TestAbility_AbilitiesByPokemonIdDataLoader_WithRowError(t *testing.T) {
 	exp := []*model.AbilityList{
 		{
 			Total: 1,
-			Abilities: []*model.Ability{
+			Abilities: []model.Ability{
 				{
 					ID:     "2064de60-5a0f-46df-859d-7ba0acdc9aed",
 					Slug:   "sap-sipper",

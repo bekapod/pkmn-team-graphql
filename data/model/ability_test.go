@@ -1,14 +1,13 @@
 package model
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
 
 func TestNewAbilityList(t *testing.T) {
-	abilities := []*Ability{
+	abilities := []Ability{
 		{
 			ID: "123-456",
 		},
@@ -31,7 +30,7 @@ func TestNewAbilityList(t *testing.T) {
 func TestNewEmptyAbilityList(t *testing.T) {
 	exp := AbilityList{
 		Total:     0,
-		Abilities: []*Ability{},
+		Abilities: []Ability{},
 	}
 
 	got := NewEmptyAbilityList()
@@ -42,16 +41,12 @@ func TestNewEmptyAbilityList(t *testing.T) {
 
 func TestAbilityList_AddAbility(t *testing.T) {
 	abilities := AbilityList{}
-	ability1 := &Ability{}
-	ability2 := &Ability{}
+	ability1 := Ability{}
+	ability2 := Ability{}
 	abilities.AddAbility(ability1)
 	abilities.AddAbility(ability2)
 
 	if abilities.Total != 2 {
 		t.Errorf("expected Total of 2, but got %d instead", abilities.Total)
-	}
-
-	if !reflect.DeepEqual([]*Ability{ability1, ability2}, abilities.Abilities) {
-		t.Errorf("the abilities added do not match")
 	}
 }

@@ -15,11 +15,11 @@ type Move struct {
 }
 
 type MoveList struct {
-	Total int     `json:"total"`
-	Moves []*Move `json:"moves"`
+	Total int    `json:"total"`
+	Moves []Move `json:"moves"`
 }
 
-func NewMoveList(m []*Move) MoveList {
+func NewMoveList(m []Move) MoveList {
 	return MoveList{
 		Total: len(m),
 		Moves: m,
@@ -29,11 +29,11 @@ func NewMoveList(m []*Move) MoveList {
 func NewEmptyMoveList() MoveList {
 	return MoveList{
 		Total: 0,
-		Moves: []*Move{},
+		Moves: []Move{},
 	}
 }
 
-func (l *MoveList) AddMove(m *Move) {
+func (l *MoveList) AddMove(m Move) {
 	l.Total++
 	l.Moves = append(l.Moves, m)
 }

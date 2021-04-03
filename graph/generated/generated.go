@@ -166,10 +166,7 @@ type MoveResolver interface {
 	Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error)
 }
 type PokemonResolver interface {
-	Abilities(ctx context.Context, obj *model.Pokemon) (*model.AbilityList, error)
-
 	Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error)
-	EggGroups(ctx context.Context, obj *model.Pokemon) (*model.EggGroupList, error)
 }
 type QueryResolver interface {
 	AbilityByID(ctx context.Context, id string) (*model.Ability, error)
@@ -1301,9 +1298,9 @@ func (ec *executionContext) _AbilityList_abilities(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Ability)
+	res := resTmp.([]model.Ability)
 	fc.Result = res
-	return ec.marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx, field.Selections, res)
+	return ec.marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EggGroup_id(ctx context.Context, field graphql.CollectedField, obj *model.EggGroup) (ret graphql.Marshaler) {
@@ -1476,9 +1473,9 @@ func (ec *executionContext) _EggGroupList_eggGroups(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.EggGroup)
+	res := resTmp.([]model.EggGroup)
 	fc.Result = res
-	return ec.marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx, field.Selections, res)
+	return ec.marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_id(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -1966,9 +1963,9 @@ func (ec *executionContext) _MoveList_moves(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Move)
+	res := resTmp.([]model.Move)
 	fc.Result = res
-	return ec.marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx, field.Selections, res)
+	return ec.marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_id(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -2749,14 +2746,14 @@ func (ec *executionContext) _Pokemon_abilities(ctx context.Context, field graphq
 		Object:     "Pokemon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Pokemon().Abilities(rctx, obj)
+		return obj.Abilities, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2768,9 +2765,9 @@ func (ec *executionContext) _Pokemon_abilities(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.AbilityList)
+	res := resTmp.(model.AbilityList)
 	fc.Result = res
-	return ec.marshalNAbilityList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityList(ctx, field.Selections, res)
+	return ec.marshalNAbilityList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_types(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -2854,14 +2851,14 @@ func (ec *executionContext) _Pokemon_eggGroups(ctx context.Context, field graphq
 		Object:     "Pokemon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Pokemon().EggGroups(rctx, obj)
+		return obj.EggGroups, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2873,9 +2870,9 @@ func (ec *executionContext) _Pokemon_eggGroups(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.EggGroupList)
+	res := resTmp.(model.EggGroupList)
 	fc.Result = res
-	return ec.marshalNEggGroupList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx, field.Selections, res)
+	return ec.marshalNEggGroupList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonList) (ret graphql.Marshaler) {
@@ -5194,19 +5191,10 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "abilities":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Pokemon_abilities(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Pokemon_abilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "types":
 			out.Values[i] = ec._Pokemon_types(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -5227,19 +5215,10 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 				return res
 			})
 		case "eggGroups":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Pokemon_eggGroups(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Pokemon_eggGroups(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5819,7 +5798,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Ability) graphql.Marshaler {
+func (ec *executionContext) marshalNAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx context.Context, sel ast.SelectionSet, v model.Ability) graphql.Marshaler {
+	return ec._Ability(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Ability) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5843,7 +5826,7 @@ func (ec *executionContext) marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphq
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, sel, v[i])
+			ret[i] = ec.marshalNAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5854,16 +5837,6 @@ func (ec *executionContext) marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphq
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalNAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx context.Context, sel ast.SelectionSet, v *model.Ability) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Ability(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAbilityList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityList(ctx context.Context, sel ast.SelectionSet, v model.AbilityList) graphql.Marshaler {
@@ -5915,7 +5888,11 @@ func (ec *executionContext) marshalNDamageClass2bekapodᚋpkmnᚑteamᚑgraphql�
 	return v
 }
 
-func (ec *executionContext) marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EggGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNEggGroup2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx context.Context, sel ast.SelectionSet, v model.EggGroup) graphql.Marshaler {
+	return ec._EggGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []model.EggGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -5939,7 +5916,7 @@ func (ec *executionContext) marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraph
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEggGroup2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNEggGroup2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5952,28 +5929,8 @@ func (ec *executionContext) marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraph
 	return ret
 }
 
-func (ec *executionContext) marshalNEggGroup2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx context.Context, sel ast.SelectionSet, v *model.EggGroup) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._EggGroup(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNEggGroupList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx context.Context, sel ast.SelectionSet, v model.EggGroupList) graphql.Marshaler {
 	return ec._EggGroupList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNEggGroupList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx context.Context, sel ast.SelectionSet, v *model.EggGroupList) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._EggGroupList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -6006,7 +5963,11 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Move) graphql.Marshaler {
+func (ec *executionContext) marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v model.Move) graphql.Marshaler {
+	return ec._Move(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Move) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -6030,7 +5991,7 @@ func (ec *executionContext) marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, sel, v[i])
+			ret[i] = ec.marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6041,16 +6002,6 @@ func (ec *executionContext) marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphql�
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Move(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMoveList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx context.Context, sel ast.SelectionSet, v model.MoveList) graphql.Marshaler {

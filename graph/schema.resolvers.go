@@ -31,17 +31,6 @@ func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.Pok
 	return pokemon, err
 }
 
-func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.AbilityList, error) {
-	abilities, err := DataLoaderFor(ctx).AbilitiesByPokemonId.Load(obj.ID)
-
-	if abilities == nil {
-		emptyAbilities := model.NewEmptyAbilityList()
-		return &emptyAbilities, err
-	}
-
-	return abilities, err
-}
-
 func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error) {
 	moves, err := DataLoaderFor(ctx).MovesByPokemonId.Load(obj.ID)
 
@@ -51,17 +40,6 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	}
 
 	return moves, err
-}
-
-func (r *pokemonResolver) EggGroups(ctx context.Context, obj *model.Pokemon) (*model.EggGroupList, error) {
-	eggGroups, err := DataLoaderFor(ctx).EggGroupsByPokemonId.Load(obj.ID)
-
-	if eggGroups == nil {
-		emptyEggGroups := model.NewEmptyEggGroupList()
-		return &emptyEggGroups, err
-	}
-
-	return eggGroups, err
 }
 
 func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {

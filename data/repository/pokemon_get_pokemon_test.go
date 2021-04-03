@@ -425,10 +425,10 @@ func TestPokemon_PokemonByAbilityIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+		WithArgs("0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26").
+		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"}))
 
-	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"})
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -440,11 +440,15 @@ func TestPokemon_PokemonByAbilityIdDataLoader(t *testing.T) {
 				&castform,
 			},
 		},
-		nil,
 		{
-			Total: 2,
+			Total: 1,
 			Pokemon: []*model.Pokemon{
 				&snorunt,
+			},
+		},
+		{
+			Total: 1,
+			Pokemon: []*model.Pokemon{
 				&bronzong,
 			},
 		},
@@ -459,11 +463,11 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})).
+		WithArgs("0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26").
+		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"})).
 		WillReturnError(errors.New("I am Error."))
 
-	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -492,10 +496,10 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, true, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+		WithArgs("0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26").
+		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, true, []string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"}))
 
-	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -524,10 +528,10 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
 	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon_ability.ability_id IN (.*)").
-		WithArgs("7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb").
-		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, true, false, []string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"}))
+		WithArgs("0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26").
+		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, true, false, []string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"}))
 
-	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"7b230001-b57e-4163-ac0a-3d157fc172e8", "b58c8651-90a1-4349-b3ae-b9c2caecc09a", "30e3e45e-9cc6-4fc2-a69a-fc91cd4908fb"})
+	got, err := NewPokemon(db).PokemonByAbilityIdDataLoader(context.Background())([]string{"0efe4eb9-537c-4b4c-92f6-d184a95b4923", "3eb38751-a341-457e-a211-1fc4641eac53", "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26"})
 	if err == nil {
 		t.Error("expected an error but got nil")
 	}
@@ -584,6 +588,32 @@ var castform = model.Pokemon{
 			},
 		},
 	},
+	Abilities: model.AbilityList{
+		Total: 1,
+		Abilities: []model.Ability{
+			{
+				ID:     "0efe4eb9-537c-4b4c-92f6-d184a95b4923",
+				Name:   "Forecast",
+				Slug:   "forecast",
+				Effect: "Changes castform's type and form to match the weather.",
+			},
+		},
+	},
+	EggGroups: model.EggGroupList{
+		Total: 2,
+		EggGroups: []model.EggGroup{
+			{
+				ID:   "1f0958a0-48ca-4160-9f18-7e5f06d96d27",
+				Name: "Fairy",
+				Slug: "fairy",
+			},
+			{
+				ID:   "465ed2fa-0ff8-4cad-89af-e9db971026df",
+				Name: "Amorphous",
+				Slug: "indeterminate",
+			},
+		},
+	},
 }
 
 var snorunt = model.Pokemon{
@@ -619,6 +649,44 @@ var snorunt = model.Pokemon{
 					Name: "Ice",
 					Slug: "ice",
 				},
+			},
+		},
+	},
+	Abilities: model.AbilityList{
+		Total: 3,
+		Abilities: []model.Ability{
+			{
+				ID:     "3eb38751-a341-457e-a211-1fc4641eac53",
+				Name:   "Inner Focus",
+				Slug:   "inner-focus",
+				Effect: "Prevents flinching.",
+			},
+			{
+				ID:     "673dd8ad-1494-49e1-86cd-9572df34540b",
+				Name:   "Ice Body",
+				Slug:   "ice-body",
+				Effect: "Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.",
+			},
+			{
+				ID:     "ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88",
+				Name:   "Moody",
+				Slug:   "moody",
+				Effect: "Raises a random stat two stages and lowers another one stage after each turn.",
+			},
+		},
+	},
+	EggGroups: model.EggGroupList{
+		Total: 2,
+		EggGroups: []model.EggGroup{
+			{
+				ID:   "1f0958a0-48ca-4160-9f18-7e5f06d96d27",
+				Name: "Fairy",
+				Slug: "fairy",
+			},
+			{
+				ID:   "b140921f-74c9-4537-9a08-996277d4fcb4",
+				Name: "Mineral",
+				Slug: "mineral",
 			},
 		},
 	},
@@ -667,6 +735,39 @@ var bronzong = model.Pokemon{
 			},
 		},
 	},
+	Abilities: model.AbilityList{
+		Total: 3,
+		Abilities: []model.Ability{
+			{
+				ID:     "4acbc86c-4a5f-4f6e-99e8-4feab6337ad6",
+				Name:   "Heavy Metal",
+				Slug:   "heavy-metal",
+				Effect: "Doubles the Pokémon's weight.",
+			},
+			{
+				ID:     "9f0d876d-7e98-40d5-bfb3-2c0f079e2b26",
+				Name:   "Heatproof",
+				Slug:   "heatproof",
+				Effect: "Halves damage from fire moves and burns.",
+			},
+			{
+				ID:     "e55c279d-4554-4d5e-8120-7bf3a0477181",
+				Name:   "Levitate",
+				Slug:   "levitate",
+				Effect: "Evades ground moves.",
+			},
+		},
+	},
+	EggGroups: model.EggGroupList{
+		Total: 1,
+		EggGroups: []model.EggGroup{
+			{
+				ID:   "b140921f-74c9-4537-9a08-996277d4fcb4",
+				Name: "Mineral",
+				Slug: "mineral",
+			},
+		},
+	},
 }
 
 func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sqlmock.Rows {
@@ -675,11 +776,11 @@ func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sql
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types"})
+	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types", "egg_groups", "abilities"})
 	if !empty {
-		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
-			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
-			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`)
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"id\": \"0efe4eb9-537c-4b4c-92f6-d184a95b4923\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}"}`).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"3eb38751-a341-457e-a211-1fc4641eac53\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}","{\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}","{\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}"}`).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}","{\"id\": \"9f0d876d-7e98-40d5-bfb3-2c0f079e2b26\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}","{\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}"}`)
 	}
 
 	if hasRowError {
@@ -689,9 +790,9 @@ func mockRowsForGetPokemon(empty bool, hasRowError bool, hasScanError bool) *sql
 }
 
 func mockRowsForGetPokemonById(empty bool) *sqlmock.Rows {
-	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types"})
+	rows := sqlmock.NewRows([]string{"id", "pokedex_id", "slug", "name", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "shape_enum", "habitat_enum", "is_default_variant", "genus", "height", "weight", "types", "egg_groups", "abilities"})
 	if !empty {
-		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`)
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"id\": \"0efe4eb9-537c-4b4c-92f6-d184a95b4923\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}"}`)
 	}
 	return rows
 }
@@ -702,11 +803,11 @@ func mockRowsForPokemonByMoveIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "pokemon_move.move_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "egg_groups", "abilities", "pokemon_move.move_id"})
 	if !empty {
-		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[0]).
-			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[2]).
-			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, ids[2])
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"id\": \"0efe4eb9-537c-4b4c-92f6-d184a95b4923\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}"}`, ids[0]).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"3eb38751-a341-457e-a211-1fc4641eac53\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}","{\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}","{\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}"}`, ids[2]).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}","{\"id\": \"9f0d876d-7e98-40d5-bfb3-2c0f079e2b26\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}","{\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}"}`, ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -720,11 +821,11 @@ func mockRowsForPokemonByTypeIdDataLoader(empty bool, hasRowError bool, hasScanE
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "egg_groups", "abilities"})
 	if !empty {
-		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
-			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`).
-			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[2]+`\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`)
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"id\": \"0efe4eb9-537c-4b4c-92f6-d184a95b4923\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}"}`).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[0]+`\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"3eb38751-a341-457e-a211-1fc4641eac53\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}","{\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}","{\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}"}`).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"`+ids[2]+`\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}","{\"id\": \"9f0d876d-7e98-40d5-bfb3-2c0f079e2b26\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}","{\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}"}`)
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))
@@ -738,11 +839,11 @@ func mockRowsForPokemonByAbilityIdDataLoader(empty bool, hasRowError bool, hasSc
 		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "pokemon_ability.ability_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "egg_groups", "abilities"})
 	if !empty {
-		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[0]).
-			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, ids[2]).
-			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, ids[2])
+		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"id\": \"`+ids[0]+`\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}"}`).
+			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"`+ids[1]+`\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}","{\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}","{\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}"}`).
+			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}","{\"id\": \"`+ids[2]+`\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}","{\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}"}`)
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))

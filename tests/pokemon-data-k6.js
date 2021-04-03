@@ -4,78 +4,78 @@ import { sleep } from "k6";
 const allPokemonQuery = `
   {
     pokemon {
-        total
-        pokemon {
+      total
+      pokemon {
+        id
+        name
+        slug
+        pokedexId
+        sprite
+        color
+        shape
+        habitat
+        hp
+        attack
+        defense
+        specialAttack
+        specialDefense
+        speed
+        height
+        weight
+        isDefaultVariant
+        isBaby
+        isLegendary
+        isMythical
+        description
+        abilities {
+          total
+          abilities {
+            id
+            slug
+            name
+            effect
+          }
+        }
+        eggGroups {
+          total
+          eggGroups {
             id
             name
             slug
-            pokedexId
-            sprite
-            color
-            shape
-            habitat
-            hp
-            attack
-            defense
-            specialAttack
-            specialDefense
-            speed
-            height
-            weight
-            isDefaultVariant
-            isBaby
-            isLegendary
-            isMythical
-            description
-            abilities {
-                total
-                abilities {
-                id
-                slug
-                name
-                effect
-                }
-            }
-            eggGroups {
-                total
-                eggGroups {
-                id
-                name
-                slug
-                }
-            }
-            moves {
-                total
-                moves {
-                id
-                slug
-                name
-                accuracy
-                pp
-                power
-                damageClass
-                effect
-                effectChance
-                target
-                type {
-                    id
-                    name
-                    slug
-                }
-                }
-            }
-            types {
-                total
-                pokemonTypes {
-                slot
-                type {
-                    id
-                    name
-                    slug
-                }
-                }
-            }
+          }
         }
+        moves {
+          total
+          moves {
+            id
+            slug
+            name
+            accuracy
+            pp
+            power
+            damageClass
+            effect
+            effectChance
+            target
+            type {
+                id
+                name
+                slug
+            }
+          }
+        }
+        types {
+          total
+          pokemonTypes {
+            slot
+            type {
+                id
+                name
+                slug
+            }
+          }
+        }
+      }
     }
   }
 `;
