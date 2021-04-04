@@ -59,7 +59,7 @@ func main() {
 				englishEffectEntry, _ := pokeapi.GetEnglishEffectEntry(fullAbility.EffectEntries, fullAbility.Name)
 
 				values = append(values, fmt.Sprintf(
-					"('%s', '%s', '%s')",
+					"('%s', '%s', '%s', now())",
 					name,
 					helpers.EscapeSingleQuote(englishName.Name),
 					helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
@@ -70,7 +70,7 @@ func main() {
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO abilities (slug, name, effect)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name, effect = EXCLUDED.effect;", strings.Join(values, ", "))
+	sql := fmt.Sprintf("INSERT INTO abilities (slug, name, effect, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name, effect = EXCLUDED.effect, updated_at = EXCLUDED.updated_at;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
 	if err != nil {

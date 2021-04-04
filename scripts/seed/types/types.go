@@ -45,7 +45,7 @@ func main() {
 			}
 
 			values = append(values, fmt.Sprintf(
-				"('%s', '%s')",
+				"('%s', '%s', now())",
 				fullType.Name,
 				helpers.EscapeSingleQuote(englishName.Name),
 			))
@@ -54,7 +54,7 @@ func main() {
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO types (slug, name)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name;", strings.Join(values, ", "))
+	sql := fmt.Sprintf("INSERT INTO types (slug, name, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name, updated_at = EXCLUDED.updated_at;", strings.Join(values, ", "))
 
 	o, err := f.WriteString(sql)
 	if err != nil {
