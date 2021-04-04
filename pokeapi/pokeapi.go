@@ -75,7 +75,27 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species pokemonSpecies
 		urlParts := strings.Split(species.Varieties[i].Pokemon.Url, "/")
 		id := urlParts[len(urlParts)-2]
 		variety := client.GetPokemon(id)
-		if !strings.Contains(variety.Name, "gmax") && !strings.Contains(variety.Name, "totem") && !strings.Contains(variety.Name, "-mega") {
+		excludeSlugPatterns := []string{"gmax", "totem", "-mega", "-primal", "pikachu-", "castform-", "deoxys-", "darmanitan-zen", "-therian", "-resolute", "pirouette", "giratina-origin", "greninja-", "zygarde-", "minior-green", "minior-indigo", "minior-orange", "minior-violet", "minior-yellow", "necrozma-", "-crowned", "-eternamax"}
+		excludeSlugExact := []string{"minior-red", "mimikyu-busted", "magearna-original", "eiscue-noice", "giratina-origin", "wormadom-sandy", "wormadom-trash", "floette-eternal", "aegislash-blade", "pumpkaboo-large", "pumpkaboo-small", "pumpkaboo-super", "gourgeist-large", "gourgeist-small", "gourgeist-super", "hoopa-unbound", "oricorio-pau", "oricorio-pom-pom", "oricorio-sensu", "rockruff-own-tempo", "wishiwashi-school", "minior-red"}
+		shouldInclude := true
+
+		for _, exact := range excludeSlugExact {
+			if variety.Name == exact {
+				shouldInclude = false
+				break
+			}
+		}
+
+		if shouldInclude {
+			for _, pattern := range excludeSlugPatterns {
+				if strings.Contains(variety.Name, pattern) {
+					shouldInclude = false
+					break
+				}
+			}
+		}
+
+		if shouldInclude {
 			pokemon = append(pokemon, variety)
 		}
 	}
