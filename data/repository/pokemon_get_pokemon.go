@@ -2,7 +2,6 @@ package repository
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
-	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"database/sql"
 	"errors"
@@ -13,7 +12,44 @@ import (
 )
 
 var (
-	ErrNoPokemon = errors.New("no pokemon found")
+	ErrNoPokemon   = errors.New("no pokemon found")
+	PokemonColumns = `
+		pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
+		array_agg(
+			DISTINCT jsonb_build_object(
+				'type', jsonb_build_object(
+					'id', types.id,
+					'name', types.name,
+					'slug', types.slug,
+					'noDamageTo', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "no-damage-to") + `),
+					'halfDamageTo', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "half-damage-to") + `),
+					'doubleDamageTo', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "double-damage-to") + `),
+					'noDamageFrom', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "no-damage-from") + `),
+					'halfDamageFrom', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "half-damage-from") + `),
+					'doubleDamageFrom', jsonb_build_object('types', ` + fmt.Sprintf(TemplatedTypeRelation, "double-damage-from") + `)
+				),
+				'slot', pokemon_type.slot
+			)
+		) as types,
+		array_agg(
+			DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)
+		) as egg_groups,
+		array_agg(
+			DISTINCT jsonb_build_object(
+				'ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 
+				'slot', pokemon_ability.slot,
+				'isHidden', pokemon_ability.is_hidden
+			)
+		) as abilities
+	`
+	PokemonJoins = `
+		LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
+		LEFT JOIN types ON pokemon_type.type_id = types.id
+		LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
+		LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
+		LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
+		LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+	`
 )
 
 func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
@@ -21,18 +57,9 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		`SELECT
-			pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
-			array_agg(DISTINCT jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot)) as types,
-			array_agg(DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)) as egg_groups,
-			array_agg(DISTINCT jsonb_build_object('ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 'slot', pokemon_ability.slot, 'isHidden', pokemon_ability.is_hidden)) as abilities
+		`SELECT `+PokemonColumns+`	
 		FROM pokemon
-			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
-			LEFT JOIN types ON pokemon_type.type_id = types.id
-			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
-			LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
-			LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
-			LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+			`+PokemonJoins+`
 		GROUP BY pokemon.id
 		ORDER BY pokedex_id, pokemon.slug ASC;`,
 	)
@@ -50,7 +77,17 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 		pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 		pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
 		pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
-		pokemon.AddPokemon(&pkmn)
+
+		for i := range pkmn.Types.PokemonTypes {
+			pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+			pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+			pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+			pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+			pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+			pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+		}
+
+		pokemon.AddPokemon(pkmn)
 	}
 
 	err = rows.Err()
@@ -66,18 +103,9 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 
 	err := r.db.QueryRowContext(
 		ctx,
-		`SELECT
-			pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
-			array_agg(DISTINCT jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot)) as types,
-			array_agg(DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)) as egg_groups,
-		array_agg(DISTINCT jsonb_build_object('ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 'slot', pokemon_ability.slot, 'isHidden', pokemon_ability.is_hidden)) as abilities
+		`SELECT `+PokemonColumns+`
 		FROM pokemon
-			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
-			LEFT JOIN types ON pokemon_type.type_id = types.id
-			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
-			LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
-			LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
-			LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+			`+PokemonJoins+`
 		WHERE pokemon.id = $1
 		GROUP BY pokemon.id;`,
 		id,
@@ -91,6 +119,16 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 	pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 	pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
 	pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
+
+	for i := range pkmn.Types.PokemonTypes {
+		pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+		pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+		pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+		pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+		pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+		pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+	}
+
 	return &pkmn, nil
 }
 
@@ -104,25 +142,14 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			args[i] = moveIds[i]
 		}
 
-		query := `SELECT
-			pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
-			array_agg(DISTINCT jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot)) as types,
-			array_agg(DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)) as egg_groups,
-			array_agg(DISTINCT jsonb_build_object('ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 'slot', pokemon_ability.slot, 'isHidden', pokemon_ability.is_hidden)) as abilities,
-			pokemon_move.move_id
+		query := `SELECT ` + PokemonColumns + `, pokemon_move.move_id
 		FROM pokemon
-			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
-			LEFT JOIN types ON pokemon_type.type_id = types.id
-			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
-			LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
-			LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
-			LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+			` + PokemonJoins + `
 			LEFT JOIN pokemon_move ON pokemon.id = pokemon_move.pokemon_id
 		WHERE pokemon_move.move_id IN (` + strings.Join(placeholders, ",") + `)
 		GROUP BY pokemon.id, pokemon_move.move_id
 		ORDER BY pokedex_id, pokemon.slug ASC;`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,
@@ -157,13 +184,22 @@ func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []s
 			pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
 			pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
 
+			for i := range pkmn.Types.PokemonTypes {
+				pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+			}
+
 			_, ok := pokemonByMoveId[moveId]
 			if !ok {
 				pl := model.NewEmptyPokemonList()
 				pokemonByMoveId[moveId] = &pl
 			}
 
-			pokemonByMoveId[moveId].AddPokemon(&pkmn)
+			pokemonByMoveId[moveId].AddPokemon(pkmn)
 		}
 
 		pokemonList := make([]*model.PokemonList, len(moveIds))
@@ -195,22 +231,13 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			args[i] = typeIds[i]
 		}
 
-		query := `SELECT
-			pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
-			(SELECT array_agg(DISTINCT jsonb_build_object('type', jsonb_build_object('name', types.name, 'slug', types.slug, 'id', types.id), 'slot', pokemon_type.slot)) FROM pokemon_type LEFT JOIN types on pokemon_type.type_id = types.id WHERE pokemon_type.pokemon_id = pokemon.id) as types,
-			array_agg(DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)) as egg_groups,
-			array_agg(DISTINCT jsonb_build_object('ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 'slot', pokemon_ability.slot, 'isHidden', pokemon_ability.is_hidden)) as abilities
+		query := `SELECT ` + PokemonColumns + `
 		FROM pokemon
-			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
-			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
-			LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
-			LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
-			LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+			` + PokemonJoins + `
 		WHERE pokemon_type.type_id IN (` + strings.Join(placeholders, ",") + `)
 		GROUP BY pokemon.id
 		ORDER BY pokedex_id, pokemon.slug ASC;`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,
@@ -244,7 +271,14 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 			pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
 			pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
 
-			fmt.Printf("%v", pkmn.Types.PokemonTypes)
+			for i := range pkmn.Types.PokemonTypes {
+				pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+			}
 
 			for _, t := range pkmn.Types.PokemonTypes {
 				_, ok := pokemonByTypeId[t.Type.ID]
@@ -253,7 +287,7 @@ func (r Pokemon) PokemonByTypeIdDataLoader(ctx context.Context) func(typeIds []s
 					pokemonByTypeId[t.Type.ID] = &pl
 				}
 
-				pokemonByTypeId[t.Type.ID].AddPokemon(&pkmn)
+				pokemonByTypeId[t.Type.ID].AddPokemon(pkmn)
 			}
 		}
 
@@ -286,23 +320,13 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 			args[i] = abilityIds[i]
 		}
 
-		query := `SELECT
-			pokemon.id, pokemon.pokedex_id, pokemon.slug, pokemon.name, pokemon.sprite, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special_attack, pokemon.special_defense, pokemon.speed, pokemon.is_baby, pokemon.is_legendary, pokemon.is_mythical, pokemon.description, pokemon.color_enum, pokemon.shape_enum, pokemon.habitat_enum, pokemon.is_default_variant, pokemon.genus, pokemon.height, pokemon.weight,
-			array_agg(jsonb_build_object('type', jsonb_build_object('id', types.id, 'name', types.name, 'slug', types.slug), 'slot', pokemon_type.slot) ORDER BY pokemon_type.slot) as types,
-			array_agg(DISTINCT jsonb_build_object('id', egg_groups.id, 'name', egg_groups.name, 'slug', egg_groups.slug)) as egg_groups,
-			array_agg(DISTINCT jsonb_build_object('ability', jsonb_build_object('id', abilities.id, 'name', abilities.name, 'slug', abilities.slug, 'effect', abilities.effect), 'slot', pokemon_ability.slot, 'isHidden', pokemon_ability.is_hidden)) as abilities
+		query := `SELECT ` + PokemonColumns + `
 		FROM pokemon
-			LEFT JOIN pokemon_type ON pokemon.id = pokemon_type.pokemon_id
-			LEFT JOIN types ON pokemon_type.type_id = types.id
-			LEFT JOIN pokemon_ability ON pokemon.id = pokemon_ability.pokemon_id
-			LEFT JOIN abilities on pokemon_ability.ability_id = abilities.id
-			LEFT JOIN pokemon_egg_group ON pokemon.id = pokemon_egg_group.pokemon_id
-			LEFT JOIN egg_groups on pokemon_egg_group.egg_group_id = egg_groups.id
+			` + PokemonJoins + `
 		WHERE pokemon_ability.ability_id IN (` + strings.Join(placeholders, ",") + `)
 		GROUP BY pokemon.id
 		ORDER BY pokedex_id, pokemon.slug ASC;`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,
@@ -336,6 +360,15 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 			pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
 			pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
 
+			for i := range pkmn.Types.PokemonTypes {
+				pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+			}
+
 			for _, a := range pkmn.Abilities.PokemonAbilities {
 				_, ok := pokemonByAbilityId[a.Ability.ID]
 				if !ok {
@@ -343,7 +376,7 @@ func (r Pokemon) PokemonByAbilityIdDataLoader(ctx context.Context) func(abilityI
 					pokemonByAbilityId[a.Ability.ID] = &pl
 				}
 
-				pokemonByAbilityId[a.Ability.ID].AddPokemon(&pkmn)
+				pokemonByAbilityId[a.Ability.ID].AddPokemon(pkmn)
 			}
 		}
 

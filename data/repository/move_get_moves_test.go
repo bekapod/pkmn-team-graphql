@@ -432,9 +432,53 @@ var accelerock = model.Move{
 	EffectChance: 0,
 	Target:       "Selected Pokémon",
 	Type: model.Type{
-		ID:   "5179f383-b765-4cc7-b9f9-8b1a3ba93019",
-		Name: "Rock",
-		Slug: "rock",
+		ID:   Rock.ID,
+		Name: Rock.Name,
+		Slug: Rock.Slug,
+		NoDamageTo: model.TypeList{
+			Total: 0,
+			Types: nil,
+		},
+		HalfDamageTo: model.TypeList{
+			Total: 3,
+			Types: []model.Type{
+				Steel,
+				Ground,
+				Fighting,
+			},
+		},
+		DoubleDamageTo: model.TypeList{
+			Total: 4,
+			Types: []model.Type{
+				Ice,
+				Flying,
+				Bug,
+				Fire,
+			},
+		},
+		NoDamageFrom: model.TypeList{
+			Total: 0,
+			Types: nil,
+		},
+		HalfDamageFrom: model.TypeList{
+			Total: 4,
+			Types: []model.Type{
+				Normal,
+				Poison,
+				Flying,
+				Fire,
+			},
+		},
+		DoubleDamageFrom: model.TypeList{
+			Total: 5,
+			Types: []model.Type{
+				Steel,
+				Grass,
+				Ground,
+				Fighting,
+				Water,
+			},
+		},
 	},
 }
 
@@ -450,9 +494,53 @@ var infestation = model.Move{
 	EffectChance: 100,
 	Target:       "Selected Pokémon",
 	Type: model.Type{
-		ID:   "56dddb9a-3623-43c5-8228-ea24d598afe7",
-		Name: "Bug",
-		Slug: "bug",
+		ID:   Bug.ID,
+		Name: Bug.Name,
+		Slug: Bug.Slug,
+		NoDamageTo: model.TypeList{
+			Total: 0,
+			Types: nil,
+		},
+		HalfDamageTo: model.TypeList{
+			Total: 7,
+			Types: []model.Type{
+				Ghost,
+				Steel,
+				Poison,
+				Flying,
+				Fighting,
+				Fairy,
+				Fire,
+			},
+		},
+		DoubleDamageTo: model.TypeList{
+			Total: 3,
+			Types: []model.Type{
+				Grass,
+				Psychic,
+				Dark,
+			},
+		},
+		NoDamageFrom: model.TypeList{
+			Total: 0,
+			Types: nil,
+		},
+		HalfDamageFrom: model.TypeList{
+			Total: 3,
+			Types: []model.Type{
+				Grass,
+				Ground,
+				Fighting,
+			},
+		},
+		DoubleDamageFrom: model.TypeList{
+			Total: 3,
+			Types: []model.Type{
+				Flying,
+				Rock,
+				Fire,
+			},
+		},
 	},
 }
 
@@ -462,10 +550,10 @@ func mockRowsForGetMoves(empty bool, hasRowError bool, hasScanError bool) *sqlmo
 		rows.AddRow("9f61694f-34f0-4531-b5e4-aff9a3d9edde")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "types.id", "types.name", "types.slug"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "types.id", "types.name", "types.slug", "no_damage_to", "half_damage_to", "double_damage_to", "no_damage_from", "half_damage_from", "double_damage_from"})
 	if !empty {
-		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug).
-			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug)
+		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`).
+			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug, nil, `{"{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}","{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}","{\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}"}`, nil, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`)
 	}
 	if hasRowError {
 		rows.RowError(0, errors.New("row error"))
@@ -474,9 +562,9 @@ func mockRowsForGetMoves(empty bool, hasRowError bool, hasScanError bool) *sqlmo
 }
 
 func mockRowsForGetMoveById(empty bool) *sqlmock.Rows {
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "type_id", "types.name", "types.slug"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "types.id", "types.name", "types.slug", "no_damage_to", "half_damage_to", "double_damage_to", "no_damage_from", "half_damage_from", "double_damage_from"})
 	if !empty {
-		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug)
+		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`)
 	}
 	return rows
 }
@@ -487,11 +575,11 @@ func mockRowsForMovesByPokemonIdDataLoader(empty bool, hasRowError bool, hasScan
 		rows.AddRow("9f61694f-34f0-4531-b5e4-aff9a3d9edde")
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "type_id", "types.name", "types.slug", "pokemon_move.pokemon_id"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "types.id", "types.name", "types.slug", "no_damage_to", "half_damage_to", "double_damage_to", "no_damage_from", "half_damage_from", "double_damage_from", "pokemon_id"})
 	if !empty {
-		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, ids[0]).
-			AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, ids[2]).
-			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug, ids[2])
+		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`, ids[0]).
+			AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`, ids[2]).
+			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug, nil, `{"{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}","{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}","{\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}"}`, nil, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, ids[2])
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("row error"))
@@ -505,11 +593,11 @@ func mockRowsForMovesByTypeIdDataLoader(empty bool, hasRowError bool, hasScanErr
 		rows.AddRow(accelerock.ID)
 		return rows
 	}
-	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "type_id", "types.name", "types.slug"})
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "accuracy", "pp", "power", "damage_class_enum", "effect", "effect_chance", "target", "types.id", "types.name", "types.slug", "no_damage_to", "half_damage_to", "double_damage_to", "no_damage_from", "half_damage_from", "double_damage_from"})
 	if !empty {
-		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug).
-			AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug).
-			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug)
+		rows.AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`).
+			AddRow(accelerock.ID, accelerock.Name, accelerock.Slug, accelerock.Accuracy, accelerock.PP, accelerock.Power, accelerock.DamageClass, accelerock.Effect, accelerock.EffectChance, accelerock.Target, accelerock.Type.ID, accelerock.Type.Name, accelerock.Type.Slug, nil, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, nil, `{"{\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}"}`).
+			AddRow(infestation.ID, infestation.Name, infestation.Slug, infestation.Accuracy, infestation.PP, infestation.Power, infestation.DamageClass, infestation.Effect, infestation.EffectChance, infestation.Target, infestation.Type.ID, infestation.Type.Name, infestation.Type.Slug, nil, `{"{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}","{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}","{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}","{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}","{\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}","{\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}"}`, nil, `{"{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}","{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}","{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}"}`, `{"{\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}","{\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}","{\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}"}`)
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("row error"))

@@ -14,12 +14,14 @@ var (
 	ErrNoAbility = errors.New("no ability found")
 )
 
+var AbilityColumns = "abilities.id, abilities.name, abilities.slug, abilities.effect"
+
 func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityList, error) {
 	abilities := model.NewEmptyAbilityList()
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		"SELECT id, name, slug, effect FROM abilities ORDER BY slug ASC",
+		"SELECT "+AbilityColumns+" FROM abilities ORDER BY slug ASC",
 	)
 	if err != nil {
 		return &abilities, fmt.Errorf("error fetching all abilities in GetAllAbilities: %w", err)
@@ -47,7 +49,7 @@ func (r Ability) GetAbilityById(ctx context.Context, id string) (*model.Ability,
 
 	err := r.db.QueryRowContext(
 		ctx,
-		"SELECT id, name, slug, effect FROM abilities WHERE id = $1",
+		"SELECT  "+AbilityColumns+" FROM abilities WHERE id = $1",
 		id,
 	).Scan(&a.ID, &a.Name, &a.Slug, &a.Effect)
 	if err != nil {
@@ -70,7 +72,11 @@ func (r Ability) AbilitiesByPokemonIdDataLoader(ctx context.Context) func(pokemo
 			args[i] = pokemonIds[i]
 		}
 
-		query := "SELECT id, name, slug, effect, pokemon_ability.pokemon_id FROM abilities LEFT JOIN pokemon_ability ON abilities.id = pokemon_ability.ability_id WHERE pokemon_ability.pokemon_id IN (" + strings.Join(placeholders, ",") + ")"
+		query := `
+			SELECT ` + AbilityColumns + `, pokemon_ability.pokemon_id
+			FROM abilities
+				LEFT JOIN pokemon_ability ON abilities.id = pokemon_ability.ability_id
+			WHERE pokemon_ability.pokemon_id IN (` + strings.Join(placeholders, ",") + `)`
 
 		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,

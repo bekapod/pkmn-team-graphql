@@ -2,24 +2,27 @@ package repository
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
-	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/lib/pq"
 )
 
 var (
 	ErrNoMove = errors.New("no move found")
 )
 
+var MoveColumns = "moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug"
+
 func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 	moves := model.NewEmptyMoveList()
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		`SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
+		`SELECT `+MoveColumns+`, `+AllTypeRelations+`
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		ORDER BY moves.slug ASC`,
@@ -31,10 +34,16 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 	defer rows.Close()
 	for rows.Next() {
 		var m model.Move
-		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
+		err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, pq.Array(&m.Type.NoDamageTo.Types), pq.Array(&m.Type.HalfDamageTo.Types), pq.Array(&m.Type.DoubleDamageTo.Types), pq.Array(&m.Type.NoDamageFrom.Types), pq.Array(&m.Type.HalfDamageFrom.Types), pq.Array(&m.Type.DoubleDamageFrom.Types))
 		if err != nil {
 			return &moves, fmt.Errorf("error scanning result in GetAllMoves: %w", err)
 		}
+		m.Type.NoDamageTo.Total = len(m.Type.NoDamageTo.Types)
+		m.Type.HalfDamageTo.Total = len(m.Type.HalfDamageTo.Types)
+		m.Type.DoubleDamageTo.Total = len(m.Type.DoubleDamageTo.Types)
+		m.Type.NoDamageFrom.Total = len(m.Type.NoDamageFrom.Types)
+		m.Type.HalfDamageFrom.Total = len(m.Type.HalfDamageFrom.Types)
+		m.Type.DoubleDamageFrom.Total = len(m.Type.DoubleDamageFrom.Types)
 		moves.AddMove(m)
 	}
 	err = rows.Err()
@@ -50,12 +59,12 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 
 	err := r.db.QueryRowContext(
 		ctx,
-		`SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
+		`SELECT `+MoveColumns+`, `+AllTypeRelations+`
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		WHERE moves.id = $1`,
 		id,
-	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
+	).Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, pq.Array(&m.Type.NoDamageTo.Types), pq.Array(&m.Type.HalfDamageTo.Types), pq.Array(&m.Type.DoubleDamageTo.Types), pq.Array(&m.Type.NoDamageFrom.Types), pq.Array(&m.Type.HalfDamageFrom.Types), pq.Array(&m.Type.DoubleDamageFrom.Types))
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, ErrNoMove
@@ -63,6 +72,12 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 		return nil, fmt.Errorf("error scanning result in GetMoveById %s: %w", id, err)
 	}
 
+	m.Type.NoDamageTo.Total = len(m.Type.NoDamageTo.Types)
+	m.Type.HalfDamageTo.Total = len(m.Type.HalfDamageTo.Types)
+	m.Type.DoubleDamageTo.Total = len(m.Type.DoubleDamageTo.Types)
+	m.Type.NoDamageFrom.Total = len(m.Type.NoDamageFrom.Types)
+	m.Type.HalfDamageFrom.Total = len(m.Type.HalfDamageFrom.Types)
+	m.Type.DoubleDamageFrom.Total = len(m.Type.DoubleDamageFrom.Types)
 	return &m, nil
 }
 
@@ -76,7 +91,7 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			args[i] = pokemonIds[i]
 		}
 
-		query := `SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug, pokemon_move.pokemon_id
+		query := `SELECT ` + MoveColumns + `, ` + AllTypeRelations + `, pokemon_move.pokemon_id
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 			LEFT JOIN pokemon_move ON moves.id = pokemon_move.move_id
@@ -101,7 +116,7 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 		for rows.Next() {
 			var m model.Move
 			var pokemonId string
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, &pokemonId)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, pq.Array(&m.Type.NoDamageTo.Types), pq.Array(&m.Type.HalfDamageTo.Types), pq.Array(&m.Type.DoubleDamageTo.Types), pq.Array(&m.Type.NoDamageFrom.Types), pq.Array(&m.Type.HalfDamageFrom.Types), pq.Array(&m.Type.DoubleDamageFrom.Types), &pokemonId)
 			if err != nil {
 				moveList := make([]*model.MoveList, len(pokemonIds))
 				emptyMoveList := model.NewEmptyMoveList()
@@ -119,6 +134,12 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 				movesByPokemonId[pokemonId] = &ml
 			}
 
+			m.Type.NoDamageTo.Total = len(m.Type.NoDamageTo.Types)
+			m.Type.HalfDamageTo.Total = len(m.Type.HalfDamageTo.Types)
+			m.Type.DoubleDamageTo.Total = len(m.Type.DoubleDamageTo.Types)
+			m.Type.NoDamageFrom.Total = len(m.Type.NoDamageFrom.Types)
+			m.Type.HalfDamageFrom.Total = len(m.Type.HalfDamageFrom.Types)
+			m.Type.DoubleDamageFrom.Total = len(m.Type.DoubleDamageFrom.Types)
 			movesByPokemonId[pokemonId].AddMove(m)
 		}
 
@@ -151,12 +172,11 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			args[i] = typeIds[i]
 		}
 
-		query := `SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
+		query := `SELECT ` + MoveColumns + `, ` + AllTypeRelations + `
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		WHERE type_id IN (` + strings.Join(placeholders, ",") + `)`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,
@@ -175,7 +195,7 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 		defer rows.Close()
 		for rows.Next() {
 			var m model.Move
-			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug)
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, pq.Array(&m.Type.NoDamageTo.Types), pq.Array(&m.Type.HalfDamageTo.Types), pq.Array(&m.Type.DoubleDamageTo.Types), pq.Array(&m.Type.NoDamageFrom.Types), pq.Array(&m.Type.HalfDamageFrom.Types), pq.Array(&m.Type.DoubleDamageFrom.Types))
 			if err != nil {
 				moveList := make([]*model.MoveList, len(typeIds))
 				emptyMoveList := model.NewEmptyMoveList()
@@ -193,6 +213,12 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 				movesByTypeId[m.Type.ID] = &ml
 			}
 
+			m.Type.NoDamageTo.Total = len(m.Type.NoDamageTo.Types)
+			m.Type.HalfDamageTo.Total = len(m.Type.HalfDamageTo.Types)
+			m.Type.DoubleDamageTo.Total = len(m.Type.DoubleDamageTo.Types)
+			m.Type.NoDamageFrom.Total = len(m.Type.NoDamageFrom.Types)
+			m.Type.HalfDamageFrom.Total = len(m.Type.HalfDamageFrom.Types)
+			m.Type.DoubleDamageFrom.Total = len(m.Type.DoubleDamageFrom.Types)
 			movesByTypeId[m.Type.ID].AddMove(m)
 		}
 
