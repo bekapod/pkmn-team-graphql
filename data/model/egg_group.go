@@ -35,10 +35,10 @@ func (l *EggGroupList) AddEggGroup(e EggGroup) {
 	l.EggGroups = append(l.EggGroups, e)
 }
 
-func (t *EggGroup) Scan(src interface{}) error {
+func (e *EggGroup) Scan(src interface{}) error {
 	switch v := src.(type) {
 	case []uint8:
-		err := json.Unmarshal([]byte(v), &t)
+		err := json.Unmarshal([]byte(v), &e)
 		return err
 	}
 

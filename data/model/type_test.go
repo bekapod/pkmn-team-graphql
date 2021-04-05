@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewTypeList(t *testing.T) {
-	types := []*Type{
+	types := []Type{
 		{
 			ID: "123-456",
 		},
@@ -31,7 +31,7 @@ func TestNewTypeList(t *testing.T) {
 func TestNewEmptyTypeList(t *testing.T) {
 	exp := TypeList{
 		Total: 0,
-		Types: []*Type{},
+		Types: []Type{},
 	}
 
 	got := NewEmptyTypeList()

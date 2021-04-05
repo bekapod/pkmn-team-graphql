@@ -150,6 +150,12 @@ type Type {
   name: String!
   pokemon: PokemonList!
   moves: MoveList!
+  noDamageTo: TypeList!
+  halfDamageTo: TypeList!
+  doubleDamageTo: TypeList!
+  noDamageFrom: TypeList!
+  halfDamageFrom: TypeList!
+  doubleDamageFrom: TypeList!
 }
 
 type TypeList {

@@ -1,14 +1,13 @@
 package model
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
 
 func TestNewPokemonList(t *testing.T) {
-	pokemon := []*Pokemon{
+	pokemon := []Pokemon{
 		{
 			ID: "123-456",
 		},
@@ -31,7 +30,7 @@ func TestNewPokemonList(t *testing.T) {
 func TestNewEmptyPokemonList(t *testing.T) {
 	exp := PokemonList{
 		Total:   0,
-		Pokemon: []*Pokemon{},
+		Pokemon: []Pokemon{},
 	}
 
 	got := NewEmptyPokemonList()
@@ -42,16 +41,12 @@ func TestNewEmptyPokemonList(t *testing.T) {
 
 func TestPokemonList_AddPokemon(t *testing.T) {
 	pokemon := PokemonList{}
-	pokemon1 := &Pokemon{}
-	pokemon2 := &Pokemon{}
+	pokemon1 := Pokemon{}
+	pokemon2 := Pokemon{}
 	pokemon.AddPokemon(pokemon1)
 	pokemon.AddPokemon(pokemon2)
 
 	if pokemon.Total != 2 {
 		t.Errorf("expected Total of 2, but got %d instead", pokemon.Total)
-	}
-
-	if !reflect.DeepEqual([]*Pokemon{pokemon1, pokemon2}, pokemon.Pokemon) {
-		t.Errorf("the pokemon added do not match")
 	}
 }

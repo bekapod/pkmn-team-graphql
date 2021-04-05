@@ -29,11 +29,11 @@ type Pokemon struct {
 }
 
 type PokemonList struct {
-	Total   int        `json:"total"`
-	Pokemon []*Pokemon `json:"pokemon"`
+	Total   int       `json:"total"`
+	Pokemon []Pokemon `json:"pokemon"`
 }
 
-func NewPokemonList(pkmn []*Pokemon) PokemonList {
+func NewPokemonList(pkmn []Pokemon) PokemonList {
 	return PokemonList{
 		Total:   len(pkmn),
 		Pokemon: pkmn,
@@ -43,11 +43,11 @@ func NewPokemonList(pkmn []*Pokemon) PokemonList {
 func NewEmptyPokemonList() PokemonList {
 	return PokemonList{
 		Total:   0,
-		Pokemon: []*Pokemon{},
+		Pokemon: []Pokemon{},
 	}
 }
 
-func (l *PokemonList) AddPokemon(pkmn *Pokemon) {
+func (l *PokemonList) AddPokemon(pkmn Pokemon) {
 	l.Total++
 	l.Pokemon = append(l.Pokemon, pkmn)
 }
