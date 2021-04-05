@@ -8,28 +8,13 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/apollotracing"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 )
 
 func New(resolver *graph.Resolver, tracing bool) *chi.Mux {
 	c := generated.Config{Resolvers: resolver}
-	countComplexity := func(childComplexity int) int {
-		return childComplexity * childComplexity
-	}
-	c.Complexity.Ability.Pokemon = countComplexity
-	c.Complexity.Pokemon.Abilities = countComplexity
-	c.Complexity.Pokemon.EggGroups = countComplexity
-	c.Complexity.Pokemon.Moves = countComplexity
-	c.Complexity.Pokemon.Types = countComplexity
-	c.Complexity.PokemonType.Type = countComplexity
-	c.Complexity.Move.Type = countComplexity
-	c.Complexity.Move.Pokemon = countComplexity
-	c.Complexity.Type.Moves = countComplexity
-	c.Complexity.Type.Pokemon = countComplexity
 	gqlSrv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
-	gqlSrv.Use(extension.FixedComplexityLimit(1000))
 
 	if tracing {
 		log.Logger.Info("using apollo tracing")
