@@ -58,6 +58,17 @@ type AbilityList {
   abilities: [Ability!]!
 }
 
+type PokemonAbility {
+  slot: Int!
+  isHidden: Boolean!
+  ability: Ability!
+}
+
+type PokemonAbilityList {
+  total: Int!
+  pokemonAbilities: [PokemonAbility!]!
+}
+
 type EggGroup {
   id: ID!
   name: String!
@@ -112,7 +123,7 @@ type Pokemon {
   weight: Int!
   isDefaultVariant: Boolean!
   genus: String!
-  abilities: AbilityList!
+  abilities: PokemonAbilityList!
   types: PokemonTypeList!
   moves: MoveList!
   eggGroups: EggGroupList!

@@ -1,10 +1,5 @@
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 type Ability struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
@@ -34,16 +29,6 @@ func NewEmptyAbilityList() AbilityList {
 func (l *AbilityList) AddAbility(a Ability) {
 	l.Total++
 	l.Abilities = append(l.Abilities, a)
-}
-
-func (t *Ability) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []uint8:
-		err := json.Unmarshal([]byte(v), &t)
-		return err
-	}
-
-	return fmt.Errorf("failed to scan ability")
 }
 
 func (Ability) IsEntity() {}
