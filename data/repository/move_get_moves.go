@@ -19,7 +19,7 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		`SELECT moves.*, types.name, types.slug
+		`SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		ORDER BY moves.slug ASC`,
@@ -50,7 +50,7 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 
 	err := r.db.QueryRowContext(
 		ctx,
-		`SELECT moves.*, types.name, types.slug
+		`SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		WHERE moves.id = $1`,
@@ -76,7 +76,7 @@ func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []
 			args[i] = pokemonIds[i]
 		}
 
-		query := `SELECT moves.*, types.name, types.slug, pokemon_move.pokemon_id
+		query := `SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug, pokemon_move.pokemon_id
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 			LEFT JOIN pokemon_move ON moves.id = pokemon_move.move_id
@@ -151,7 +151,7 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(typeIds []string
 			args[i] = typeIds[i]
 		}
 
-		query := `SELECT moves.*, types.name, types.slug
+		query := `SELECT moves.id, moves.name, moves.slug, moves.accuracy, moves.pp, moves.power, moves.damage_class_enum, moves.effect, moves.effect_chance, moves.target, types.id, types.name, types.slug
 		FROM moves
 			LEFT JOIN types ON moves.type_id = types.id
 		WHERE type_id IN (` + strings.Join(placeholders, ",") + `)`
