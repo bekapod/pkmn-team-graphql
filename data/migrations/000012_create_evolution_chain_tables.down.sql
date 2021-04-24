@@ -26,6 +26,8 @@ DROP TABLE IF EXISTS "public"."locations";
 
 DROP TABLE IF EXISTS "public"."regions";
 
+DROP TABLE IF EXISTS "public"."fling_effect";
+
 DROP TABLE IF EXISTS "public"."item_category";
 
 DROP TABLE IF EXISTS "public"."item_attribute";

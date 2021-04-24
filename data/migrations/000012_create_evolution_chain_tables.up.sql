@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "public"."gender" (
 );
 
 INSERT INTO gender (value)
-  VALUES ('male'), ('female')
+  VALUES ('male'), ('female'), ('unknown')
 ON CONFLICT (value)
   DO NOTHING;
 
@@ -48,10 +48,21 @@ INSERT INTO item_category (value)
 ON CONFLICT (value)
   DO NOTHING;
 
+CREATE TABLE IF NOT EXISTS "public"."fling_effect" (
+  "value" text NOT NULL,
+  PRIMARY KEY ("value")
+);
+
+INSERT INTO fling_effect (value)
+  VALUES ('badly-poison'), ('burn'), ('berry-effect'), ('herb-effect'), ('paralyze'), ('poison'), ('flinch')
+ON CONFLICT (value)
+  DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS "public"."regions" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid (),
   "slug" text NOT NULL,
   "name" text NOT NULL,
+  updated_at timestamp without time zone NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),
   UNIQUE ("slug")
 );
@@ -61,21 +72,27 @@ CREATE TABLE IF NOT EXISTS "public"."locations" (
   "slug" text NOT NULL,
   "region_id" uuid NOT NULL,
   "name" text NOT NULL,
+  updated_at timestamp without time zone NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),
-  UNIQUE ("slug")
+  UNIQUE ("slug"),
+  FOREIGN KEY ("region_id") REFERENCES "public"."regions" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "public"."items" (
   "id" uuid NOT NULL DEFAULT gen_random_uuid (),
   "slug" text NOT NULL,
   "name" text NOT NULL,
-  "cost" integer,
-  "fling_power" integer,
+  "cost" integer NOT NULL,
+  "fling_power" integer NOT NULL,
   "fling_effect" text,
   "effect" text NOT NULL,
   "sprite" text NOT NULL,
+  "category_enum" text NOT NULL,
+  "attribute_enums" text[] NOT NULL,
+  updated_at timestamp without time zone NOT NULL DEFAULT now(),
   PRIMARY KEY ("id"),
-  UNIQUE ("slug")
+  UNIQUE ("slug"),
+  FOREIGN KEY ("category_enum") REFERENCES "public"."item_category" ("value") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "public"."pokemon_evolutions" (
@@ -91,6 +108,7 @@ CREATE TABLE IF NOT EXISTS "public"."pokemon_evolutions" (
   "min_level" integer,
   "min_happiness" integer,
   "min_beauty" integer,
+  "min_affection" integer,
   "needs_overworld_rain" boolean NOT NULL DEFAULT FALSE,
   "party_species_pokemon_id" uuid,
   "party_type_id" uuid,
@@ -101,7 +119,8 @@ CREATE TABLE IF NOT EXISTS "public"."pokemon_evolutions" (
   "spin" boolean NOT NULL DEFAULT FALSE,
   "take_damage" integer,
   "critical_hits" integer,
-  PRIMARY KEY ("from_pokemon_id", "to_pokemon_id"),
+  updated_at timestamp without time zone NOT NULL DEFAULT now(),
+  PRIMARY KEY ("from_pokemon_id", "to_pokemon_id", "time_of_day_enum", "gender_enum", "trigger_enum"),
   FOREIGN KEY ("from_pokemon_id") REFERENCES "public"."pokemon" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("to_pokemon_id") REFERENCES "public"."pokemon" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("trigger_enum") REFERENCES "public"."evolution_trigger" ("value") ON UPDATE NO ACTION ON DELETE CASCADE,
