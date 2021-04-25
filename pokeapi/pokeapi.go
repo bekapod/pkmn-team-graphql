@@ -149,6 +149,7 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species PokemonSpecies
 			"pumpkaboo-small",
 			"pumpkaboo-super",
 			"rockruff-own-tempo",
+			"taillow",
 			"wishiwashi-school",
 			"wormadom-sandy",
 			"wormadom-trash",

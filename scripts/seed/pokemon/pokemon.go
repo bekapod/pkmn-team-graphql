@@ -58,6 +58,7 @@ func main() {
 		"http://localhost/api/v2/pokemon-species/9/",
 		"http://localhost/api/v2/pokemon-species/150/",
 		"http://localhost/api/v2/pokemon-species/151/",
+		"http://localhost/api/v2/pokemon-species/240/",
 		"http://localhost/api/v2/pokemon-species/243/",
 		"http://localhost/api/v2/pokemon-species/244/",
 		"http://localhost/api/v2/pokemon-species/245/",
@@ -140,6 +141,8 @@ func main() {
 	pokemonAbilityValues := make([]string, 0)
 	pokemonMoveValues := make([]string, 0)
 	pokemonEggGroupValues := make([]string, 0)
+	pokemonEvolutionValues := make([]string, 0)
+	pokemonEvolutionChainList := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -255,21 +258,47 @@ func main() {
 						fmt.Sprintf("(SELECT id FROM egg_groups WHERE slug='%s')", fullPokemonSpecies.EggGroups[i].Name),
 					))
 				}
+
+				evolutionUrlParts := strings.Split(fullPokemonSpecies.EvolutionChain.Url, "/")
+				evolutionChainId := evolutionUrlParts[len(evolutionUrlParts)-2]
+				pokemonEvolutionChainList = append(pokemonEvolutionChainList, evolutionChainId)
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
+	pokemonEvolutionChainList = unique(pokemonEvolutionChainList)
+	pokemonEvolutionChainListLength := len(pokemonEvolutionChainList)
+	var wg2 sync.WaitGroup
+	wg2.Add(pokemonEvolutionChainListLength)
+	sem2 := make(chan bool, 20)
+
+	for i := 0; i < pokemonEvolutionChainListLength; i++ {
+		sem2 <- true
+		go func(i int) {
+			defer func() { <-sem2 }()
+			defer wg2.Done()
+
+			evolutionChain := client.GetEvolutionChain(pokemonEvolutionChainList[i])
+			for _, chain := range evolutionChain.Chain.EvolvesTo {
+				evolutionValues := parseEvolution(evolutionChain.Chain, chain)
+				pokemonEvolutionValues = append(pokemonEvolutionValues, evolutionValues...)
+			}
+		}(i)
+	}
+
 	sql := fmt.Sprintf(
 		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, shape_enum, habitat_enum, is_default_variant, genus, height, weight, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tpokedex_id = EXCLUDED.pokedex_id,\n\t\tname = EXCLUDED.name,\n\t\tsprite = EXCLUDED.sprite,\n\t\thp = EXCLUDED.hp,\n\t\tattack = EXCLUDED.attack,\n\t\tdefense = EXCLUDED.defense,\n\t\tspecial_attack = EXCLUDED.special_attack,\n\t\tspecial_defense = EXCLUDED.special_defense,\n\t\tspeed = EXCLUDED.speed,\n\t\tis_baby = EXCLUDED.is_baby,\n\t\tis_legendary = EXCLUDED.is_legendary,\n\t\tis_mythical = EXCLUDED.is_mythical,\n\t\tdescription = EXCLUDED.description,\n\t\tcolor_enum = EXCLUDED.color_enum,\n\t\tshape_enum = EXCLUDED.shape_enum,\n\t\thabitat_enum = EXCLUDED.habitat_enum,\n\t\tis_default_variant = EXCLUDED.is_default_variant,\n\t\tgenus = EXCLUDED.genus,\n\t\theight = EXCLUDED.height,\n\t\tweight = EXCLUDED.weight,\n\t\tupdated_at = EXCLUDED.updated_at;\n\n"+
 			"INSERT INTO pokemon_type (pokemon_id, type_id, slot, updated_at)\n\tVALUES %s\nON CONFLICT (pokemon_id, type_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot,\n\t\tupdated_at = EXCLUDED.UPDATED_AT;\n\n"+
 			"INSERT INTO pokemon_ability (pokemon_id, ability_id, slot, is_hidden, updated_at)\n\tVALUES %s\nON CONFLICT (pokemon_id, ability_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot, is_hidden = EXCLUDED.is_hidden, updated_at = EXCLUDED.updated_at;\n\n"+
-			"INSERT INTO pokemon_egg_group (pokemon_id, egg_group_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, egg_group_id)\n\tDO NOTHING;",
+			"INSERT INTO pokemon_egg_group (pokemon_id, egg_group_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, egg_group_id)\n\tDO NOTHING;"+
+			"INSERT INTO pokemon_evolutions (from_pokemon_id, to_pokemon_id, trigger_enum, item_id, gender_enum, held_item_id, known_move_id, known_move_type_id, location_id, min_level, min_happiness, min_beauty, min_affection, needs_overworld_rain, party_species_pokemon_id, party_type_id, relative_physical_stats, time_of_day_enum, trade_species_pokemon_id, turn_upside_down, spin, take_damage, critical_hits, updated_at)\n\tVALUES %s\nON CONFLICT (from_pokemon_id, to_pokemon_id, time_of_day_enum, gender_enum, trigger_enum)\n\tDO UPDATE SET\n\t\titem_id = EXCLUDED.item_id,\n\t\theld_item_id = EXCLUDED.held_item_id,\n\t\tknown_move_id = EXCLUDED.known_move_id,\n\t\tlocation_id = EXCLUDED.location_id,\n\t\tmin_level = EXCLUDED.min_level,\n\t\tmin_happiness = EXCLUDED.min_happiness,\n\t\tmin_beauty = EXCLUDED.min_beauty,\n\t\tmin_affection = EXCLUDED.min_affection,\n\t\tneeds_overworld_rain = EXCLUDED.needs_overworld_rain,\n\t\tparty_species_pokemon_id = EXCLUDED.party_species_pokemon_id,\n\t\tparty_type_id = EXCLUDED.party_type_id,\n\t\trelative_physical_stats = EXCLUDED.relative_physical_stats,\n\t\ttrade_species_pokemon_id = EXCLUDED.trade_species_pokemon_id,\n\t\tturn_upside_down = EXCLUDED.turn_upside_down,\n\t\tspin = EXCLUDED.spin,\n\t\ttake_damage = EXCLUDED.take_damage,\n\t\tcritical_hits = EXCLUDED.critical_hits,\n\t\tupdated_at = EXCLUDED.updated_at;",
 		strings.Join(pokemonValues, ", "),
 		strings.Join(pokemonTypeValues, ", "),
 		strings.Join(pokemonAbilityValues, ", "),
 		strings.Join(pokemonEggGroupValues, ", "),
+		strings.Join(pokemonEvolutionValues, ", "),
 	)
 
 	o, err := f.WriteString(sql)
@@ -295,4 +324,127 @@ func main() {
 
 	elapsed := time.Since(start)
 	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+}
+
+func parseEvolution(evolution pokeapi.Evolution, chain pokeapi.Evolution) []string {
+	values := make([]string, 0)
+
+	for _, details := range chain.EvolutionDetails {
+		if details.Location == nil && (evolution.Species.Name != "feebas" || (evolution.Species.Name == "feebas" && details.Trigger.Name == "trade")) {
+			gender := "'unknown'"
+			if details.Gender == 1 {
+				gender = "'male'"
+			}
+			if details.Gender == 2 {
+				gender = "'female'"
+			}
+
+			item := "NULL"
+			if details.Item != nil {
+				item = fmt.Sprintf("(SELECT id from items WHERE slug='%s')", details.Item.Name)
+			}
+
+			heldItem := "NULL"
+			if details.HeldItem != nil {
+				heldItem = fmt.Sprintf("(SELECT id from items WHERE slug='%s')", details.HeldItem.Name)
+			}
+
+			knownMove := "NULL"
+			if details.KnownMove != nil {
+				knownMove = fmt.Sprintf("(SELECT id from moves WHERE slug='%s')", details.KnownMove.Name)
+			}
+
+			knownMoveType := "NULL"
+			if details.KnownMoveType != nil {
+				knownMoveType = fmt.Sprintf("(SELECT id from types WHERE slug='%s')", details.KnownMoveType.Name)
+			}
+
+			partySpecies := "NULL"
+			if details.PartySpecies != nil {
+				partySpecies = fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", details.PartySpecies.Name)
+			}
+
+			partyType := "NULL"
+			if details.PartyType != nil {
+				partyType = fmt.Sprintf("(SELECT id from types WHERE slug='%s')", details.PartyType.Name)
+			}
+
+			tradeSpecies := "NULL"
+			if details.TradeSpecies != nil {
+				tradeSpecies = fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", details.TradeSpecies.Name)
+			}
+
+			timeOfDay := "any"
+			if details.TimeOfDay != "" {
+				timeOfDay = details.TimeOfDay
+			}
+
+			toPokemonSlug := chain.Species.Name
+			if toPokemonSlug == "meowstic" {
+				toPokemonSlug = "meowstic-male"
+
+				if details.Gender == 2 {
+					toPokemonSlug = "meowstic-female"
+				}
+			}
+			if toPokemonSlug == "toxtricity" {
+				toPokemonSlug = "toxtricity-amped"
+			}
+			if toPokemonSlug == "urshifu" {
+				toPokemonSlug = "urshifu-single-strike"
+			}
+			if toPokemonSlug == "lycanroc" {
+				toPokemonSlug = "lycanroc-midday"
+
+				if details.TimeOfDay == "night" {
+					toPokemonSlug = "lycanroc-midnight"
+				}
+			}
+
+			multipleSlugs := []string{toPokemonSlug}
+
+			if toPokemonSlug == "toxtricity-amped" {
+				multipleSlugs = append(multipleSlugs, "toxtricity-low-key")
+			}
+			if toPokemonSlug == "urshifu-single-strike" {
+				multipleSlugs = append(multipleSlugs, "urshifu-rapid-strike")
+			}
+
+			for _, slug := range multipleSlugs {
+				values = append(values, fmt.Sprintf(
+					"(%s, %s, '%s', %s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %t, %s, %s, %d, '%s', %s, %t, %t, %d, %d, now())",
+					fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", evolution.Species.Name),
+					fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", slug),
+					strings.ReplaceAll(details.Trigger.Name, "_", "-"),
+					item,
+					gender,
+					heldItem,
+					knownMove,
+					knownMoveType,
+					"NULL",
+					details.MinLevel,
+					details.MinHappiness,
+					details.MinBeauty,
+					details.MinAffection,
+					details.NeedsOverworldRain,
+					partySpecies,
+					partyType,
+					details.RelativePhysicalStats,
+					timeOfDay,
+					tradeSpecies,
+					details.TurnUpsideDown,
+					false,
+					0,
+					0,
+				))
+			}
+
+			for _, innerChain := range chain.EvolvesTo {
+				evolutionValues := parseEvolution(chain, innerChain)
+				values = append(values, evolutionValues...)
+			}
+		}
+	}
+
+	return values
 }

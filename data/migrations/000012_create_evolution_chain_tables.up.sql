@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "public"."time_of_day" (
 );
 
 INSERT INTO time_of_day (value)
-  VALUES ('day'), ('night')
+  VALUES ('day'), ('night'), ('any')
 ON CONFLICT (value)
   DO NOTHING;
 
@@ -125,14 +125,14 @@ CREATE TABLE IF NOT EXISTS "public"."pokemon_evolutions" (
   FOREIGN KEY ("to_pokemon_id") REFERENCES "public"."pokemon" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("trigger_enum") REFERENCES "public"."evolution_trigger" ("value") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("item_id") REFERENCES "public"."items" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  FOREIGN KEY ("gender_enum") REFERENCES "public"."gender" ("value") ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY ("gender_enum") REFERENCES "public"."gender" ("value") ON UPDATE CASCADE ON DELETE SET NULL,
   FOREIGN KEY ("held_item_id") REFERENCES "public"."items" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("known_move_id") REFERENCES "public"."moves" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("known_move_type_id") REFERENCES "public"."types" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("location_id") REFERENCES "public"."locations" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("party_species_pokemon_id") REFERENCES "public"."pokemon" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY ("party_type_id") REFERENCES "public"."types" ("id") ON UPDATE NO ACTION ON DELETE CASCADE,
-  FOREIGN KEY ("time_of_day_enum") REFERENCES "public"."time_of_day" ("value") ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY ("time_of_day_enum") REFERENCES "public"."time_of_day" ("value") ON UPDATE CASCADE ON DELETE SET NULL,
   FOREIGN KEY ("trade_species_pokemon_id") REFERENCES "public"."pokemon" ("id") ON UPDATE NO ACTION ON DELETE CASCADE
 );
 
