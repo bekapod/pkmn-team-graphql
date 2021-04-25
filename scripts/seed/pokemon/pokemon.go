@@ -12,6 +12,18 @@ import (
 	"github.com/alexflint/go-arg"
 )
 
+func unique(strSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range strSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
 func main() {
 	start := time.Now()
 	config := &helpers.Config{
@@ -23,9 +35,106 @@ func main() {
 
 	f := helpers.OpenFile(config.OutputFile)
 
-	pokemonSpeciesList := client.GetResourceList("pokemon-species")
-	results := pokemonSpeciesList.Results
-	resultsLength := len(results)
+	generation := client.GetGeneration("generation-viii")
+	pokemonSpeciesList := make([]string, 0)
+	for _, versionGroupResource := range generation.VersionGroups {
+		versionGroup := client.GetVersionGroup(versionGroupResource.Name)
+
+		for _, pokedexResource := range versionGroup.Pokedexes {
+			pokedex := client.GetPokedex(pokedexResource.Name)
+
+			for _, pokemonEntry := range pokedex.PokemonEntries {
+				pokemonSpeciesList = append(pokemonSpeciesList, pokemonEntry.PokemonSpecies.Url)
+			}
+		}
+	}
+
+	otherAvailablePokemon := []string{
+		"http://localhost/api/v2/pokemon-species/1/",
+		"http://localhost/api/v2/pokemon-species/2/",
+		"http://localhost/api/v2/pokemon-species/3/",
+		"http://localhost/api/v2/pokemon-species/7/",
+		"http://localhost/api/v2/pokemon-species/8/",
+		"http://localhost/api/v2/pokemon-species/9/",
+		"http://localhost/api/v2/pokemon-species/150/",
+		"http://localhost/api/v2/pokemon-species/151/",
+		"http://localhost/api/v2/pokemon-species/243/",
+		"http://localhost/api/v2/pokemon-species/244/",
+		"http://localhost/api/v2/pokemon-species/245/",
+		"http://localhost/api/v2/pokemon-species/249/",
+		"http://localhost/api/v2/pokemon-species/250/",
+		"http://localhost/api/v2/pokemon-species/252/",
+		"http://localhost/api/v2/pokemon-species/253/",
+		"http://localhost/api/v2/pokemon-species/254/",
+		"http://localhost/api/v2/pokemon-species/255/",
+		"http://localhost/api/v2/pokemon-species/256/",
+		"http://localhost/api/v2/pokemon-species/257/",
+		"http://localhost/api/v2/pokemon-species/258/",
+		"http://localhost/api/v2/pokemon-species/259/",
+		"http://localhost/api/v2/pokemon-species/260/",
+		"http://localhost/api/v2/pokemon-species/276/",
+		"http://localhost/api/v2/pokemon-species/380/",
+		"http://localhost/api/v2/pokemon-species/381/",
+		"http://localhost/api/v2/pokemon-species/382/",
+		"http://localhost/api/v2/pokemon-species/383/",
+		"http://localhost/api/v2/pokemon-species/384/",
+		"http://localhost/api/v2/pokemon-species/385/",
+		"http://localhost/api/v2/pokemon-species/480/",
+		"http://localhost/api/v2/pokemon-species/481/",
+		"http://localhost/api/v2/pokemon-species/482/",
+		"http://localhost/api/v2/pokemon-species/483/",
+		"http://localhost/api/v2/pokemon-species/484/",
+		"http://localhost/api/v2/pokemon-species/485/",
+		"http://localhost/api/v2/pokemon-species/486/",
+		"http://localhost/api/v2/pokemon-species/487/",
+		"http://localhost/api/v2/pokemon-species/488/",
+		"http://localhost/api/v2/pokemon-species/641/",
+		"http://localhost/api/v2/pokemon-species/642/",
+		"http://localhost/api/v2/pokemon-species/643/",
+		"http://localhost/api/v2/pokemon-species/644/",
+		"http://localhost/api/v2/pokemon-species/645/",
+		"http://localhost/api/v2/pokemon-species/646/",
+		"http://localhost/api/v2/pokemon-species/647/",
+		"http://localhost/api/v2/pokemon-species/716/",
+		"http://localhost/api/v2/pokemon-species/717/",
+		"http://localhost/api/v2/pokemon-species/718/",
+		"http://localhost/api/v2/pokemon-species/722/",
+		"http://localhost/api/v2/pokemon-species/723/",
+		"http://localhost/api/v2/pokemon-species/724/",
+		"http://localhost/api/v2/pokemon-species/725/",
+		"http://localhost/api/v2/pokemon-species/726/",
+		"http://localhost/api/v2/pokemon-species/727/",
+		"http://localhost/api/v2/pokemon-species/728/",
+		"http://localhost/api/v2/pokemon-species/729/",
+		"http://localhost/api/v2/pokemon-species/730/",
+		"http://localhost/api/v2/pokemon-species/785/",
+		"http://localhost/api/v2/pokemon-species/786/",
+		"http://localhost/api/v2/pokemon-species/787/",
+		"http://localhost/api/v2/pokemon-species/788/",
+		"http://localhost/api/v2/pokemon-species/789/",
+		"http://localhost/api/v2/pokemon-species/790/",
+		"http://localhost/api/v2/pokemon-species/791/",
+		"http://localhost/api/v2/pokemon-species/792/",
+		"http://localhost/api/v2/pokemon-species/793/",
+		"http://localhost/api/v2/pokemon-species/794/",
+		"http://localhost/api/v2/pokemon-species/795/",
+		"http://localhost/api/v2/pokemon-species/796/",
+		"http://localhost/api/v2/pokemon-species/797/",
+		"http://localhost/api/v2/pokemon-species/798/",
+		"http://localhost/api/v2/pokemon-species/799/",
+		"http://localhost/api/v2/pokemon-species/800/",
+		"http://localhost/api/v2/pokemon-species/803/",
+		"http://localhost/api/v2/pokemon-species/804/",
+		"http://localhost/api/v2/pokemon-species/805/",
+		"http://localhost/api/v2/pokemon-species/806/",
+		"http://localhost/api/v2/pokemon-species/807/",
+		"http://localhost/api/v2/pokemon-species/808/",
+		"http://localhost/api/v2/pokemon-species/809/",
+	}
+	pokemonSpeciesList = append(pokemonSpeciesList, otherAvailablePokemon...)
+
+	pokemonSpeciesList = unique(pokemonSpeciesList)
+	resultsLength := len(pokemonSpeciesList)
 	pokemonValues := make([]string, 0)
 	pokemonTypeValues := make([]string, 0)
 	pokemonAbilityValues := make([]string, 0)
@@ -41,7 +150,7 @@ func main() {
 		go func(i int) {
 			defer func() { <-sem }()
 			defer wg.Done()
-			urlParts := strings.Split(results[i].Url, "/")
+			urlParts := strings.Split(pokemonSpeciesList[i], "/")
 			id := urlParts[len(urlParts)-2]
 			fullPokemonSpecies := client.GetPokemonSpecies(id)
 			varieties := client.GetPokemonVarietiesForSpecies(fullPokemonSpecies)
@@ -127,12 +236,16 @@ func main() {
 					))
 				}
 
-				for i := range pokemon.Moves {
-					pokemonMoveValues = append(pokemonMoveValues, fmt.Sprintf(
-						"(%s, %s)",
-						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
-						fmt.Sprintf("(SELECT id FROM moves WHERE slug='%s')", pokemon.Moves[i].Move.Name),
-					))
+				for _, move := range pokemon.Moves {
+					for _, versionGroup := range move.VersionGroupDetails {
+						if versionGroup.VersionGroup.Name == "sword-shield" && !strings.Contains(move.Move.Name, "max-") {
+							pokemonMoveValues = append(pokemonMoveValues, fmt.Sprintf(
+								"(%s, %s)",
+								fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
+								fmt.Sprintf("(SELECT id FROM moves WHERE slug='%s')", move.Move.Name),
+							))
+						}
+					}
 				}
 
 				for i := range fullPokemonSpecies.EggGroups {
@@ -166,7 +279,7 @@ func main() {
 	f.Sync()
 	f.Close()
 
-	moveChunks := helpers.Chunk(10, pokemonMoveValues)
+	moveChunks := helpers.Chunk(1, pokemonMoveValues)
 	for i := range moveChunks {
 		moveF := helpers.OpenFile(strings.Replace(config.OutputFile, ".sql", fmt.Sprintf("_moves_%d.sql", i), 1))
 		moveSql := fmt.Sprintf("INSERT INTO pokemon_move (pokemon_id, move_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, move_id)\n\tDO NOTHING;", strings.Join(moveChunks[i], ", "))

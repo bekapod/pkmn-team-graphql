@@ -125,6 +125,7 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species PokemonSpecies
 		excludeSlugExact := []string{
 			"aegislash-blade",
 			"darmanitan-zen",
+			"darmanitan-zen-galar",
 			"eiscue-noice",
 			"floette-eternal",
 			"giratina-origin",
@@ -154,6 +155,23 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species PokemonSpecies
 		}
 		shouldInclude := true
 
+		unnecessaryVariantNames := []string{
+			"giratina-altered",
+			"darmanitan-standard",
+			"tornadus-incarnate",
+			"thundurus-incarnate",
+			"landorus-incarnate",
+			"keldeo-ordinary",
+			"aegislash-shield",
+			"pumpkaboo-average",
+			"gourgeist-average",
+			"wishiwashi-solo",
+			"mimikyu-disguised",
+			"eiscue-ice",
+			"zacian-hero",
+			"zamazenta-hero",
+		}
+
 		for _, exact := range excludeSlugExact {
 			if variety.Name == exact {
 				shouldInclude = false
@@ -171,6 +189,17 @@ func (client PokeApiClient) GetPokemonVarietiesForSpecies(species PokemonSpecies
 		}
 
 		if shouldInclude {
+			for _, pattern := range unnecessaryVariantNames {
+				if variety.Name == pattern {
+					variety.Name = variety.Species.Name
+					break
+				}
+			}
+
+			if variety.Name == "darmanitan-standard-galar" {
+				variety.Name = "darmanitan-galar"
+			}
+
 			pokemon = append(pokemon, variety)
 		}
 	}
@@ -430,7 +459,7 @@ type Pokedex struct {
 	PokemonEntries []struct {
 		EntryNumber    int             `json:"entry_number"`
 		PokemonSpecies ResourcePointer `json:"pokemon_species"`
-	}
+	} `json:"pokemon_entries"`
 }
 
 type Pokemon struct {
