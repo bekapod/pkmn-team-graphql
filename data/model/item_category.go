@@ -22,7 +22,7 @@ const (
 	EffortDrop      ItemCategory = "effort-drop"
 	EffortTraining  ItemCategory = "effort-training"
 	EventItems      ItemCategory = "event-items"
-	Evolution       ItemCategory = "evolution"
+	EvolutionItem   ItemCategory = "evolution"
 	Flutes          ItemCategory = "flutes"
 	Gameplay        ItemCategory = "gameplay"
 	Healing         ItemCategory = "healing"
@@ -58,7 +58,7 @@ const (
 
 func (c ItemCategory) IsValid() bool {
 	switch c {
-	case AllMachines, AllMail, ApricornBalls, ApricornBox, BadHeldItems, BakingOnly, Choice, Collectibles, DataCards, DexCompletion, EffortDrop, EffortTraining, EventItems, Evolution, Flutes, Gameplay, Healing, HeldItems, InAPinch, Jewels, Loot, Medicine, MegaStones, Memories, MiracleShooter, Mulch, OtherCategory, PickyHealing, Plates, PlotAdvancement, PPRecovery, Revival, Scarves, SpecialBalls, SpeciesSpecific, Spelunking, StandardBalls, StatBoosts, StatusCures, Training, TypeEnhancement, TypeProtection, Unused, Vitamins, ZCrystals:
+	case AllMachines, AllMail, ApricornBalls, ApricornBox, BadHeldItems, BakingOnly, Choice, Collectibles, DataCards, DexCompletion, EffortDrop, EffortTraining, EventItems, EvolutionItem, Flutes, Gameplay, Healing, HeldItems, InAPinch, Jewels, Loot, Medicine, MegaStones, Memories, MiracleShooter, Mulch, OtherCategory, PickyHealing, Plates, PlotAdvancement, PPRecovery, Revival, Scarves, SpecialBalls, SpeciesSpecific, Spelunking, StandardBalls, StatBoosts, StatusCures, Training, TypeEnhancement, TypeProtection, Unused, Vitamins, ZCrystals:
 		return true
 	}
 	return false
