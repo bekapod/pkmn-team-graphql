@@ -7,7 +7,6 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
@@ -22,27 +21,51 @@ func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*mod
 }
 
 func (r *evolutionResolver) Pokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.ToPokemonID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).PokemonById.Load(*obj.ToPokemonID)
 }
 
 func (r *evolutionResolver) KnownMove(ctx context.Context, obj *model.Evolution) (*model.Move, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.KnownMoveID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).MovesById.Load(*obj.KnownMoveID)
 }
 
 func (r *evolutionResolver) KnownMoveType(ctx context.Context, obj *model.Evolution) (*model.Type, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.KnownMoveTypeID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).TypesById.Load(*obj.KnownMoveTypeID)
 }
 
 func (r *evolutionResolver) PartyPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.PartySpeciesPokemonID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).PokemonById.Load(*obj.PartySpeciesPokemonID)
 }
 
 func (r *evolutionResolver) PartyPokemonType(ctx context.Context, obj *model.Evolution) (*model.Type, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.PartyTypeID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).TypesById.Load(*obj.PartyTypeID)
 }
 
 func (r *evolutionResolver) TradeWithPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.TradeSpeciesPokemonID == nil {
+		return nil, nil
+	}
+
+	return DataLoaderFor(ctx).PokemonById.Load(*obj.TradeSpeciesPokemonID)
 }
 
 func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {
@@ -68,7 +91,14 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 }
 
 func (r *pokemonResolver) EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error) {
-	panic(fmt.Errorf("not implemented"))
+	evolutions, err := DataLoaderFor(ctx).EvolutionsByPokemonId.Load(obj.ID)
+
+	if evolutions == nil {
+		emptyEvolutions := model.NewEmptyEvolutionList()
+		return &emptyEvolutions, err
+	}
+
+	return evolutions, err
 }
 
 func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {

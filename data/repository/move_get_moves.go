@@ -81,6 +81,77 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 	return &m, nil
 }
 
+func (r Move) MovesByIdDataLoader(ctx context.Context) func(moveIds []string) ([]*model.Move, []error) {
+	return func(moveIds []string) ([]*model.Move, []error) {
+		movesById := map[string]*model.Move{}
+		placeholders := make([]string, len(moveIds))
+		args := make([]interface{}, len(moveIds))
+		for i := 0; i < len(moveIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = moveIds[i]
+		}
+
+		query := `SELECT ` + MoveColumns + `, ` + AllTypeRelations + `
+		FROM moves
+			LEFT JOIN types ON moves.type_id = types.id
+			LEFT JOIN pokemon_move ON moves.id = pokemon_move.move_id
+		WHERE moves.id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY moves.id, types.id;`
+
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			moves := make([]*model.Move, len(moveIds))
+			errors := make([]error, len(moveIds))
+			for i := range moveIds {
+				errors[i] = fmt.Errorf("error fetching moves by id in MovesByIdDataLoader: %w", err)
+			}
+			return moves, errors
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var m model.Move
+			err := rows.Scan(&m.ID, &m.Name, &m.Slug, &m.Accuracy, &m.PP, &m.Power, &m.DamageClass, &m.Effect, &m.EffectChance, &m.Target, &m.Type.ID, &m.Type.Name, &m.Type.Slug, pq.Array(&m.Type.NoDamageTo.Types), pq.Array(&m.Type.HalfDamageTo.Types), pq.Array(&m.Type.DoubleDamageTo.Types), pq.Array(&m.Type.NoDamageFrom.Types), pq.Array(&m.Type.HalfDamageFrom.Types), pq.Array(&m.Type.DoubleDamageFrom.Types))
+			if err != nil {
+				moves := make([]*model.Move, len(moveIds))
+				errors := make([]error, len(moveIds))
+				for i := range moveIds {
+					errors[i] = fmt.Errorf("error scanning result moves by id in MovesByIdDataLoader: %w", err)
+				}
+				return moves, errors
+			}
+
+			m.Type.NoDamageTo.Total = len(m.Type.NoDamageTo.Types)
+			m.Type.HalfDamageTo.Total = len(m.Type.HalfDamageTo.Types)
+			m.Type.DoubleDamageTo.Total = len(m.Type.DoubleDamageTo.Types)
+			m.Type.NoDamageFrom.Total = len(m.Type.NoDamageFrom.Types)
+			m.Type.HalfDamageFrom.Total = len(m.Type.HalfDamageFrom.Types)
+			m.Type.DoubleDamageFrom.Total = len(m.Type.DoubleDamageFrom.Types)
+			movesById[m.ID] = &m
+		}
+
+		moves := make([]*model.Move, len(moveIds))
+		for i, id := range moveIds {
+			moves[i] = movesById[id]
+			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(moveIds))
+			for i := range moveIds {
+				errors[i] = fmt.Errorf("error after fetching moves by id in MovesByIdDataLoader: %w", err)
+			}
+			return moves, errors
+		}
+
+		return moves, nil
+	}
+}
+
 func (r Move) MovesByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []string) ([]*model.MoveList, []error) {
 	return func(pokemonIds []string) ([]*model.MoveList, []error) {
 		movesByPokemonId := map[string]*model.MoveList{}

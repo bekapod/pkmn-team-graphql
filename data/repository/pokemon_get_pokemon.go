@@ -132,6 +132,82 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 	return &pkmn, nil
 }
 
+func (r Pokemon) PokemonByIdDataLoader(ctx context.Context) func(pokemonIds []string) ([]*model.Pokemon, []error) {
+	return func(pokemonIds []string) ([]*model.Pokemon, []error) {
+		pokemonById := map[string]*model.Pokemon{}
+		placeholders := make([]string, len(pokemonIds))
+		args := make([]interface{}, len(pokemonIds))
+		for i := 0; i < len(pokemonIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = pokemonIds[i]
+		}
+
+		query := `SELECT ` + PokemonColumns + `
+		FROM pokemon
+			` + PokemonJoins + `
+		WHERE pokemon.id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY pokemon.id
+		ORDER BY pokedex_id, pokemon.slug ASC;`
+
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			pokemon := make([]*model.Pokemon, len(pokemonIds))
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error fetching pokemon by id in PokemonByIdDataLoader: %w", err)
+			}
+			return pokemon, errors
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var pkmn model.Pokemon
+			err := rows.Scan(&pkmn.ID, &pkmn.PokedexId, &pkmn.Slug, &pkmn.Name, &pkmn.Sprite, &pkmn.HP, &pkmn.Attack, &pkmn.Defense, &pkmn.SpecialAttack, &pkmn.SpecialDefense, &pkmn.Speed, &pkmn.IsBaby, &pkmn.IsLegendary, &pkmn.IsMythical, &pkmn.Description, &pkmn.Color, &pkmn.Shape, &pkmn.Habitat, &pkmn.IsDefaultVariant, &pkmn.Genus, &pkmn.Height, &pkmn.Weight, pq.Array(&pkmn.Types.PokemonTypes), pq.Array(&pkmn.EggGroups.EggGroups), pq.Array(&pkmn.Abilities.PokemonAbilities))
+			if err != nil {
+				pokemon := make([]*model.Pokemon, len(pokemonIds))
+				errors := make([]error, len(pokemonIds))
+				for i := range pokemonIds {
+					errors[i] = fmt.Errorf("error scanning result pokemon by id in PokemonByIdDataLoader: %w", err)
+				}
+				return pokemon, errors
+			}
+			pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
+			pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
+
+			for i := range pkmn.Types.PokemonTypes {
+				pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageTo.Types)
+				pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.HalfDamageFrom.Types)
+				pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Total = len(pkmn.Types.PokemonTypes[i].Type.DoubleDamageFrom.Types)
+			}
+
+			pokemonById[pkmn.ID] = &pkmn
+		}
+
+		pokemon := make([]*model.Pokemon, len(pokemonIds))
+		for i, id := range pokemonIds {
+			pokemon[i] = pokemonById[id]
+			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(pokemonIds))
+			for i := range pokemonIds {
+				errors[i] = fmt.Errorf("error after fetching pokemon by id in PokemonByIdDataLoader: %w", err)
+			}
+			return pokemon, errors
+		}
+
+		return pokemon, nil
+	}
+}
+
 func (r Pokemon) PokemonByMoveIdDataLoader(ctx context.Context) func(moveIds []string) ([]*model.PokemonList, []error) {
 	return func(moveIds []string) ([]*model.PokemonList, []error) {
 		pokemonByMoveId := map[string]*model.PokemonList{}

@@ -2187,9 +2187,9 @@ func (ec *executionContext) _Evolution_item(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Item)
+	res := resTmp.(*model.Item)
 	fc.Result = res
-	return ec.marshalOItem2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
+	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Evolution_gender(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
@@ -2254,9 +2254,9 @@ func (ec *executionContext) _Evolution_heldItem(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Item)
+	res := resTmp.(*model.Item)
 	fc.Result = res
-	return ec.marshalOItem2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
+	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Evolution_knownMove(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
@@ -2350,9 +2350,9 @@ func (ec *executionContext) _Evolution_location(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Location)
+	res := resTmp.(*model.Location)
 	fc.Result = res
-	return ec.marshalOLocation2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx, field.Selections, res)
+	return ec.marshalOLocation2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Evolution_minLevel(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
@@ -9591,12 +9591,18 @@ func (ec *executionContext) marshalOHabitat2bekapodᚋpkmnᚑteamᚑgraphqlᚋda
 	return v
 }
 
-func (ec *executionContext) marshalOItem2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v model.Item) graphql.Marshaler {
-	return ec._Item(ctx, sel, &v)
+func (ec *executionContext) marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v *model.Item) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Item(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOLocation2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v model.Location) graphql.Marshaler {
-	return ec._Location(ctx, sel, &v)
+func (ec *executionContext) marshalOLocation2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v *model.Location) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Location(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {

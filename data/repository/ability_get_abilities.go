@@ -2,7 +2,6 @@ package repository
 
 import (
 	"bekapod/pkmn-team-graphql/data/model"
-	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"database/sql"
 	"errors"
@@ -78,7 +77,6 @@ func (r Ability) AbilitiesByPokemonIdDataLoader(ctx context.Context) func(pokemo
 				LEFT JOIN pokemon_ability ON abilities.id = pokemon_ability.ability_id
 			WHERE pokemon_ability.pokemon_id IN (` + strings.Join(placeholders, ",") + `)`
 
-		log.Logger.WithField("args", args).Debug(query)
 		rows, err := r.db.QueryContext(ctx,
 			query,
 			args...,

@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 )
@@ -91,4 +92,73 @@ func (r Type) GetTypeById(ctx context.Context, id string) (*model.Type, error) {
 	t.HalfDamageFrom.Total = len(t.HalfDamageFrom.Types)
 	t.DoubleDamageFrom.Total = len(t.DoubleDamageFrom.Types)
 	return &t, nil
+}
+
+func (r Type) TypesByIdDataLoader(ctx context.Context) func(typeIds []string) ([]*model.Type, []error) {
+	return func(typeIds []string) ([]*model.Type, []error) {
+		typesById := map[string]*model.Type{}
+		placeholders := make([]string, len(typeIds))
+		args := make([]interface{}, len(typeIds))
+		for i := 0; i < len(typeIds); i++ {
+			placeholders[i] = fmt.Sprintf("$%d", i+1)
+			args[i] = typeIds[i]
+		}
+
+		query := `SELECT ` + TypeColumns + `, ` + AllTypeRelations + `
+		FROM types
+		WHERE types.id IN (` + strings.Join(placeholders, ",") + `)
+		GROUP BY types.id;`
+
+		rows, err := r.db.QueryContext(ctx,
+			query,
+			args...,
+		)
+		if err != nil {
+			types := make([]*model.Type, len(typeIds))
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error fetching types by id in TypesByIdDataLoader: %w", err)
+			}
+			return types, errors
+		}
+
+		defer rows.Close()
+		for rows.Next() {
+			var t model.Type
+			err := rows.Scan(&t.ID, &t.Name, &t.Slug, pq.Array(&t.NoDamageTo.Types), pq.Array(&t.HalfDamageTo.Types), pq.Array(&t.DoubleDamageTo.Types), pq.Array(&t.NoDamageFrom.Types), pq.Array(&t.HalfDamageFrom.Types), pq.Array(&t.DoubleDamageFrom.Types))
+			if err != nil {
+				types := make([]*model.Type, len(typeIds))
+				errors := make([]error, len(typeIds))
+				for i := range typeIds {
+					errors[i] = fmt.Errorf("error scanning result types by id in TypesByIdDataLoader: %w", err)
+				}
+				return types, errors
+			}
+
+			t.NoDamageTo.Total = len(t.NoDamageTo.Types)
+			t.HalfDamageTo.Total = len(t.HalfDamageTo.Types)
+			t.DoubleDamageTo.Total = len(t.DoubleDamageTo.Types)
+			t.NoDamageFrom.Total = len(t.NoDamageFrom.Types)
+			t.HalfDamageFrom.Total = len(t.HalfDamageFrom.Types)
+			t.DoubleDamageFrom.Total = len(t.DoubleDamageFrom.Types)
+			typesById[t.ID] = &t
+		}
+
+		types := make([]*model.Type, len(typeIds))
+		for i, id := range typeIds {
+			types[i] = typesById[id]
+			i++
+		}
+
+		err = rows.Err()
+		if err != nil {
+			errors := make([]error, len(typeIds))
+			for i := range typeIds {
+				errors[i] = fmt.Errorf("error after fetching types by id in TypesByIdDataLoader: %w", err)
+			}
+			return types, errors
+		}
+
+		return types, nil
+	}
 }

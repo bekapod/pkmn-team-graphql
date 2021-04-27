@@ -6,26 +6,29 @@ import (
 )
 
 type Evolution struct {
-	Pokemon               Pokemon          `json:"pokemon"`
 	Trigger               EvolutionTrigger `json:"evolutionTrigger"`
-	Item                  Item             `json:"item"`
+	Item                  *Item            `json:"item"`
 	Gender                Gender           `json:"gender"`
-	HeldItem              Item             `json:"heldItem"`
-	KnownMove             Move             `json:"knownMove"`
-	Location              Location         `json:"location"`
+	HeldItem              *Item            `json:"heldItem"`
+	Location              *Location        `json:"location"`
 	MinLevel              int              `json:"minLevel"`
 	MinHappiness          int              `json:"minHappiness"`
 	MinBeauty             int              `json:"minBeauty"`
 	MinAffection          int              `json:"minAffection"`
 	NeedsOverworldRain    bool             `json:"needsOverworldRain"`
-	PartyPokemon          Pokemon          `json:"partyPokemon"`
 	RelativePhysicalStats int              `json:"relativePhysicalStats"`
 	TimeOfDay             TimeOfDay        `json:"timeOfDay"`
-	TradeWithPokemon      Pokemon          `json:"tradeWithPokemon"`
 	TurnUpsideDown        bool             `json:"turnUpsideDown"`
 	Spin                  bool             `json:"spin"`
 	TakeDamage            int              `json:"takeDamage"`
 	CriticalHits          int              `json:"criticalHits"`
+	FromPokemonID         *string          `json:"from_pokemon_id"`
+	ToPokemonID           *string          `json:"to_pokemon_id"`
+	PartySpeciesPokemonID *string          `json:"party_species_pokemon_id"`
+	TradeSpeciesPokemonID *string          `json:"trade_species_pokemon_id"`
+	KnownMoveID           *string          `json:"known_move_id"`
+	KnownMoveTypeID       *string          `json:"known_move_type_id"`
+	PartyTypeID           *string          `json:"party_type_id"`
 }
 
 type EvolutionList struct {
