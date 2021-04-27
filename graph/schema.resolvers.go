@@ -7,6 +7,7 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error) {
@@ -18,6 +19,30 @@ func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*mod
 	}
 
 	return pokemon, err
+}
+
+func (r *evolutionResolver) Pokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *evolutionResolver) KnownMove(ctx context.Context, obj *model.Evolution) (*model.Move, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *evolutionResolver) KnownMoveType(ctx context.Context, obj *model.Evolution) (*model.Type, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *evolutionResolver) PartyPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *evolutionResolver) PartyPokemonType(ctx context.Context, obj *model.Evolution) (*model.Type, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *evolutionResolver) TradeWithPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error) {
@@ -40,6 +65,10 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 	}
 
 	return moves, err
+}
+
+func (r *pokemonResolver) EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) AbilityByID(ctx context.Context, id string) (*model.Ability, error) {
@@ -99,6 +128,9 @@ func (r *typeResolver) Moves(ctx context.Context, obj *model.Type) (*model.MoveL
 // Ability returns generated.AbilityResolver implementation.
 func (r *Resolver) Ability() generated.AbilityResolver { return &abilityResolver{r} }
 
+// Evolution returns generated.EvolutionResolver implementation.
+func (r *Resolver) Evolution() generated.EvolutionResolver { return &evolutionResolver{r} }
+
 // Move returns generated.MoveResolver implementation.
 func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
 
@@ -112,6 +144,7 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
 
 type abilityResolver struct{ *Resolver }
+type evolutionResolver struct{ *Resolver }
 type moveResolver struct{ *Resolver }
 type pokemonResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

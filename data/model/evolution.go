@@ -28,6 +28,30 @@ type Evolution struct {
 	CriticalHits          int              `json:"criticalHits"`
 }
 
+type EvolutionList struct {
+	Total      int         `json:"total"`
+	Evolutions []Evolution `json:"evolutions"`
+}
+
+func NewEvolutionList(e []Evolution) EvolutionList {
+	return EvolutionList{
+		Total:      len(e),
+		Evolutions: e,
+	}
+}
+
+func NewEmptyEvolutionList() EvolutionList {
+	return EvolutionList{
+		Total:      0,
+		Evolutions: []Evolution{},
+	}
+}
+
+func (l *EvolutionList) AddEvolution(e Evolution) {
+	l.Total++
+	l.Evolutions = append(l.Evolutions, e)
+}
+
 func (r *Evolution) Scan(src interface{}) error {
 	switch v := src.(type) {
 	case []uint8:

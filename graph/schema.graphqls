@@ -45,6 +45,85 @@ enum Shape {
   ARMOR
 }
 
+enum EvolutionTrigger {
+  LEVEL_UP
+  OTHER
+  SHED
+  TRADE
+  USE_ITEM
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  UNKNOWN
+}
+
+enum TimeOfDay {
+  ANY
+  DAY
+  NIGHT
+}
+
+enum ItemCategory {
+  ALL_MACHINES
+  ALL_MAIL
+  APRICORN_BALLS
+  APRICORN_BOX
+  BAD_HELD_ITEMS
+  BAKING_ONLY
+  CHOICE
+  COLLECTIBLES
+  DATA_CARDS
+  DEX_COMPLETION
+  EFFORT_DROP
+  EFFORT_TRAINING
+  EVENT_ITEMS
+  EVOLUTION
+  FLUTES
+  GAMEPLAY
+  HEALING
+  HELD_ITEMS
+  IN_A_PINCH
+  JEWELS
+  LOOT
+  MEDICINE
+  MEGA_STONES
+  MEMORIES
+  MIRACLE_SHOOTER
+  MULCH
+  OTHER
+  PICKY_HEALING
+  PLATES
+  PLOT_ADVANCEMENT
+  PP_RECOVERY
+  REVIVAL
+  SCARVES
+  SPECIAL_BALLS
+  SPECIES_SPECIFIC
+  SPELUNKING
+  STANDARD_BALLS
+  STAT_BOOSTS
+  STATUS_CURES
+  TRAINING
+  TYPE_ENHANCEMENT
+  TYPE_PROTECTION
+  UNUSED
+  VITAMINS
+  Z_CRYSTALS
+}
+
+enum ItemAttribute {
+  CONSUMABLE
+  COUNTABLE
+  HOLDABLE
+  HOLDABLE_ACTIVE
+  HOLDABLE_PASSIVE
+  UNDERGROUND
+  USABLE_IN_BATTLE
+  USABLE_OVERWORLD
+}
+
 type Ability {
   id: ID!
   slug: String!
@@ -56,6 +135,62 @@ type Ability {
 type AbilityList {
   total: Int!
   abilities: [Ability!]!
+}
+
+type Evolution {
+  pokemon: Pokemon!
+  trigger: EvolutionTrigger!
+  item: Item
+  gender: Gender!
+  heldItem: Item
+  knownMove: Move
+  knownMoveType: Type
+  location: Location
+  minLevel: Int!
+  minHappiness: Int!
+  minBeauty: Int!
+  minAffection: Int!
+  needsOverworldRain: Boolean!
+  partyPokemon: Pokemon
+  partyPokemonType: Type
+  relativePhysicalStats: Int!
+  timeOfDay: TimeOfDay!
+  tradeWithPokemon: Pokemon
+  turnUpsideDown: Boolean!
+  spin: Boolean!
+  takeDamage: Int!
+  criticalHits: Int!
+}
+
+type EvolutionList {
+  total: Int!
+  evolutions: [Evolution!]!
+}
+
+type Item {
+  id: ID!
+  slug: String!
+  name: String!
+  cost: Int!
+  flingPower: Int!
+  flingEffect: String!
+  effect: String!
+  sprite: String!
+  category: ItemCategory!
+  attributes: [ItemAttribute!]!
+}
+
+type Location {
+  id: ID!
+  slug: String!
+  region: Region!
+  name: String!
+}
+
+type Region {
+  id: ID!
+  slug: String!
+  name: String!
 }
 
 type PokemonAbility {
@@ -127,6 +262,7 @@ type Pokemon {
   types: PokemonTypeList!
   moves: MoveList!
   eggGroups: EggGroupList!
+  evolvesTo: EvolutionList!
 }
 
 type PokemonList {
