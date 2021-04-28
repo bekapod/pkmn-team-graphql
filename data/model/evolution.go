@@ -1,10 +1,5 @@
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
-
 type Evolution struct {
 	Trigger               EvolutionTrigger `json:"evolutionTrigger"`
 	Item                  *Item            `json:"item"`
@@ -52,16 +47,6 @@ func NewEmptyEvolutionList() EvolutionList {
 func (l *EvolutionList) AddEvolution(e Evolution) {
 	l.Total++
 	l.Evolutions = append(l.Evolutions, e)
-}
-
-func (r *Evolution) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []uint8:
-		err := json.Unmarshal([]byte(v), &r)
-		return err
-	}
-
-	return fmt.Errorf("failed to scan evolution")
 }
 
 func (Evolution) IsEntity() {}
