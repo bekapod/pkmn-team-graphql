@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"bekapod/pkmn-team-graphql/data/repository"
 	"bekapod/pkmn-team-graphql/dataloader"
 	"context"
 	"net/http"
@@ -12,25 +13,31 @@ type key string
 const loadersKey key = "dataloaders"
 
 type loaders struct {
-	EvolutionsByPokemonId dataloader.EvolutionListLoader
-	MovesById             dataloader.MoveLoader
-	MovesByPokemonId      dataloader.MoveListLoader
-	MovesByTypeId         dataloader.MoveListLoader
-	PokemonById           dataloader.PokemonLoader
-	PokemonByAbilityId    dataloader.PokemonListLoader
-	PokemonByMoveId       dataloader.PokemonListLoader
-	PokemonByTypeId       dataloader.PokemonListLoader
-	TypesById             dataloader.TypeLoader
+	EvolvesToByPokemonId   dataloader.EvolutionListLoader
+	EvolvesFromByPokemonId dataloader.EvolutionListLoader
+	MovesById              dataloader.MoveLoader
+	MovesByPokemonId       dataloader.MoveListLoader
+	MovesByTypeId          dataloader.MoveListLoader
+	PokemonById            dataloader.PokemonLoader
+	PokemonByAbilityId     dataloader.PokemonListLoader
+	PokemonByMoveId        dataloader.PokemonListLoader
+	PokemonByTypeId        dataloader.PokemonListLoader
+	TypesById              dataloader.TypeLoader
 }
 
 func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, &loaders{
-				EvolutionsByPokemonId: *dataloader.NewEvolutionListLoader(dataloader.EvolutionListLoaderConfig{
+				EvolvesToByPokemonId: *dataloader.NewEvolutionListLoader(dataloader.EvolutionListLoaderConfig{
 					MaxBatch: 1000,
 					Wait:     10 * time.Millisecond,
-					Fetch:    resolver.EvolutionRepository.EvolutionsByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.EvolutionRepository.EvolutionsByPokemonIdDataLoader(r.Context(), repository.EvolvesTo),
+				}),
+				EvolvesFromByPokemonId: *dataloader.NewEvolutionListLoader(dataloader.EvolutionListLoaderConfig{
+					MaxBatch: 1000,
+					Wait:     10 * time.Millisecond,
+					Fetch:    resolver.EvolutionRepository.EvolutionsByPokemonIdDataLoader(r.Context(), repository.EvolvesFrom),
 				}),
 				MovesById: *dataloader.NewMoveLoader(dataloader.MoveLoaderConfig{
 					MaxBatch: 1000,

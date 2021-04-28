@@ -148,6 +148,7 @@ type ComplexityRoot struct {
 		Defense          func(childComplexity int) int
 		Description      func(childComplexity int) int
 		EggGroups        func(childComplexity int) int
+		EvolvesFrom      func(childComplexity int) int
 		EvolvesTo        func(childComplexity int) int
 		Genus            func(childComplexity int) int
 		HP               func(childComplexity int) int
@@ -255,6 +256,7 @@ type PokemonResolver interface {
 	Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error)
 
 	EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error)
+	EvolvesFrom(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error)
 }
 type QueryResolver interface {
 	AbilityByID(ctx context.Context, id string) (*model.Ability, error)
@@ -775,6 +777,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pokemon.EggGroups(childComplexity), true
+
+	case "Pokemon.evolvesFrom":
+		if e.complexity.Pokemon.EvolvesFrom == nil {
+			break
+		}
+
+		return e.complexity.Pokemon.EvolvesFrom(childComplexity), true
 
 	case "Pokemon.evolvesTo":
 		if e.complexity.Pokemon.EvolvesTo == nil {
@@ -1503,6 +1512,7 @@ type Pokemon {
   moves: MoveList!
   eggGroups: EggGroupList!
   evolvesTo: EvolutionList!
+  evolvesFrom: EvolutionList!
 }
 
 type PokemonList {
@@ -4828,6 +4838,41 @@ func (ec *executionContext) _Pokemon_evolvesTo(ctx context.Context, field graphq
 	return ec.marshalNEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Pokemon_evolvesFrom(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Pokemon",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Pokemon().EvolvesFrom(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.EvolutionList)
+	fc.Result = res
+	return ec.marshalNEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PokemonAbility_slot(ctx context.Context, field graphql.CollectedField, obj *model.PokemonAbility) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7979,6 +8024,20 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Pokemon_evolvesTo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "evolvesFrom":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Pokemon_evolvesFrom(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -22,8 +22,7 @@ type Evolution struct {
 	Spin                  bool             `json:"spin"`
 	TakeDamage            int              `json:"takeDamage"`
 	CriticalHits          int              `json:"criticalHits"`
-	FromPokemonID         *string          `json:"from_pokemon_id"`
-	ToPokemonID           *string          `json:"to_pokemon_id"`
+	PokemonID             *string          `json:"pokemon_id"`
 	PartySpeciesPokemonID *string          `json:"party_species_pokemon_id"`
 	TradeSpeciesPokemonID *string          `json:"trade_species_pokemon_id"`
 	KnownMoveID           *string          `json:"known_move_id"`

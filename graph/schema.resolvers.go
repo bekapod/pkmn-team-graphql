@@ -21,11 +21,11 @@ func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*mod
 }
 
 func (r *evolutionResolver) Pokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error) {
-	if obj.ToPokemonID == nil {
+	if obj.PokemonID == nil {
 		return nil, nil
 	}
 
-	return DataLoaderFor(ctx).PokemonById.Load(*obj.ToPokemonID)
+	return DataLoaderFor(ctx).PokemonById.Load(*obj.PokemonID)
 }
 
 func (r *evolutionResolver) KnownMove(ctx context.Context, obj *model.Evolution) (*model.Move, error) {
@@ -91,7 +91,18 @@ func (r *pokemonResolver) Moves(ctx context.Context, obj *model.Pokemon) (*model
 }
 
 func (r *pokemonResolver) EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error) {
-	evolutions, err := DataLoaderFor(ctx).EvolutionsByPokemonId.Load(obj.ID)
+	evolutions, err := DataLoaderFor(ctx).EvolvesToByPokemonId.Load(obj.ID)
+
+	if evolutions == nil {
+		emptyEvolutions := model.NewEmptyEvolutionList()
+		return &emptyEvolutions, err
+	}
+
+	return evolutions, err
+}
+
+func (r *pokemonResolver) EvolvesFrom(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error) {
+	evolutions, err := DataLoaderFor(ctx).EvolvesFromByPokemonId.Load(obj.ID)
 
 	if evolutions == nil {
 		emptyEvolutions := model.NewEmptyEvolutionList()

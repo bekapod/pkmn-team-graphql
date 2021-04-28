@@ -26,9 +26,16 @@ func getLocationObject(tableName string) string {
 	`, tableName)
 }
 
-var EvolutionColumns = "trigger_enum, gender_enum, min_level, min_happiness, min_beauty, min_affection, needs_overworld_rain, relative_physical_stats, time_of_day_enum, turn_upside_down, spin, take_damage, critical_hits, " + getItemObject("item") + " as item, " + getItemObject("held_item") + " as held_item, " + getLocationObject("location") + " as location, from_pokemon_id, to_pokemon_id, party_species_pokemon_id, trade_species_pokemon_id, known_move_id, known_move_type_id, party_type_id"
+var EvolutionColumns = "trigger_enum, gender_enum, min_level, min_happiness, min_beauty, min_affection, needs_overworld_rain, relative_physical_stats, time_of_day_enum, turn_upside_down, spin, take_damage, critical_hits, " + getItemObject("item") + " as item, " + getItemObject("held_item") + " as held_item, " + getLocationObject("location") + " as location, party_species_pokemon_id, trade_species_pokemon_id, known_move_id, known_move_type_id, party_type_id"
 
-func (r Evolution) EvolutionsByPokemonIdDataLoader(ctx context.Context) func(pokemonIds []string) ([]*model.EvolutionList, []error) {
+type EvolutionDirection string
+
+const (
+	EvolvesFrom EvolutionDirection = "from"
+	EvolvesTo   EvolutionDirection = "to"
+)
+
+func (r Evolution) EvolutionsByPokemonIdDataLoader(ctx context.Context, evolutionDirection EvolutionDirection) func(pokemonIds []string) ([]*model.EvolutionList, []error) {
 	return func(pokemonIds []string) ([]*model.EvolutionList, []error) {
 		evolutionsByPokemonId := map[string]*model.EvolutionList{}
 		placeholders := make([]string, len(pokemonIds))
@@ -37,14 +44,21 @@ func (r Evolution) EvolutionsByPokemonIdDataLoader(ctx context.Context) func(pok
 			placeholders[i] = fmt.Sprintf("$%d", i+1)
 			args[i] = pokemonIds[i]
 		}
+		idColumn := "to_pokemon_id"
+		pokemonIdColumns := "from_pokemon_id, to_pokemon_id"
+
+		if evolutionDirection == EvolvesTo {
+			idColumn = "from_pokemon_id"
+			pokemonIdColumns = "to_pokemon_id, from_pokemon_id"
+		}
 
 		query := `
-			SELECT ` + EvolutionColumns + `
+			SELECT ` + EvolutionColumns + `, ` + pokemonIdColumns + `
 			FROM pokemon_evolutions
 				LEFT JOIN items item ON item.id = item_id
 				LEFT JOIN items held_item on held_item.id = held_item_id
 				LEFT JOIN locations location ON location.id = location_id
-			WHERE pokemon_evolutions.from_pokemon_id IN (` + strings.Join(placeholders, ",") + `)`
+			WHERE pokemon_evolutions.` + idColumn + ` IN (` + strings.Join(placeholders, ",") + `)`
 
 		rows, err := r.db.QueryContext(ctx,
 			query,
@@ -64,7 +78,8 @@ func (r Evolution) EvolutionsByPokemonIdDataLoader(ctx context.Context) func(pok
 		defer rows.Close()
 		for rows.Next() {
 			var e model.Evolution
-			err := rows.Scan(&e.Trigger, &e.Gender, &e.MinLevel, &e.MinHappiness, &e.MinBeauty, &e.MinAffection, &e.NeedsOverworldRain, &e.RelativePhysicalStats, &e.TimeOfDay, &e.TurnUpsideDown, &e.Spin, &e.TakeDamage, &e.CriticalHits, &e.Item, &e.HeldItem, &e.Location, &e.FromPokemonID, &e.ToPokemonID, &e.PartySpeciesPokemonID, &e.TradeSpeciesPokemonID, &e.KnownMoveID, &e.KnownMoveTypeID, &e.PartyTypeID)
+			var rootPokemonId string
+			err := rows.Scan(&e.Trigger, &e.Gender, &e.MinLevel, &e.MinHappiness, &e.MinBeauty, &e.MinAffection, &e.NeedsOverworldRain, &e.RelativePhysicalStats, &e.TimeOfDay, &e.TurnUpsideDown, &e.Spin, &e.TakeDamage, &e.CriticalHits, &e.Item, &e.HeldItem, &e.Location, &e.PartySpeciesPokemonID, &e.TradeSpeciesPokemonID, &e.KnownMoveID, &e.KnownMoveTypeID, &e.PartyTypeID, &e.PokemonID, &rootPokemonId)
 			if err != nil {
 				evolutionList := make([]*model.EvolutionList, len(pokemonIds))
 				emptyEvolutionList := model.NewEmptyEvolutionList()
@@ -88,13 +103,13 @@ func (r Evolution) EvolutionsByPokemonIdDataLoader(ctx context.Context) func(pok
 				e.Location = nil
 			}
 
-			_, ok := evolutionsByPokemonId[*e.FromPokemonID]
+			_, ok := evolutionsByPokemonId[rootPokemonId]
 			if !ok {
 				el := model.NewEmptyEvolutionList()
-				evolutionsByPokemonId[*e.FromPokemonID] = &el
+				evolutionsByPokemonId[rootPokemonId] = &el
 			}
 
-			evolutionsByPokemonId[*e.FromPokemonID].AddEvolution(e)
+			evolutionsByPokemonId[rootPokemonId].AddEvolution(e)
 		}
 
 		evolutionList := make([]*model.EvolutionList, len(pokemonIds))

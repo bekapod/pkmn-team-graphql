@@ -263,6 +263,7 @@ type Pokemon {
   moves: MoveList!
   eggGroups: EggGroupList!
   evolvesTo: EvolutionList!
+  evolvesFrom: EvolutionList!
 }
 
 type PokemonList {
