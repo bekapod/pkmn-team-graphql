@@ -176,6 +176,7 @@ func (r Pokemon) PokemonByIdDataLoader(ctx context.Context) func(pokemonIds []st
 			}
 			pkmn.Types.Total = len(pkmn.Types.PokemonTypes)
 			pkmn.EggGroups.Total = len(pkmn.EggGroups.EggGroups)
+			pkmn.Abilities.Total = len(pkmn.Abilities.PokemonAbilities)
 
 			for i := range pkmn.Types.PokemonTypes {
 				pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Total = len(pkmn.Types.PokemonTypes[i].Type.NoDamageTo.Types)

@@ -551,6 +551,99 @@ func TestPokemon_PokemonByAbilityIdDataLoader_WithRowError(t *testing.T) {
 	}
 }
 
+func TestPokemon_PokemonByIdDataLoader(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id IN (.*)").
+		WithArgs(castform.ID, snorunt.ID, bronzong.ID).
+		WillReturnRows(mockRowsForPokemonByIdDataLoader(false, false, false, []string{castform.ID, snorunt.ID, bronzong.ID}))
+
+	got, err := NewPokemon(db).PokemonByIdDataLoader(context.Background())([]string{castform.ID, snorunt.ID, bronzong.ID})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	exp := []*model.Pokemon{
+		&castform,
+		&snorunt,
+		&bronzong,
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
+func TestPokemon_PokemonByIdDataLoader_WithQueryError(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id IN (.*)").
+		WithArgs(castform.ID, snorunt.ID, bronzong.ID).
+		WillReturnRows(mockRowsForPokemonByAbilityIdDataLoader(false, false, false, []string{castform.ID, snorunt.ID, bronzong.ID})).
+		WillReturnError(errors.New("I am Error."))
+
+	got, err := NewPokemon(db).PokemonByIdDataLoader(context.Background())([]string{castform.ID, snorunt.ID, bronzong.ID})
+	if err == nil {
+		t.Error("expected an error but got nil")
+	}
+
+	exp := []*model.Pokemon{
+		nil,
+		nil,
+		nil,
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
+func TestPokemon_PokemonByIdDataLoader_WithScanError(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id IN (.*)").
+		WithArgs(castform.ID, snorunt.ID, bronzong.ID).
+		WillReturnRows(mockRowsForPokemonByIdDataLoader(false, false, true, []string{castform.ID, snorunt.ID, bronzong.ID}))
+
+	got, err := NewPokemon(db).PokemonByIdDataLoader(context.Background())([]string{castform.ID, snorunt.ID, bronzong.ID})
+	if err == nil {
+		t.Error("expected an error but got nil")
+	}
+
+	exp := []*model.Pokemon{
+		nil,
+		nil,
+		nil,
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
+func TestPokemon_PokemonByIdDataLoader_WithRowError(t *testing.T) {
+	db, mock, _ := sqlmock.New()
+
+	mock.ExpectQuery("SELECT .* FROM pokemon LEFT JOIN .* WHERE pokemon.id IN (.*)").
+		WithArgs(castform.ID, snorunt.ID, bronzong.ID).
+		WillReturnRows(mockRowsForPokemonByIdDataLoader(false, true, false, []string{castform.ID, snorunt.ID, bronzong.ID}))
+
+	got, err := NewPokemon(db).PokemonByIdDataLoader(context.Background())([]string{castform.ID, snorunt.ID, bronzong.ID})
+	if err == nil {
+		t.Error("expected an error but got nil")
+	}
+
+	exp := []*model.Pokemon{
+		&castform,
+		nil,
+		nil,
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
 var castform = model.Pokemon{
 	ID:               "3ab43625-a18d-4b11-98a3-86d7d959fbe1",
 	Slug:             "castform-snowy",
@@ -1034,6 +1127,24 @@ func mockRowsForPokemonByAbilityIdDataLoader(empty bool, hasRowError bool, hasSc
 		rows.AddRow(castform.ID, castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\", \"noDamageTo\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}]}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}]}, \"noDamageFrom\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}]}, \"doubleDamageTo\": {\"types\": null}, \"halfDamageFrom\": {\"types\": null}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"`+ids[0]+`\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}, \"isHidden\": false}"}`).
 			AddRow(snorunt.ID, snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\", \"noDamageTo\": {\"types\": null}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}, {\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}]}, \"noDamageFrom\": {\"types\": null}, \"doubleDamageTo\": {\"types\": [{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}, {\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}, {\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}, {\"id\": \"a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1\", \"name\": \"Dragon\", \"slug\": \"dragon\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}]}}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"`+ids[1]+`\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}, \"isHidden\": false}","{\"slot\": 2, \"ability\": {\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}, \"isHidden\": false}","{\"slot\": 3, \"ability\": {\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}, \"isHidden\": true}"}`).
 			AddRow(bronzong.ID, bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\", \"noDamageTo\": {\"types\": null}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"b3468930-5d60-418f-aaaf-f16cbc93f08d\", \"name\": \"Electric\", \"slug\": \"electric\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}, {\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}]}, \"noDamageFrom\": {\"types\": [{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}]}, \"doubleDamageTo\": {\"types\": [{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}, {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}, {\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}, {\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}, {\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}, {\"id\": \"a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1\", \"name\": \"Dragon\", \"slug\": \"dragon\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}]}}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\", \"noDamageTo\": {\"types\": [{\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}]}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}]}, \"noDamageFrom\": {\"types\": null}, \"doubleDamageTo\": {\"types\": [{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}, {\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}, {\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}]}}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}, \"isHidden\": false}","{\"slot\": 2, \"ability\": {\"id\": \"`+ids[2]+`\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}, \"isHidden\": false}","{\"slot\": 3, \"ability\": {\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}, \"isHidden\": true}"}`)
+	}
+	if hasRowError {
+		rows.RowError(1, errors.New("scan error"))
+	}
+	return rows
+}
+
+func mockRowsForPokemonByIdDataLoader(empty bool, hasRowError bool, hasScanError bool, ids []string) *sqlmock.Rows {
+	if hasScanError {
+		rows := sqlmock.NewRows([]string{"id"})
+		rows.AddRow("3ab43625-a18d-4b11-98a3-86d7d959fbe1")
+		return rows
+	}
+	rows := sqlmock.NewRows([]string{"id", "name", "slug", "pokedex_id", "sprite", "hp", "attack", "defense", "special_attack", "special_defense", "speed", "is_baby", "is_legendary", "is_mythical", "description", "color_enum", "habitat_enum", "shape_enum", "height", "weight", "is_default_variant", "genus", "types", "egg_groups", "abilities"})
+	if !empty {
+		rows.AddRow(ids[0], castform.PokedexId, castform.Slug, castform.Name, castform.Sprite, castform.HP, castform.Attack, castform.Defense, castform.SpecialAttack, castform.SpecialDefense, castform.Speed, castform.IsBaby, castform.IsLegendary, castform.IsMythical, castform.Description, castform.Color.String(), castform.Shape.String(), castform.Habitat.String(), castform.IsDefaultVariant, castform.Genus, castform.Height, castform.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\", \"noDamageTo\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}]}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}]}, \"noDamageFrom\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}]}, \"doubleDamageTo\": {\"types\": null}, \"halfDamageFrom\": {\"types\": null}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"465ed2fa-0ff8-4cad-89af-e9db971026df\", \"name\": \"Amorphous\", \"slug\": \"indeterminate\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"0efe4eb9-537c-4b4c-92f6-d184a95b4923\", \"name\": \"Forecast\", \"slug\": \"forecast\", \"effect\": \"Changes castform's type and form to match the weather.\"}, \"isHidden\": false}"}`).
+			AddRow(ids[1], snorunt.PokedexId, snorunt.Slug, snorunt.Name, snorunt.Sprite, snorunt.HP, snorunt.Attack, snorunt.Defense, snorunt.SpecialAttack, snorunt.SpecialDefense, snorunt.Speed, snorunt.IsBaby, snorunt.IsLegendary, snorunt.IsMythical, snorunt.Description, snorunt.Color.String(), snorunt.Shape.String(), snorunt.Habitat.String(), snorunt.IsDefaultVariant, snorunt.Genus, snorunt.Height, snorunt.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\", \"noDamageTo\": {\"types\": null}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}, {\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}]}, \"noDamageFrom\": {\"types\": null}, \"doubleDamageTo\": {\"types\": [{\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}, {\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}, {\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}, {\"id\": \"a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1\", \"name\": \"Dragon\", \"slug\": \"dragon\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}]}}}"}`, `{"{\"id\": \"1f0958a0-48ca-4160-9f18-7e5f06d96d27\", \"name\": \"Fairy\", \"slug\": \"fairy\"}","{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"3eb38751-a341-457e-a211-1fc4641eac53\", \"name\": \"Inner Focus\", \"slug\": \"inner-focus\", \"effect\": \"Prevents flinching.\"}, \"isHidden\": false}","{\"slot\": 2, \"ability\": {\"id\": \"673dd8ad-1494-49e1-86cd-9572df34540b\", \"name\": \"Ice Body\", \"slug\": \"ice-body\", \"effect\": \"Heals for 1/16 max HP after each turn during hail.  Protects against hail damage.\"}, \"isHidden\": false}","{\"slot\": 3, \"ability\": {\"id\": \"ba77aff4-9bab-4dc7-acdc-e0bbba9b5c88\", \"name\": \"Moody\", \"slug\": \"moody\", \"effect\": \"Raises a random stat two stages and lowers another one stage after each turn.\"}, \"isHidden\": true}"}`).
+			AddRow(ids[2], bronzong.PokedexId, bronzong.Slug, bronzong.Name, bronzong.Sprite, bronzong.HP, bronzong.Attack, bronzong.Defense, bronzong.SpecialAttack, bronzong.SpecialDefense, bronzong.Speed, bronzong.IsBaby, bronzong.IsLegendary, bronzong.IsMythical, bronzong.Description, bronzong.Color.String(), bronzong.Shape.String(), nil, bronzong.IsDefaultVariant, bronzong.Genus, bronzong.Height, bronzong.Weight, `{"{\"slot\": 1, \"type\": {\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\", \"noDamageTo\": {\"types\": null}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"b3468930-5d60-418f-aaaf-f16cbc93f08d\", \"name\": \"Electric\", \"slug\": \"electric\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}, {\"id\": \"de384e1c-89aa-44de-88fe-5e914e468f2b\", \"name\": \"Water\", \"slug\": \"water\"}]}, \"noDamageFrom\": {\"types\": [{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}]}, \"doubleDamageTo\": {\"types\": [{\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"07b9eb0f-e676-4649-bf2e-0e5ef2c2c2e3\", \"name\": \"Grass\", \"slug\": \"grass\"}, {\"id\": \"1dcc9d3c-55d4-4d33-809a-d1580c6e6542\", \"name\": \"Ice\", \"slug\": \"ice\"}, {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}, {\"id\": \"366a8621-9fa7-419b-b710-9100bcbb98d8\", \"name\": \"Normal\", \"slug\": \"normal\"}, {\"id\": \"4f09ea3c-2d93-4908-aabc-bc6e04ff24bb\", \"name\": \"Flying\", \"slug\": \"flying\"}, {\"id\": \"5179f383-b765-4cc7-b9f9-8b1a3ba93019\", \"name\": \"Rock\", \"slug\": \"rock\"}, {\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}, {\"id\": \"a248c127-8e9c-4f87-8513-c5dbc3385011\", \"name\": \"Fairy\", \"slug\": \"fairy\"}, {\"id\": \"a82aa044-d8fd-43b3-9dd6-0ce0bfb29fb1\", \"name\": \"Dragon\", \"slug\": \"dragon\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"1b7d7950-305a-48fa-a771-01f7bc4dad8d\", \"name\": \"Ground\", \"slug\": \"ground\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}, {\"id\": \"d43f57ab-e5b3-4912-a667-9f237d21d391\", \"name\": \"Fire\", \"slug\": \"fire\"}]}}}","{\"slot\": 2, \"type\": {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\", \"noDamageTo\": {\"types\": [{\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}]}, \"halfDamageTo\": {\"types\": [{\"id\": \"05cd51bd-23ca-4736-b8ec-aa93aca68a8b\", \"name\": \"Steel\", \"slug\": \"steel\"}, {\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}]}, \"noDamageFrom\": {\"types\": null}, \"doubleDamageTo\": {\"types\": [{\"id\": \"42b31825-de68-4c1c-bea1-b32a290f1fef\", \"name\": \"Poison\", \"slug\": \"poison\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}, \"halfDamageFrom\": {\"types\": [{\"id\": \"2222c839-3c6e-4727-b6b5-a946bb8af5fa\", \"name\": \"Psychic\", \"slug\": \"psychic\"}, {\"id\": \"9093f701-0f10-4e59-aff7-05748b23f953\", \"name\": \"Fighting\", \"slug\": \"fighting\"}]}, \"doubleDamageFrom\": {\"types\": [{\"id\": \"027f1455-8e6f-4891-8c62-d75bb6c49dae\", \"name\": \"Ghost\", \"slug\": \"ghost\"}, {\"id\": \"56dddb9a-3623-43c5-8228-ea24d598afe7\", \"name\": \"Bug\", \"slug\": \"bug\"}, {\"id\": \"9ca47516-fff8-4f5e-8eb5-582c1f7c05af\", \"name\": \"Dark\", \"slug\": \"dark\"}]}}}"}`, `{"{\"id\": \"b140921f-74c9-4537-9a08-996277d4fcb4\", \"name\": \"Mineral\", \"slug\": \"mineral\"}"}`, `{"{\"slot\": 1, \"ability\": {\"id\": \"e55c279d-4554-4d5e-8120-7bf3a0477181\", \"name\": \"Levitate\", \"slug\": \"levitate\", \"effect\": \"Evades ground moves.\"}, \"isHidden\": false}","{\"slot\": 2, \"ability\": {\"id\": \"9f0d876d-7e98-40d5-bfb3-2c0f079e2b26\", \"name\": \"Heatproof\", \"slug\": \"heatproof\", \"effect\": \"Halves damage from fire moves and burns.\"}, \"isHidden\": false}","{\"slot\": 3, \"ability\": {\"id\": \"4acbc86c-4a5f-4f6e-99e8-4feab6337ad6\", \"name\": \"Heavy Metal\", \"slug\": \"heavy-metal\", \"effect\": \"Doubles the Pokémon's weight.\"}, \"isHidden\": true}"}`)
 	}
 	if hasRowError {
 		rows.RowError(1, errors.New("scan error"))

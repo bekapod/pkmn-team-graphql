@@ -31,6 +31,31 @@ func TestItem_Scan(t *testing.T) {
 	}
 }
 
+func TestItem_ScanString(t *testing.T) {
+	exp := Item{
+		ID:          "b170853d-96d7-4682-b13f-9e8f9631af16",
+		Name:        "Thunder Stone",
+		Slug:        "thunder-stone",
+		Cost:        3000,
+		FlingPower:  0,
+		FlingEffect: "",
+		Effect:      "Evolves an Eelektrik into Eelektross, an Eevee into Jolteon, or a Pikachu into Raichu.",
+		Sprite:      "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png",
+		Category:    EvolutionItem,
+		Attributes:  []ItemAttribute{Underground},
+	}
+	got := Item{}
+	err := (&got).Scan("{\"id\": \"b170853d-96d7-4682-b13f-9e8f9631af16\",\"cost\": 3000,\"name\": \"Thunder Stone\",\"slug\": \"thunder-stone\",\"effect\": \"Evolves an Eelektrik into Eelektross, an Eevee into Jolteon, or a Pikachu into Raichu.\",\"sprite\": \"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/thunder-stone.png\",\"category\": \"evolution\",\"attributes\": [\"underground\"],\"flingPower\": 30,\"flingEffect\": null}")
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
 func TestItem_Scan_Error(t *testing.T) {
 	got := Item{}
 	err := (&got).Scan([]uint8{123, 34, 115, 108, 111, 116, 34, 58, 32, 49, 44, 32, 34, 116, 121, 112, 101, 34, 58, 32, 123, 34, 105, 100, 34, 58, 32, 34, 48, 55, 98, 57, 101, 98, 125})

@@ -23,6 +23,9 @@ func (l *Item) Scan(src interface{}) error {
 	case []uint8:
 		err := json.Unmarshal([]byte(v), &l)
 		return err
+	case string:
+		err := json.Unmarshal([]byte(v), &l)
+		return err
 	}
 
 	return fmt.Errorf("failed to scan item")

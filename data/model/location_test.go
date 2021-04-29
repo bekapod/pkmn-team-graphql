@@ -29,6 +29,29 @@ func TestLocation_Scan(t *testing.T) {
 	}
 }
 
+func TestLocation_ScanString(t *testing.T) {
+	exp := Location{
+		ID:   "1823b8bc-2a3a-473d-9baa-277be67427bc",
+		Name: "Some location",
+		Slug: "some-location",
+		Region: Region{
+			ID:   "1823b8bc-2a3a-473d-9baa-277be67427bc",
+			Name: "Galar",
+			Slug: "galar",
+		},
+	}
+	got := Location{}
+	err := (&got).Scan("{\"id\":   \"1823b8bc-2a3a-473d-9baa-277be67427bc\",\"name\": \"Some location\",\"slug\": \"some-location\",\"region\": {\"id\":   \"1823b8bc-2a3a-473d-9baa-277be67427bc\",\"name\": \"Galar\",\"slug\": \"galar\"}}")
+
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
 func TestLocation_Scan_Error(t *testing.T) {
 	got := Location{}
 	err := (&got).Scan([]uint8{123, 34, 115, 108, 111, 116, 34, 58, 32, 49, 44, 32, 34, 116, 121, 112, 101, 34, 58, 32, 123, 34, 105, 100, 34, 58, 32, 34, 48, 55, 98, 57, 101, 98, 125})

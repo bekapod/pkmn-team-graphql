@@ -8,7 +8,18 @@ import (
 )
 
 func getItemObject(tableName string) string {
-	return fmt.Sprintf("jsonb_build_object('id', %[1]s.id, 'name', %[1]s.name, 'slug', %[1]s.slug)", tableName)
+	return fmt.Sprintf(`jsonb_build_object(
+		'id', %[1]s.id,
+		'name', %[1]s.name,
+		'slug', %[1]s.slug,
+		'cost', %[1]s.cost,
+		'flingPower', %[1]s.fling_power,
+		'flingEffect', %[1]s.fling_effect,
+		'effect', %[1]s.effect,
+		'sprite', %[1]s.sprite,
+		'category', %[1]s.category_enum,
+		'attributes', %[1]s.attribute_enums
+	)`, tableName)
 }
 
 func getLocationObject(tableName string) string {

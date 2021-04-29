@@ -423,7 +423,7 @@ func TestMove_MovesByTypeIdDataLoader_WithRowError(t *testing.T) {
 func TestMove_MovesByIdDataLoader(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE moves.id IN (.*)").
 		WithArgs(accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID).
 		WillReturnRows(mockRowsForMovesByIdDataLoader(false, false, false, []string{accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID}))
 
@@ -446,7 +446,7 @@ func TestMove_MovesByIdDataLoader(t *testing.T) {
 func TestMove_MovesByIdDataLoader_WithQueryError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE moves.id IN (.*)").
 		WithArgs(accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID).
 		WillReturnRows(mockRowsForMovesByIdDataLoader(false, false, false, []string{accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID})).
 		WillReturnError(errors.New("I am Error."))
@@ -470,7 +470,7 @@ func TestMove_MovesByIdDataLoader_WithQueryError(t *testing.T) {
 func TestMove_MovesByIdDataLoader_WithScanError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE moves.id IN (.*)").
 		WithArgs(accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID).
 		WillReturnRows(mockRowsForMovesByIdDataLoader(false, false, true, []string{accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID}))
 
@@ -493,7 +493,7 @@ func TestMove_MovesByIdDataLoader_WithScanError(t *testing.T) {
 func TestMove_MovesByIdDataLoader_WithRowError(t *testing.T) {
 	db, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE id IN (.*)").
+	mock.ExpectQuery("SELECT .* FROM moves LEFT JOIN .* WHERE moves.id IN (.*)").
 		WithArgs(accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID).
 		WillReturnRows(mockRowsForMovesByIdDataLoader(false, true, false, []string{accelerock.ID, "a248c127-8e9c-4f87-8513-c5dbc3385011", infestation.ID}))
 
