@@ -1,39 +1,43 @@
 package main
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/pokeapi"
 	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/joho/godotenv"
 )
 
-func unique(strSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range strSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
 func main() {
-	start := time.Now()
-	config := &helpers.Config{
-		OutputFile: "seeds/pokemon.sql",
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
 	}
+
+	start := time.Now()
+	config := &helpers.Config{}
 	arg.MustParse(config)
 
 	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+	prisma := db.NewClient()
+	if err := prisma.Prisma.Connect(); err != nil {
+		panic(err)
+	}
 
-	f := helpers.OpenFile(config.OutputFile)
+	defer func() {
+		if err := prisma.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()
+
+	ctx := context.Background()
 
 	generation := client.GetGeneration("generation-viii")
 	pokemonSpeciesList := make([]string, 0)
@@ -49,7 +53,7 @@ func main() {
 		}
 	}
 
-	otherAvailablePokemon := []string{
+	pokemonSpeciesList = append(pokemonSpeciesList, []string{
 		"http://localhost/api/v2/pokemon-species/1/",
 		"http://localhost/api/v2/pokemon-species/2/",
 		"http://localhost/api/v2/pokemon-species/3/",
@@ -131,17 +135,10 @@ func main() {
 		"http://localhost/api/v2/pokemon-species/807/",
 		"http://localhost/api/v2/pokemon-species/808/",
 		"http://localhost/api/v2/pokemon-species/809/",
-	}
-	pokemonSpeciesList = append(pokemonSpeciesList, otherAvailablePokemon...)
+	}...)
 
 	pokemonSpeciesList = unique(pokemonSpeciesList)
 	resultsLength := len(pokemonSpeciesList)
-	pokemonValues := make([]string, 0)
-	pokemonTypeValues := make([]string, 0)
-	pokemonAbilityValues := make([]string, 0)
-	pokemonMoveValues := make([]string, 0)
-	pokemonEggGroupValues := make([]string, 0)
-	pokemonEvolutionValues := make([]string, 0)
 	pokemonEvolutionChainList := make([]string, 0)
 
 	var wg sync.WaitGroup
@@ -156,6 +153,7 @@ func main() {
 			urlParts := strings.Split(pokemonSpeciesList[i], "/")
 			id := urlParts[len(urlParts)-2]
 			fullPokemonSpecies := client.GetPokemonSpecies(id)
+			eggGroups := make([]db.EggGroupWhereParam, 0)
 			varieties := client.GetPokemonVarietiesForSpecies(fullPokemonSpecies)
 
 			pokedexId, err := pokeapi.GetPokedexId(fullPokemonSpecies, "national")
@@ -167,13 +165,17 @@ func main() {
 				log.Logger.Fatal(err)
 			}
 			englishFlavourText, _ := pokeapi.GetEnglishFlavourTextEntry(fullPokemonSpecies.FlavourTextEntries, fullPokemonSpecies.Name)
+			var description *string
+			if englishFlavourText != nil {
+				description = &englishFlavourText.FlavourText
+			}
 			englishGenus, err := pokeapi.GetEnglishGenus(fullPokemonSpecies.Genera, fullPokemonSpecies.Name)
 			if err != nil {
 				log.Logger.Fatal(err)
 			}
-			habitat := "NULL"
-			if fullPokemonSpecies.Habitat.Name != "" {
-				habitat = fmt.Sprintf("'%s'", fullPokemonSpecies.Habitat.Name)
+
+			for _, eggGroup := range fullPokemonSpecies.EggGroups {
+				eggGroups = append(eggGroups, db.EggGroup.Slug.Equals(eggGroup.Name))
 			}
 
 			for i := range varieties {
@@ -184,39 +186,81 @@ func main() {
 				specialAttack, _ := pokeapi.GetPokemonStat(pokemon, "special-attack")
 				specialDefense, _ := pokeapi.GetPokemonStat(pokemon, "special-defense")
 				speed, _ := pokeapi.GetPokemonStat(pokemon, "speed")
+				var habitat *db.Habitat
 
-				pokemonValues = append(pokemonValues, fmt.Sprintf(
-					"(%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %t, %t, %t, '%s', '%s', '%s', %s, %t, '%s', %d, %d, now())",
-					pokedexId,
-					pokemon.Name,
-					helpers.EscapeSingleQuote(englishName.Name),
-					pokemon.Sprites.FrontDefault,
-					hp,
-					attack,
-					defense,
-					specialAttack,
-					specialDefense,
-					speed,
-					fullPokemonSpecies.IsBaby,
-					fullPokemonSpecies.IsLegendary,
-					fullPokemonSpecies.IsMythical,
-					helpers.EscapeSingleQuote(englishFlavourText.FlavourText),
-					fullPokemonSpecies.Color.Name,
-					fullPokemonSpecies.Shape.Name,
-					habitat,
-					pokemon.IsDefault,
-					englishGenus.Genus,
-					pokemon.Height,
-					pokemon.Weight,
-				))
+				if fullPokemonSpecies.Habitat != nil {
+					habitat = (*db.Habitat)(&fullPokemonSpecies.Habitat.Name)
+				}
+
+				createdPokemon, dbErr := prisma.Pokemon.UpsertOne(db.Pokemon.Slug.Equals(pokemon.Name)).
+					Create(
+						db.Pokemon.PokedexID.Set(pokedexId),
+						db.Pokemon.Slug.Set(pokemon.Name),
+						db.Pokemon.Name.Set(englishName.Name),
+						db.Pokemon.Hp.Set(hp),
+						db.Pokemon.Attack.Set(attack),
+						db.Pokemon.Defense.Set(defense),
+						db.Pokemon.SpecialAttack.Set(specialAttack),
+						db.Pokemon.SpecialDefense.Set(specialDefense),
+						db.Pokemon.Speed.Set(speed),
+						db.Pokemon.IsBaby.Set(fullPokemonSpecies.IsBaby),
+						db.Pokemon.IsLegendary.Set(fullPokemonSpecies.IsLegendary),
+						db.Pokemon.IsMythical.Set(fullPokemonSpecies.IsMythical),
+						db.Pokemon.Color.Set(db.Color(fullPokemonSpecies.Color.Name)),
+						db.Pokemon.Shape.Set(db.Shape(fullPokemonSpecies.Shape.Name)),
+						db.Pokemon.IsDefaultVariant.Set(pokemon.IsDefault),
+						db.Pokemon.Genus.Set(englishGenus.Genus),
+						db.Pokemon.Height.Set(pokemon.Height),
+						db.Pokemon.Weight.Set(pokemon.Weight),
+						db.Pokemon.Habitat.SetIfPresent(habitat),
+						db.Pokemon.Description.SetIfPresent(description),
+						db.Pokemon.Sprite.SetIfPresent(&pokemon.Sprites.FrontDefault),
+						db.Pokemon.EggGroups.Link(eggGroups...),
+						db.Pokemon.UpdatedAt.Set(time.Now())).
+					Update(
+						db.Pokemon.PokedexID.Set(pokedexId),
+						db.Pokemon.Name.Set(englishName.Name),
+						db.Pokemon.Hp.Set(hp),
+						db.Pokemon.Attack.Set(attack),
+						db.Pokemon.Defense.Set(defense),
+						db.Pokemon.SpecialAttack.Set(specialAttack),
+						db.Pokemon.SpecialDefense.Set(specialDefense),
+						db.Pokemon.Speed.Set(speed),
+						db.Pokemon.IsBaby.Set(fullPokemonSpecies.IsBaby),
+						db.Pokemon.IsLegendary.Set(fullPokemonSpecies.IsLegendary),
+						db.Pokemon.IsMythical.Set(fullPokemonSpecies.IsMythical),
+						db.Pokemon.Color.Set(db.Color(fullPokemonSpecies.Color.Name)),
+						db.Pokemon.Shape.Set(db.Shape(fullPokemonSpecies.Shape.Name)),
+						db.Pokemon.IsDefaultVariant.Set(pokemon.IsDefault),
+						db.Pokemon.Genus.Set(englishGenus.Genus),
+						db.Pokemon.Height.Set(pokemon.Height),
+						db.Pokemon.Weight.Set(pokemon.Weight),
+						db.Pokemon.Habitat.SetIfPresent(habitat),
+						db.Pokemon.Description.SetIfPresent(description),
+						db.Pokemon.Sprite.SetIfPresent(&pokemon.Sprites.FrontDefault),
+						db.Pokemon.EggGroups.Link(eggGroups...),
+						db.Pokemon.UpdatedAt.Set(time.Now())).
+					Exec(ctx)
+
+				if dbErr != nil {
+					log.Logger.WithField("pokemon", pokemon.Name).Fatal(dbErr)
+				}
 
 				for i := range pokemon.Types {
-					pokemonTypeValues = append(pokemonTypeValues, fmt.Sprintf(
-						"(%s, %s, %d, now())",
-						fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", pokemon.Name),
-						fmt.Sprintf("(SELECT id from types WHERE slug='%s')", pokemon.Types[i].Type.Name),
-						pokemon.Types[i].Slot,
-					))
+					t, _ := prisma.Type.FindUnique(db.Type.Slug.Equals(pokemon.Types[i].Type.Name)).Exec(ctx)
+					_, err := prisma.PokemonType.UpsertOne(
+						db.PokemonType.PokemonIDTypeID(db.PokemonType.PokemonID.Equals(createdPokemon.ID), db.PokemonType.TypeID.Equals(t.ID)),
+					).Create(
+						db.PokemonType.Pokemon.Link(db.Pokemon.Slug.Equals(pokemon.Name)),
+						db.PokemonType.Type.Link(db.Type.Slug.Equals(pokemon.Types[i].Type.Name)),
+						db.PokemonType.Slot.Set(pokemon.Types[i].Slot),
+					).Update(
+						db.PokemonType.Slot.Set(pokemon.Types[i].Slot),
+					).Exec(ctx)
+
+					if err != nil {
+						log.Logger.WithField("pokemon", pokemon.Name).WithField("type", pokemon.Types[i].Type.Name).Fatal(dbErr)
+					}
 				}
 
 				for i := range pokemon.Abilities {
@@ -230,33 +274,47 @@ func main() {
 						abilityName = "as-one-ice-rider"
 					}
 
-					pokemonAbilityValues = append(pokemonAbilityValues, fmt.Sprintf(
-						"(%s, %s, %d, %t, now())",
-						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
-						fmt.Sprintf("(SELECT id FROM abilities WHERE slug='%s')", abilityName),
-						pokemon.Abilities[i].Slot,
-						pokemon.Abilities[i].IsHidden,
-					))
-				}
+					ability, _ := prisma.Ability.FindUnique(db.Ability.Slug.Equals(abilityName)).Exec(ctx)
+					_, err := prisma.PokemonAbility.UpsertOne(
+						db.PokemonAbility.PokemonIDAbilityID(db.PokemonAbility.PokemonID.Equals(createdPokemon.ID), db.PokemonAbility.AbilityID.Equals(ability.ID)),
+					).Create(
+						db.PokemonAbility.Pokemon.Link(db.Pokemon.Slug.Equals(pokemon.Name)),
+						db.PokemonAbility.Ability.Link(db.Ability.Slug.Equals(abilityName)),
+						db.PokemonAbility.Slot.Set(pokemon.Abilities[i].Slot),
+						db.PokemonAbility.IsHidden.Set(pokemon.Abilities[i].IsHidden),
+					).Update(
+						db.PokemonAbility.Slot.Set(pokemon.Abilities[i].Slot),
+					).Exec(ctx)
 
-				for _, move := range pokemon.Moves {
-					for _, versionGroup := range move.VersionGroupDetails {
-						if versionGroup.VersionGroup.Name == "sword-shield" && !strings.Contains(move.Move.Name, "max-") {
-							pokemonMoveValues = append(pokemonMoveValues, fmt.Sprintf(
-								"(%s, %s)",
-								fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
-								fmt.Sprintf("(SELECT id FROM moves WHERE slug='%s')", move.Move.Name),
-							))
-						}
+					if err != nil {
+						log.Logger.WithField("pokemon", pokemon.Name).WithField("ability", abilityName).Fatal(err)
 					}
 				}
 
-				for i := range fullPokemonSpecies.EggGroups {
-					pokemonEggGroupValues = append(pokemonEggGroupValues, fmt.Sprintf(
-						"(%s, %s)",
-						fmt.Sprintf("(SELECT id FROM pokemon WHERE slug='%s')", pokemon.Name),
-						fmt.Sprintf("(SELECT id FROM egg_groups WHERE slug='%s')", fullPokemonSpecies.EggGroups[i].Name),
-					))
+				for i := range pokemon.Moves {
+					for _, versionGroup := range pokemon.Moves[i].VersionGroupDetails {
+						if versionGroup.VersionGroup.Name == "sword-shield" && !strings.Contains(pokemon.Moves[i].Move.Name, "max-") {
+							m, _ := prisma.Move.FindUnique(db.Move.Slug.Equals(pokemon.Moves[i].Move.Name)).Exec(ctx)
+							_, err := prisma.PokemonMove.UpsertOne(
+								db.PokemonMove.PokemonIDMoveIDLearnMethod(
+									db.PokemonMove.PokemonID.Equals(createdPokemon.ID),
+									db.PokemonMove.MoveID.Equals(m.ID),
+									db.PokemonMove.LearnMethod.Equals(db.MoveLearnMethod(versionGroup.MoveLearnMethod.Name)),
+								),
+							).Create(
+								db.PokemonMove.Pokemon.Link(db.Pokemon.Slug.Equals(pokemon.Name)),
+								db.PokemonMove.Move.Link(db.Move.Slug.Equals(pokemon.Moves[i].Move.Name)),
+								db.PokemonMove.LearnMethod.Set(db.MoveLearnMethod(versionGroup.MoveLearnMethod.Name)),
+								db.PokemonMove.LevelLearnedAt.Set(versionGroup.LevelLearnedAt),
+							).Update(
+								db.PokemonMove.LevelLearnedAt.Set(versionGroup.LevelLearnedAt),
+							).Exec(ctx)
+
+							if err != nil {
+								log.Logger.WithField("pokemon", pokemon.Name).WithField("move", pokemon.Moves[i].Move.Name).Fatal(err)
+							}
+						}
+					}
 				}
 
 				evolutionUrlParts := strings.Split(fullPokemonSpecies.EvolutionChain.Url, "/")
@@ -282,108 +340,81 @@ func main() {
 
 			evolutionChain := client.GetEvolutionChain(pokemonEvolutionChainList[i])
 			for _, chain := range evolutionChain.Chain.EvolvesTo {
-				evolutionValues := parseEvolution(evolutionChain.Chain, chain)
-				pokemonEvolutionValues = append(pokemonEvolutionValues, evolutionValues...)
+				errors := insertEvolution(evolutionChain.Chain, chain, prisma, &ctx)
+
+				for _, err := range errors {
+					log.Logger.WithField("pokemon", chain.Species.Name).Fatal(err)
+				}
 			}
 		}(i)
 	}
 
-	sql := fmt.Sprintf(
-		"INSERT INTO pokemon (pokedex_id, slug, name, sprite, hp, attack, defense, special_attack, special_defense, speed, is_baby, is_legendary, is_mythical, description, color_enum, shape_enum, habitat_enum, is_default_variant, genus, height, weight, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tpokedex_id = EXCLUDED.pokedex_id,\n\t\tname = EXCLUDED.name,\n\t\tsprite = EXCLUDED.sprite,\n\t\thp = EXCLUDED.hp,\n\t\tattack = EXCLUDED.attack,\n\t\tdefense = EXCLUDED.defense,\n\t\tspecial_attack = EXCLUDED.special_attack,\n\t\tspecial_defense = EXCLUDED.special_defense,\n\t\tspeed = EXCLUDED.speed,\n\t\tis_baby = EXCLUDED.is_baby,\n\t\tis_legendary = EXCLUDED.is_legendary,\n\t\tis_mythical = EXCLUDED.is_mythical,\n\t\tdescription = EXCLUDED.description,\n\t\tcolor_enum = EXCLUDED.color_enum,\n\t\tshape_enum = EXCLUDED.shape_enum,\n\t\thabitat_enum = EXCLUDED.habitat_enum,\n\t\tis_default_variant = EXCLUDED.is_default_variant,\n\t\tgenus = EXCLUDED.genus,\n\t\theight = EXCLUDED.height,\n\t\tweight = EXCLUDED.weight,\n\t\tupdated_at = EXCLUDED.updated_at;\n\n"+
-			"INSERT INTO pokemon_type (pokemon_id, type_id, slot, updated_at)\n\tVALUES %s\nON CONFLICT (pokemon_id, type_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot,\n\t\tupdated_at = EXCLUDED.UPDATED_AT;\n\n"+
-			"INSERT INTO pokemon_ability (pokemon_id, ability_id, slot, is_hidden, updated_at)\n\tVALUES %s\nON CONFLICT (pokemon_id, ability_id)\n\tDO UPDATE SET\n\t\tslot = EXCLUDED.slot, is_hidden = EXCLUDED.is_hidden, updated_at = EXCLUDED.updated_at;\n\n"+
-			"INSERT INTO pokemon_egg_group (pokemon_id, egg_group_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, egg_group_id)\n\tDO NOTHING;"+
-			"INSERT INTO pokemon_evolutions (from_pokemon_id, to_pokemon_id, trigger_enum, item_id, gender_enum, held_item_id, known_move_id, known_move_type_id, location_id, min_level, min_happiness, min_beauty, min_affection, needs_overworld_rain, party_species_pokemon_id, party_type_id, relative_physical_stats, time_of_day_enum, trade_species_pokemon_id, turn_upside_down, spin, take_damage, critical_hits, updated_at)\n\tVALUES %s\nON CONFLICT (from_pokemon_id, to_pokemon_id, time_of_day_enum, gender_enum, trigger_enum)\n\tDO UPDATE SET\n\t\titem_id = EXCLUDED.item_id,\n\t\theld_item_id = EXCLUDED.held_item_id,\n\t\tknown_move_id = EXCLUDED.known_move_id,\n\t\tlocation_id = EXCLUDED.location_id,\n\t\tmin_level = EXCLUDED.min_level,\n\t\tmin_happiness = EXCLUDED.min_happiness,\n\t\tmin_beauty = EXCLUDED.min_beauty,\n\t\tmin_affection = EXCLUDED.min_affection,\n\t\tneeds_overworld_rain = EXCLUDED.needs_overworld_rain,\n\t\tparty_species_pokemon_id = EXCLUDED.party_species_pokemon_id,\n\t\tparty_type_id = EXCLUDED.party_type_id,\n\t\trelative_physical_stats = EXCLUDED.relative_physical_stats,\n\t\ttrade_species_pokemon_id = EXCLUDED.trade_species_pokemon_id,\n\t\tturn_upside_down = EXCLUDED.turn_upside_down,\n\t\tspin = EXCLUDED.spin,\n\t\ttake_damage = EXCLUDED.take_damage,\n\t\tcritical_hits = EXCLUDED.critical_hits,\n\t\tupdated_at = EXCLUDED.updated_at;",
-		strings.Join(pokemonValues, ", "),
-		strings.Join(pokemonTypeValues, ", "),
-		strings.Join(pokemonAbilityValues, ", "),
-		strings.Join(pokemonEggGroupValues, ", "),
-		strings.Join(pokemonEvolutionValues, ", "),
-	)
-
-	o, err := f.WriteString(sql)
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	f.Sync()
-	f.Close()
-
-	moveChunks := helpers.Chunk(1, pokemonMoveValues)
-	for i := range moveChunks {
-		moveF := helpers.OpenFile(strings.Replace(config.OutputFile, ".sql", fmt.Sprintf("_moves_%d.sql", i), 1))
-		moveSql := fmt.Sprintf("INSERT INTO pokemon_move (pokemon_id, move_id)\n\tVALUES %s\nON CONFLICT (pokemon_id, move_id)\n\tDO NOTHING;", strings.Join(moveChunks[i], ", "))
-		moveO, err := moveF.WriteString(moveSql)
-		if err != nil {
-			log.Logger.Fatal(err)
-		}
-
-		moveF.Sync()
-		moveF.Close()
-		o = o + moveO
-	}
+	wg2.Wait()
 
 	elapsed := time.Since(start)
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+	log.Logger.Info(fmt.Sprintf("Completed in %s\n", elapsed))
 }
 
-func parseEvolution(evolution pokeapi.Evolution, chain pokeapi.Evolution) []string {
-	values := make([]string, 0)
+func insertEvolution(evolution pokeapi.Evolution, chain pokeapi.Evolution, prisma *db.PrismaClient, ctx *context.Context) []error {
+	errors := make([]error, 0)
+	fromPokemon, err := prisma.Pokemon.FindUnique(db.Pokemon.Slug.Equals(evolution.Species.Name)).Exec(*ctx)
+	if err != nil {
+		errors = append(errors, err)
+	}
 
 	for _, details := range chain.EvolutionDetails {
 		if details.Location == nil && (evolution.Species.Name != "feebas" || (evolution.Species.Name == "feebas" && details.Trigger.Name == "trade")) {
-			gender := "'unknown'"
-			if details.Gender == 1 {
-				gender = "'male'"
-			}
-			if details.Gender == 2 {
-				gender = "'female'"
-			}
+			timeOfDay := db.TimeOfDay(*details.TimeOfDay)
+			trigger := db.EvolutionTrigger(details.Trigger.Name)
 
-			item := "NULL"
+			var item *string
 			if details.Item != nil {
-				item = fmt.Sprintf("(SELECT id from items WHERE slug='%s')", details.Item.Name)
+				item = &details.Item.Name
 			}
-
-			heldItem := "NULL"
+			var heldItem *string
 			if details.HeldItem != nil {
-				heldItem = fmt.Sprintf("(SELECT id from items WHERE slug='%s')", details.HeldItem.Name)
+				heldItem = &details.HeldItem.Name
 			}
-
-			knownMove := "NULL"
+			var knownMove *string
 			if details.KnownMove != nil {
-				knownMove = fmt.Sprintf("(SELECT id from moves WHERE slug='%s')", details.KnownMove.Name)
+				knownMove = &details.KnownMove.Name
 			}
-
-			knownMoveType := "NULL"
+			var knownMoveType *string
 			if details.KnownMoveType != nil {
-				knownMoveType = fmt.Sprintf("(SELECT id from types WHERE slug='%s')", details.KnownMoveType.Name)
+				knownMoveType = &details.KnownMoveType.Name
 			}
-
-			partySpecies := "NULL"
+			var partySpecies *string
 			if details.PartySpecies != nil {
-				partySpecies = fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", details.PartySpecies.Name)
+				partySpecies = &details.PartySpecies.Name
 			}
-
-			partyType := "NULL"
+			var partyType *string
 			if details.PartyType != nil {
-				partyType = fmt.Sprintf("(SELECT id from types WHERE slug='%s')", details.PartyType.Name)
+				partyType = &details.PartyType.Name
 			}
-
-			tradeSpecies := "NULL"
+			var tradeSpecies *string
 			if details.TradeSpecies != nil {
-				tradeSpecies = fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", details.TradeSpecies.Name)
+				tradeSpecies = &details.TradeSpecies.Name
 			}
 
-			timeOfDay := "any"
-			if details.TimeOfDay != "" {
-				timeOfDay = details.TimeOfDay
+			var gender db.Gender
+			if details.Gender != nil {
+				switch *details.Gender {
+				case 1:
+					gender = db.GenderMALE
+				case 2:
+					gender = db.GenderFEMALE
+				default:
+					gender = db.GenderANY
+				}
+			} else {
+				gender = db.GenderANY
 			}
 
 			toPokemonSlug := chain.Species.Name
 			if toPokemonSlug == "meowstic" {
 				toPokemonSlug = "meowstic-male"
 
-				if details.Gender == 2 {
+				if details.Gender != nil && gender == db.GenderFEMALE {
 					toPokemonSlug = "meowstic-female"
 				}
 			}
@@ -396,13 +427,12 @@ func parseEvolution(evolution pokeapi.Evolution, chain pokeapi.Evolution) []stri
 			if toPokemonSlug == "lycanroc" {
 				toPokemonSlug = "lycanroc-midday"
 
-				if details.TimeOfDay == "night" {
+				if details.TimeOfDay != nil && db.TimeOfDay(*details.TimeOfDay) == db.TimeOfDayNIGHT {
 					toPokemonSlug = "lycanroc-midnight"
 				}
 			}
 
 			multipleSlugs := []string{toPokemonSlug}
-
 			if toPokemonSlug == "toxtricity-amped" {
 				multipleSlugs = append(multipleSlugs, "toxtricity-low-key")
 			}
@@ -411,40 +441,84 @@ func parseEvolution(evolution pokeapi.Evolution, chain pokeapi.Evolution) []stri
 			}
 
 			for _, slug := range multipleSlugs {
-				values = append(values, fmt.Sprintf(
-					"(%s, %s, '%s', %s, %s, %s, %s, %s, %s, %d, %d, %d, %d, %t, %s, %s, %d, '%s', %s, %t, %t, %d, %d, now())",
-					fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", evolution.Species.Name),
-					fmt.Sprintf("(SELECT id from pokemon WHERE slug='%s')", slug),
-					strings.ReplaceAll(details.Trigger.Name, "_", "-"),
-					item,
-					gender,
-					heldItem,
-					knownMove,
-					knownMoveType,
-					"NULL",
-					details.MinLevel,
-					details.MinHappiness,
-					details.MinBeauty,
-					details.MinAffection,
-					details.NeedsOverworldRain,
-					partySpecies,
-					partyType,
-					details.RelativePhysicalStats,
-					timeOfDay,
-					tradeSpecies,
-					details.TurnUpsideDown,
-					false,
-					0,
-					0,
-				))
+				toPokemon, err := prisma.Pokemon.FindUnique(db.Pokemon.Slug.Equals(slug)).Exec(*ctx)
+				if err != nil {
+					errors = append(errors, err)
+				}
+				_, dbErr := prisma.PokemonEvolution.
+					UpsertOne(db.PokemonEvolution.FromPokemonIDToPokemonIDTimeOfDayGenderTrigger(
+						db.PokemonEvolution.FromPokemonID.Equals(fromPokemon.ID),
+						db.PokemonEvolution.ToPokemonID.Equals(toPokemon.ID),
+						db.PokemonEvolution.TimeOfDay.Equals(db.TimeOfDay(timeOfDay)),
+						db.PokemonEvolution.Gender.Equals(gender),
+						db.PokemonEvolution.Trigger.Equals(trigger),
+					)).
+					Create(
+						db.PokemonEvolution.FromPokemon.Link(db.Pokemon.ID.Equals(fromPokemon.ID)),
+						db.PokemonEvolution.ToPokemon.Link(db.Pokemon.ID.Equals(toPokemon.ID)),
+						db.PokemonEvolution.Trigger.Set(trigger),
+						db.PokemonEvolution.Gender.Set(gender),
+						db.PokemonEvolution.NeedsOverworldRain.Set(details.NeedsOverworldRain),
+						db.PokemonEvolution.TimeOfDay.Set(timeOfDay),
+						db.PokemonEvolution.TurnUpsideDown.Set(details.TurnUpsideDown),
+						db.PokemonEvolution.Spin.Set(false),
+						db.PokemonEvolution.MinLevel.SetIfPresent(&details.MinLevel),
+						db.PokemonEvolution.MinHappiness.SetIfPresent(&details.MinHappiness),
+						db.PokemonEvolution.MinBeauty.SetIfPresent(&details.MinBeauty),
+						db.PokemonEvolution.MinAffection.SetIfPresent(&details.MinAffection),
+						db.PokemonEvolution.RelativePhysicalStats.SetIfPresent(&details.RelativePhysicalStats),
+						db.PokemonEvolution.Item.Link(db.Item.Slug.EqualsIfPresent(item)),
+						db.PokemonEvolution.HeldItem.Link(db.Item.Slug.EqualsIfPresent(heldItem)),
+						db.PokemonEvolution.KnownMove.Link(db.Move.Slug.EqualsIfPresent(knownMove)),
+						db.PokemonEvolution.KnownMoveType.Link(db.Type.Slug.EqualsIfPresent(knownMoveType)),
+						db.PokemonEvolution.PartyPokemon.Link(db.Pokemon.Slug.EqualsIfPresent(partySpecies)),
+						db.PokemonEvolution.PartyType.Link(db.Type.Slug.EqualsIfPresent(partyType)),
+						db.PokemonEvolution.TradeWithPokemon.Link(db.Pokemon.Slug.EqualsIfPresent(tradeSpecies)),
+					).
+					Update(
+						db.PokemonEvolution.NeedsOverworldRain.Set(details.NeedsOverworldRain),
+						db.PokemonEvolution.TurnUpsideDown.Set(details.TurnUpsideDown),
+						db.PokemonEvolution.Spin.Set(false),
+						db.PokemonEvolution.MinLevel.SetIfPresent(&details.MinLevel),
+						db.PokemonEvolution.MinHappiness.SetIfPresent(&details.MinHappiness),
+						db.PokemonEvolution.MinBeauty.SetIfPresent(&details.MinBeauty),
+						db.PokemonEvolution.MinAffection.SetIfPresent(&details.MinAffection),
+						db.PokemonEvolution.RelativePhysicalStats.SetIfPresent(&details.RelativePhysicalStats),
+						db.PokemonEvolution.Item.Link(db.Item.Slug.EqualsIfPresent(item)),
+						db.PokemonEvolution.HeldItem.Link(db.Item.Slug.EqualsIfPresent(heldItem)),
+						db.PokemonEvolution.KnownMove.Link(db.Move.Slug.EqualsIfPresent(knownMove)),
+						db.PokemonEvolution.KnownMoveType.Link(db.Type.Slug.EqualsIfPresent(knownMoveType)),
+						db.PokemonEvolution.PartyPokemon.Link(db.Pokemon.Slug.EqualsIfPresent(partySpecies)),
+						db.PokemonEvolution.PartyType.Link(db.Type.Slug.EqualsIfPresent(partyType)),
+						db.PokemonEvolution.TradeWithPokemon.Link(db.Pokemon.Slug.EqualsIfPresent(tradeSpecies)),
+					).
+					Exec(*ctx)
+
+				if dbErr != nil {
+					errors = append(errors, dbErr)
+				}
 			}
 
 			for _, innerChain := range chain.EvolvesTo {
-				evolutionValues := parseEvolution(chain, innerChain)
-				values = append(values, evolutionValues...)
+				errs := insertEvolution(chain, innerChain, prisma, ctx)
+				if len(errors) != 0 {
+					errors = append(errors, errs...)
+				}
 			}
 		}
 	}
 
-	return values
+	return errors
+}
+
+func unique(strSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range strSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
 }

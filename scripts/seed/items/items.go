@@ -1,33 +1,46 @@
 package main
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/pokeapi"
 	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
+	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	start := time.Now()
-	config := &helpers.Config{
-		OutputFile: "seeds/items.sql",
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
 	}
+
+	start := time.Now()
+	config := &helpers.Config{}
 	arg.MustParse(config)
 
 	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+	prisma := db.NewClient()
+	if err := prisma.Prisma.Connect(); err != nil {
+		panic(err)
+	}
 
-	f := helpers.OpenFile(config.OutputFile)
-	defer f.Close()
+	defer func() {
+		if err := prisma.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()
 
-	itemList := client.GetResourceList("item")
+	ctx := context.Background()
+
+	itemList := client.GetResourceList("item", 10000)
 	results := itemList.Results
 	resultsLength := len(results)
-	values := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -39,7 +52,6 @@ func main() {
 			defer func() { <-sem }()
 			defer wg.Done()
 			fullItem := client.GetItem(results[i].Name)
-
 			englishName, err := pokeapi.GetEnglishName(fullItem.Names, fullItem.Name)
 			if err != nil {
 				log.Logger.Fatal(err)
@@ -48,43 +60,54 @@ func main() {
 			if err != nil {
 				log.Logger.Fatal(err)
 			}
-			attributes := make([]string, 0)
+			attributes := make([]db.ItemAttribute, 0)
 
 			for _, attribute := range fullItem.Attributes {
-				attributes = append(attributes, strings.ReplaceAll(attribute.Name, "_", "-"))
+				attributes = append(attributes, db.ItemAttribute(attribute.Name))
 			}
 
-			flingEffect := "NULL"
-			if fullItem.FlingEffect.Name != "" {
-				flingEffect = fmt.Sprintf("'%s'", fullItem.FlingEffect.Name)
+			var effect *string
+			if englishEffectEntry != nil {
+				effect = &englishEffectEntry.ShortEffect
 			}
 
-			values = append(values, fmt.Sprintf(
-				"('%s', '%s', %d, %d, %s, '%s', '%s', '%s', '%s', now())",
-				fullItem.Name,
-				helpers.EscapeSingleQuote(englishName.Name),
-				fullItem.Cost,
-				fullItem.FlingPower,
-				flingEffect,
-				helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
-				fullItem.Sprites.Default,
-				strings.ReplaceAll(fullItem.Category.Name, "_", "-"),
-				fmt.Sprintf("{%s}", strings.Join(attributes, ",")),
-			))
+			var flingEffect *string
+			if fullItem.FlingEffect != nil {
+				effect = &fullItem.FlingEffect.Name
+			}
 
+			_, dbErr := prisma.Item.UpsertOne(db.Item.Slug.Equals(fullItem.Name)).
+				Create(
+					db.Item.Slug.Set(fullItem.Name),
+					db.Item.Name.Set(englishName.Name),
+					db.Item.Category.Set(db.ItemCategory(fullItem.Category.Name)),
+					db.Item.Attributes.Set(attributes),
+					db.Item.Cost.SetIfPresent(fullItem.Cost),
+					db.Item.FlingPower.SetIfPresent(fullItem.FlingPower),
+					db.Item.Effect.SetIfPresent(effect),
+					db.Item.FlingEffect.SetIfPresent(flingEffect),
+					db.Item.Sprite.SetIfPresent(fullItem.Sprites.Default),
+					db.Item.UpdatedAt.Set(time.Now())).
+				Update(
+					db.Item.Name.Set(englishName.Name),
+					db.Item.Category.Set(db.ItemCategory(fullItem.Category.Name)),
+					db.Item.Attributes.Set(attributes),
+					db.Item.Cost.SetIfPresent(fullItem.Cost),
+					db.Item.FlingPower.SetIfPresent(fullItem.FlingPower),
+					db.Item.Effect.SetIfPresent(effect),
+					db.Item.FlingEffect.SetIfPresent(flingEffect),
+					db.Item.Sprite.SetIfPresent(fullItem.Sprites.Default),
+					db.Item.UpdatedAt.Set(time.Now())).
+				Exec(ctx)
+
+			if dbErr != nil {
+				log.Logger.Fatal(dbErr)
+			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO items (slug, name, cost, fling_power, fling_effect, effect, sprite, category_enum, attribute_enums, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name,\n\t\tcost = EXCLUDED.cost,\n\t\tfling_power = EXCLUDED.fling_power,\n\t\tfling_effect = EXCLUDED.fling_effect,\n\t\teffect = EXCLUDED.effect,\n\t\tsprite = EXCLUDED.sprite,\n\t\tcategory_enum = EXCLUDED.category_enum,\n\t\tattribute_enums = EXCLUDED.attribute_enums,\n\t\t updated_at = EXCLUDED.updated_at;", strings.Join(values, ", "))
-
-	o, err := f.WriteString(sql)
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	f.Sync()
-
 	elapsed := time.Since(start)
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+	log.Logger.Info(fmt.Sprintf("Completed in %s\n", elapsed))
 }

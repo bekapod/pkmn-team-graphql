@@ -36,9 +36,12 @@ type Config struct {
 
 type ResolverRoot interface {
 	Ability() AbilityResolver
-	Evolution() EvolutionResolver
 	Move() MoveResolver
 	Pokemon() PokemonResolver
+	PokemonAbility() PokemonAbilityResolver
+	PokemonEvolution() PokemonEvolutionResolver
+	PokemonMove() PokemonMoveResolver
+	PokemonType() PokemonTypeResolver
 	Query() QueryResolver
 	Type() TypeResolver
 }
@@ -71,36 +74,6 @@ type ComplexityRoot struct {
 		Total     func(childComplexity int) int
 	}
 
-	Evolution struct {
-		CriticalHits          func(childComplexity int) int
-		Gender                func(childComplexity int) int
-		HeldItem              func(childComplexity int) int
-		Item                  func(childComplexity int) int
-		KnownMove             func(childComplexity int) int
-		KnownMoveType         func(childComplexity int) int
-		Location              func(childComplexity int) int
-		MinAffection          func(childComplexity int) int
-		MinBeauty             func(childComplexity int) int
-		MinHappiness          func(childComplexity int) int
-		MinLevel              func(childComplexity int) int
-		NeedsOverworldRain    func(childComplexity int) int
-		PartyPokemon          func(childComplexity int) int
-		PartyPokemonType      func(childComplexity int) int
-		Pokemon               func(childComplexity int) int
-		RelativePhysicalStats func(childComplexity int) int
-		Spin                  func(childComplexity int) int
-		TakeDamage            func(childComplexity int) int
-		TimeOfDay             func(childComplexity int) int
-		TradeWithPokemon      func(childComplexity int) int
-		Trigger               func(childComplexity int) int
-		TurnUpsideDown        func(childComplexity int) int
-	}
-
-	EvolutionList struct {
-		Evolutions func(childComplexity int) int
-		Total      func(childComplexity int) int
-	}
-
 	Item struct {
 		Attributes  func(childComplexity int) int
 		Category    func(childComplexity int) int
@@ -114,13 +87,6 @@ type ComplexityRoot struct {
 		Sprite      func(childComplexity int) int
 	}
 
-	Location struct {
-		ID     func(childComplexity int) int
-		Name   func(childComplexity int) int
-		Region func(childComplexity int) int
-		Slug   func(childComplexity int) int
-	}
-
 	Move struct {
 		Accuracy     func(childComplexity int) int
 		DamageClass  func(childComplexity int) int
@@ -128,9 +94,9 @@ type ComplexityRoot struct {
 		EffectChance func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
-		PP           func(childComplexity int) int
 		Pokemon      func(childComplexity int) int
 		Power        func(childComplexity int) int
+		Pp           func(childComplexity int) int
 		Slug         func(childComplexity int) int
 		Target       func(childComplexity int) int
 		Type         func(childComplexity int) int
@@ -151,9 +117,9 @@ type ComplexityRoot struct {
 		EvolvesFrom      func(childComplexity int) int
 		EvolvesTo        func(childComplexity int) int
 		Genus            func(childComplexity int) int
-		HP               func(childComplexity int) int
 		Habitat          func(childComplexity int) int
 		Height           func(childComplexity int) int
+		Hp               func(childComplexity int) int
 		ID               func(childComplexity int) int
 		IsBaby           func(childComplexity int) int
 		IsDefaultVariant func(childComplexity int) int
@@ -161,7 +127,7 @@ type ComplexityRoot struct {
 		IsMythical       func(childComplexity int) int
 		Moves            func(childComplexity int) int
 		Name             func(childComplexity int) int
-		PokedexId        func(childComplexity int) int
+		PokedexID        func(childComplexity int) int
 		Shape            func(childComplexity int) int
 		Slug             func(childComplexity int) int
 		SpecialAttack    func(childComplexity int) int
@@ -175,6 +141,7 @@ type ComplexityRoot struct {
 	PokemonAbility struct {
 		Ability  func(childComplexity int) int
 		IsHidden func(childComplexity int) int
+		Pokemon  func(childComplexity int) int
 		Slot     func(childComplexity int) int
 	}
 
@@ -183,14 +150,56 @@ type ComplexityRoot struct {
 		Total            func(childComplexity int) int
 	}
 
+	PokemonEvolution struct {
+		CriticalHits          func(childComplexity int) int
+		Gender                func(childComplexity int) int
+		HeldItem              func(childComplexity int) int
+		Item                  func(childComplexity int) int
+		KnownMove             func(childComplexity int) int
+		KnownMoveType         func(childComplexity int) int
+		MinAffection          func(childComplexity int) int
+		MinBeauty             func(childComplexity int) int
+		MinHappiness          func(childComplexity int) int
+		MinLevel              func(childComplexity int) int
+		NeedsOverworldRain    func(childComplexity int) int
+		PartyPokemon          func(childComplexity int) int
+		PartyPokemonType      func(childComplexity int) int
+		Pokemon               func(childComplexity int) int
+		RelativePhysicalStats func(childComplexity int) int
+		Spin                  func(childComplexity int) int
+		TakeDamage            func(childComplexity int) int
+		TimeOfDay             func(childComplexity int) int
+		TradeWithPokemon      func(childComplexity int) int
+		Trigger               func(childComplexity int) int
+		TurnUpsideDown        func(childComplexity int) int
+	}
+
+	PokemonEvolutionList struct {
+		PokemonEvolutions func(childComplexity int) int
+		Total             func(childComplexity int) int
+	}
+
 	PokemonList struct {
 		Pokemon func(childComplexity int) int
 		Total   func(childComplexity int) int
 	}
 
+	PokemonMove struct {
+		LearnMethod    func(childComplexity int) int
+		LevelLearnedAt func(childComplexity int) int
+		Move           func(childComplexity int) int
+		Pokemon        func(childComplexity int) int
+	}
+
+	PokemonMoveList struct {
+		PokemonMoves func(childComplexity int) int
+		Total        func(childComplexity int) int
+	}
+
 	PokemonType struct {
-		Slot func(childComplexity int) int
-		Type func(childComplexity int) int
+		Pokemon func(childComplexity int) int
+		Slot    func(childComplexity int) int
+		Type    func(childComplexity int) int
 	}
 
 	PokemonTypeList struct {
@@ -207,12 +216,6 @@ type ComplexityRoot struct {
 		PokemonByID func(childComplexity int, id string) int
 		TypeByID    func(childComplexity int, id string) int
 		Types       func(childComplexity int) int
-	}
-
-	Region struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
-		Slug func(childComplexity int) int
 	}
 
 	Type struct {
@@ -236,27 +239,45 @@ type ComplexityRoot struct {
 }
 
 type AbilityResolver interface {
-	Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonList, error)
-}
-type EvolutionResolver interface {
-	Pokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error)
-
-	KnownMove(ctx context.Context, obj *model.Evolution) (*model.Move, error)
-	KnownMoveType(ctx context.Context, obj *model.Evolution) (*model.Type, error)
-
-	PartyPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error)
-	PartyPokemonType(ctx context.Context, obj *model.Evolution) (*model.Type, error)
-
-	TradeWithPokemon(ctx context.Context, obj *model.Evolution) (*model.Pokemon, error)
+	Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonAbilityList, error)
 }
 type MoveResolver interface {
-	Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonList, error)
+	Type(ctx context.Context, obj *model.Move) (*model.Type, error)
+	Pokemon(ctx context.Context, obj *model.Move) (*model.PokemonMoveList, error)
 }
 type PokemonResolver interface {
-	Moves(ctx context.Context, obj *model.Pokemon) (*model.MoveList, error)
+	Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityList, error)
+	Types(ctx context.Context, obj *model.Pokemon) (*model.PokemonTypeList, error)
+	Moves(ctx context.Context, obj *model.Pokemon) (*model.PokemonMoveList, error)
 
-	EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error)
-	EvolvesFrom(ctx context.Context, obj *model.Pokemon) (*model.EvolutionList, error)
+	EvolvesTo(ctx context.Context, obj *model.Pokemon) (*model.PokemonEvolutionList, error)
+	EvolvesFrom(ctx context.Context, obj *model.Pokemon) (*model.PokemonEvolutionList, error)
+}
+type PokemonAbilityResolver interface {
+	Ability(ctx context.Context, obj *model.PokemonAbility) (*model.Ability, error)
+	Pokemon(ctx context.Context, obj *model.PokemonAbility) (*model.Pokemon, error)
+}
+type PokemonEvolutionResolver interface {
+	Pokemon(ctx context.Context, obj *model.PokemonEvolution) (*model.Pokemon, error)
+
+	Item(ctx context.Context, obj *model.PokemonEvolution) (*model.Item, error)
+
+	HeldItem(ctx context.Context, obj *model.PokemonEvolution) (*model.Item, error)
+	KnownMove(ctx context.Context, obj *model.PokemonEvolution) (*model.Move, error)
+	KnownMoveType(ctx context.Context, obj *model.PokemonEvolution) (*model.Type, error)
+
+	PartyPokemon(ctx context.Context, obj *model.PokemonEvolution) (*model.Pokemon, error)
+	PartyPokemonType(ctx context.Context, obj *model.PokemonEvolution) (*model.Type, error)
+
+	TradeWithPokemon(ctx context.Context, obj *model.PokemonEvolution) (*model.Pokemon, error)
+}
+type PokemonMoveResolver interface {
+	Move(ctx context.Context, obj *model.PokemonMove) (*model.Move, error)
+	Pokemon(ctx context.Context, obj *model.PokemonMove) (*model.Pokemon, error)
+}
+type PokemonTypeResolver interface {
+	Type(ctx context.Context, obj *model.PokemonType) (*model.Type, error)
+	Pokemon(ctx context.Context, obj *model.PokemonType) (*model.Pokemon, error)
 }
 type QueryResolver interface {
 	AbilityByID(ctx context.Context, id string) (*model.Ability, error)
@@ -269,8 +290,14 @@ type QueryResolver interface {
 	Types(ctx context.Context) (*model.TypeList, error)
 }
 type TypeResolver interface {
-	Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonList, error)
+	Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonTypeList, error)
 	Moves(ctx context.Context, obj *model.Type) (*model.MoveList, error)
+	NoDamageTo(ctx context.Context, obj *model.Type) (*model.TypeList, error)
+	HalfDamageTo(ctx context.Context, obj *model.Type) (*model.TypeList, error)
+	DoubleDamageTo(ctx context.Context, obj *model.Type) (*model.TypeList, error)
+	NoDamageFrom(ctx context.Context, obj *model.Type) (*model.TypeList, error)
+	HalfDamageFrom(ctx context.Context, obj *model.Type) (*model.TypeList, error)
+	DoubleDamageFrom(ctx context.Context, obj *model.Type) (*model.TypeList, error)
 }
 
 type executableSchema struct {
@@ -372,174 +399,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EggGroupList.Total(childComplexity), true
 
-	case "Evolution.criticalHits":
-		if e.complexity.Evolution.CriticalHits == nil {
-			break
-		}
-
-		return e.complexity.Evolution.CriticalHits(childComplexity), true
-
-	case "Evolution.gender":
-		if e.complexity.Evolution.Gender == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Gender(childComplexity), true
-
-	case "Evolution.heldItem":
-		if e.complexity.Evolution.HeldItem == nil {
-			break
-		}
-
-		return e.complexity.Evolution.HeldItem(childComplexity), true
-
-	case "Evolution.item":
-		if e.complexity.Evolution.Item == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Item(childComplexity), true
-
-	case "Evolution.knownMove":
-		if e.complexity.Evolution.KnownMove == nil {
-			break
-		}
-
-		return e.complexity.Evolution.KnownMove(childComplexity), true
-
-	case "Evolution.knownMoveType":
-		if e.complexity.Evolution.KnownMoveType == nil {
-			break
-		}
-
-		return e.complexity.Evolution.KnownMoveType(childComplexity), true
-
-	case "Evolution.location":
-		if e.complexity.Evolution.Location == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Location(childComplexity), true
-
-	case "Evolution.minAffection":
-		if e.complexity.Evolution.MinAffection == nil {
-			break
-		}
-
-		return e.complexity.Evolution.MinAffection(childComplexity), true
-
-	case "Evolution.minBeauty":
-		if e.complexity.Evolution.MinBeauty == nil {
-			break
-		}
-
-		return e.complexity.Evolution.MinBeauty(childComplexity), true
-
-	case "Evolution.minHappiness":
-		if e.complexity.Evolution.MinHappiness == nil {
-			break
-		}
-
-		return e.complexity.Evolution.MinHappiness(childComplexity), true
-
-	case "Evolution.minLevel":
-		if e.complexity.Evolution.MinLevel == nil {
-			break
-		}
-
-		return e.complexity.Evolution.MinLevel(childComplexity), true
-
-	case "Evolution.needsOverworldRain":
-		if e.complexity.Evolution.NeedsOverworldRain == nil {
-			break
-		}
-
-		return e.complexity.Evolution.NeedsOverworldRain(childComplexity), true
-
-	case "Evolution.partyPokemon":
-		if e.complexity.Evolution.PartyPokemon == nil {
-			break
-		}
-
-		return e.complexity.Evolution.PartyPokemon(childComplexity), true
-
-	case "Evolution.partyPokemonType":
-		if e.complexity.Evolution.PartyPokemonType == nil {
-			break
-		}
-
-		return e.complexity.Evolution.PartyPokemonType(childComplexity), true
-
-	case "Evolution.pokemon":
-		if e.complexity.Evolution.Pokemon == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Pokemon(childComplexity), true
-
-	case "Evolution.relativePhysicalStats":
-		if e.complexity.Evolution.RelativePhysicalStats == nil {
-			break
-		}
-
-		return e.complexity.Evolution.RelativePhysicalStats(childComplexity), true
-
-	case "Evolution.spin":
-		if e.complexity.Evolution.Spin == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Spin(childComplexity), true
-
-	case "Evolution.takeDamage":
-		if e.complexity.Evolution.TakeDamage == nil {
-			break
-		}
-
-		return e.complexity.Evolution.TakeDamage(childComplexity), true
-
-	case "Evolution.timeOfDay":
-		if e.complexity.Evolution.TimeOfDay == nil {
-			break
-		}
-
-		return e.complexity.Evolution.TimeOfDay(childComplexity), true
-
-	case "Evolution.tradeWithPokemon":
-		if e.complexity.Evolution.TradeWithPokemon == nil {
-			break
-		}
-
-		return e.complexity.Evolution.TradeWithPokemon(childComplexity), true
-
-	case "Evolution.trigger":
-		if e.complexity.Evolution.Trigger == nil {
-			break
-		}
-
-		return e.complexity.Evolution.Trigger(childComplexity), true
-
-	case "Evolution.turnUpsideDown":
-		if e.complexity.Evolution.TurnUpsideDown == nil {
-			break
-		}
-
-		return e.complexity.Evolution.TurnUpsideDown(childComplexity), true
-
-	case "EvolutionList.evolutions":
-		if e.complexity.EvolutionList.Evolutions == nil {
-			break
-		}
-
-		return e.complexity.EvolutionList.Evolutions(childComplexity), true
-
-	case "EvolutionList.total":
-		if e.complexity.EvolutionList.Total == nil {
-			break
-		}
-
-		return e.complexity.EvolutionList.Total(childComplexity), true
-
 	case "Item.attributes":
 		if e.complexity.Item.Attributes == nil {
 			break
@@ -610,34 +469,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Item.Sprite(childComplexity), true
 
-	case "Location.id":
-		if e.complexity.Location.ID == nil {
-			break
-		}
-
-		return e.complexity.Location.ID(childComplexity), true
-
-	case "Location.name":
-		if e.complexity.Location.Name == nil {
-			break
-		}
-
-		return e.complexity.Location.Name(childComplexity), true
-
-	case "Location.region":
-		if e.complexity.Location.Region == nil {
-			break
-		}
-
-		return e.complexity.Location.Region(childComplexity), true
-
-	case "Location.slug":
-		if e.complexity.Location.Slug == nil {
-			break
-		}
-
-		return e.complexity.Location.Slug(childComplexity), true
-
 	case "Move.accuracy":
 		if e.complexity.Move.Accuracy == nil {
 			break
@@ -680,13 +511,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Move.Name(childComplexity), true
 
-	case "Move.pp":
-		if e.complexity.Move.PP == nil {
-			break
-		}
-
-		return e.complexity.Move.PP(childComplexity), true
-
 	case "Move.pokemon":
 		if e.complexity.Move.Pokemon == nil {
 			break
@@ -700,6 +524,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Move.Power(childComplexity), true
+
+	case "Move.pp":
+		if e.complexity.Move.Pp == nil {
+			break
+		}
+
+		return e.complexity.Move.Pp(childComplexity), true
 
 	case "Move.slug":
 		if e.complexity.Move.Slug == nil {
@@ -799,13 +630,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Pokemon.Genus(childComplexity), true
 
-	case "Pokemon.hp":
-		if e.complexity.Pokemon.HP == nil {
-			break
-		}
-
-		return e.complexity.Pokemon.HP(childComplexity), true
-
 	case "Pokemon.habitat":
 		if e.complexity.Pokemon.Habitat == nil {
 			break
@@ -819,6 +643,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Pokemon.Height(childComplexity), true
+
+	case "Pokemon.hp":
+		if e.complexity.Pokemon.Hp == nil {
+			break
+		}
+
+		return e.complexity.Pokemon.Hp(childComplexity), true
 
 	case "Pokemon.id":
 		if e.complexity.Pokemon.ID == nil {
@@ -870,11 +701,11 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		return e.complexity.Pokemon.Name(childComplexity), true
 
 	case "Pokemon.pokedexId":
-		if e.complexity.Pokemon.PokedexId == nil {
+		if e.complexity.Pokemon.PokedexID == nil {
 			break
 		}
 
-		return e.complexity.Pokemon.PokedexId(childComplexity), true
+		return e.complexity.Pokemon.PokedexID(childComplexity), true
 
 	case "Pokemon.shape":
 		if e.complexity.Pokemon.Shape == nil {
@@ -946,6 +777,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PokemonAbility.IsHidden(childComplexity), true
 
+	case "PokemonAbility.pokemon":
+		if e.complexity.PokemonAbility.Pokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonAbility.Pokemon(childComplexity), true
+
 	case "PokemonAbility.slot":
 		if e.complexity.PokemonAbility.Slot == nil {
 			break
@@ -967,6 +805,167 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PokemonAbilityList.Total(childComplexity), true
 
+	case "PokemonEvolution.criticalHits":
+		if e.complexity.PokemonEvolution.CriticalHits == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.CriticalHits(childComplexity), true
+
+	case "PokemonEvolution.gender":
+		if e.complexity.PokemonEvolution.Gender == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.Gender(childComplexity), true
+
+	case "PokemonEvolution.heldItem":
+		if e.complexity.PokemonEvolution.HeldItem == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.HeldItem(childComplexity), true
+
+	case "PokemonEvolution.item":
+		if e.complexity.PokemonEvolution.Item == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.Item(childComplexity), true
+
+	case "PokemonEvolution.knownMove":
+		if e.complexity.PokemonEvolution.KnownMove == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.KnownMove(childComplexity), true
+
+	case "PokemonEvolution.knownMoveType":
+		if e.complexity.PokemonEvolution.KnownMoveType == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.KnownMoveType(childComplexity), true
+
+	case "PokemonEvolution.minAffection":
+		if e.complexity.PokemonEvolution.MinAffection == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.MinAffection(childComplexity), true
+
+	case "PokemonEvolution.minBeauty":
+		if e.complexity.PokemonEvolution.MinBeauty == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.MinBeauty(childComplexity), true
+
+	case "PokemonEvolution.minHappiness":
+		if e.complexity.PokemonEvolution.MinHappiness == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.MinHappiness(childComplexity), true
+
+	case "PokemonEvolution.minLevel":
+		if e.complexity.PokemonEvolution.MinLevel == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.MinLevel(childComplexity), true
+
+	case "PokemonEvolution.needsOverworldRain":
+		if e.complexity.PokemonEvolution.NeedsOverworldRain == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.NeedsOverworldRain(childComplexity), true
+
+	case "PokemonEvolution.partyPokemon":
+		if e.complexity.PokemonEvolution.PartyPokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.PartyPokemon(childComplexity), true
+
+	case "PokemonEvolution.partyPokemonType":
+		if e.complexity.PokemonEvolution.PartyPokemonType == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.PartyPokemonType(childComplexity), true
+
+	case "PokemonEvolution.pokemon":
+		if e.complexity.PokemonEvolution.Pokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.Pokemon(childComplexity), true
+
+	case "PokemonEvolution.relativePhysicalStats":
+		if e.complexity.PokemonEvolution.RelativePhysicalStats == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.RelativePhysicalStats(childComplexity), true
+
+	case "PokemonEvolution.spin":
+		if e.complexity.PokemonEvolution.Spin == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.Spin(childComplexity), true
+
+	case "PokemonEvolution.takeDamage":
+		if e.complexity.PokemonEvolution.TakeDamage == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.TakeDamage(childComplexity), true
+
+	case "PokemonEvolution.timeOfDay":
+		if e.complexity.PokemonEvolution.TimeOfDay == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.TimeOfDay(childComplexity), true
+
+	case "PokemonEvolution.tradeWithPokemon":
+		if e.complexity.PokemonEvolution.TradeWithPokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.TradeWithPokemon(childComplexity), true
+
+	case "PokemonEvolution.trigger":
+		if e.complexity.PokemonEvolution.Trigger == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.Trigger(childComplexity), true
+
+	case "PokemonEvolution.turnUpsideDown":
+		if e.complexity.PokemonEvolution.TurnUpsideDown == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolution.TurnUpsideDown(childComplexity), true
+
+	case "PokemonEvolutionList.pokemonEvolutions":
+		if e.complexity.PokemonEvolutionList.PokemonEvolutions == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolutionList.PokemonEvolutions(childComplexity), true
+
+	case "PokemonEvolutionList.total":
+		if e.complexity.PokemonEvolutionList.Total == nil {
+			break
+		}
+
+		return e.complexity.PokemonEvolutionList.Total(childComplexity), true
+
 	case "PokemonList.pokemon":
 		if e.complexity.PokemonList.Pokemon == nil {
 			break
@@ -980,6 +979,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PokemonList.Total(childComplexity), true
+
+	case "PokemonMove.learnMethod":
+		if e.complexity.PokemonMove.LearnMethod == nil {
+			break
+		}
+
+		return e.complexity.PokemonMove.LearnMethod(childComplexity), true
+
+	case "PokemonMove.levelLearnedAt":
+		if e.complexity.PokemonMove.LevelLearnedAt == nil {
+			break
+		}
+
+		return e.complexity.PokemonMove.LevelLearnedAt(childComplexity), true
+
+	case "PokemonMove.move":
+		if e.complexity.PokemonMove.Move == nil {
+			break
+		}
+
+		return e.complexity.PokemonMove.Move(childComplexity), true
+
+	case "PokemonMove.pokemon":
+		if e.complexity.PokemonMove.Pokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonMove.Pokemon(childComplexity), true
+
+	case "PokemonMoveList.pokemonMoves":
+		if e.complexity.PokemonMoveList.PokemonMoves == nil {
+			break
+		}
+
+		return e.complexity.PokemonMoveList.PokemonMoves(childComplexity), true
+
+	case "PokemonMoveList.total":
+		if e.complexity.PokemonMoveList.Total == nil {
+			break
+		}
+
+		return e.complexity.PokemonMoveList.Total(childComplexity), true
+
+	case "PokemonType.pokemon":
+		if e.complexity.PokemonType.Pokemon == nil {
+			break
+		}
+
+		return e.complexity.PokemonType.Pokemon(childComplexity), true
 
 	case "PokemonType.slot":
 		if e.complexity.PokemonType.Slot == nil {
@@ -1084,27 +1132,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Types(childComplexity), true
-
-	case "Region.id":
-		if e.complexity.Region.ID == nil {
-			break
-		}
-
-		return e.complexity.Region.ID(childComplexity), true
-
-	case "Region.name":
-		if e.complexity.Region.Name == nil {
-			break
-		}
-
-		return e.complexity.Region.Name(childComplexity), true
-
-	case "Region.slug":
-		if e.complexity.Region.Slug == nil {
-			break
-		}
-
-		return e.complexity.Region.Slug(childComplexity), true
 
 	case "Type.doubleDamageFrom":
 		if e.complexity.Type.DoubleDamageFrom == nil {
@@ -1247,8 +1274,196 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `enum Color {
+	{Name: "graph/schema.graphqls", Input: `type Query {
+  abilityById(id: ID!): Ability
+  abilities: AbilityList!
+  moveById(id: ID!): Move
+  moves: MoveList!
+  pokemonById(id: ID!): Pokemon
+  pokemon: PokemonList!
+  typeById(id: ID!): Type
+  types: TypeList!
+}
+
+type Pokemon {
+  id: ID!
+  name: String!
+  slug: String!
+  pokedexId: Int!
+  sprite: String!
+  hp: Int!
+  attack: Int!
+  defense: Int!
+  specialAttack: Int!
+  specialDefense: Int!
+  speed: Int!
+  isBaby: Boolean!
+  isLegendary: Boolean!
+  isMythical: Boolean!
+  description: String
+  color: Color!
+  shape: Shape!
+  habitat: Habitat
+  height: Int!
+  weight: Int!
+  isDefaultVariant: Boolean!
+  genus: String!
+  abilities: PokemonAbilityList!
+  types: PokemonTypeList!
+  moves: PokemonMoveList!
+  eggGroups: EggGroupList!
+  evolvesTo: PokemonEvolutionList!
+  evolvesFrom: PokemonEvolutionList!
+}
+
+type PokemonList {
+  total: Int!
+  pokemon: [Pokemon!]!
+}
+
+type PokemonAbility {
+  slot: Int!
+  isHidden: Boolean!
+  ability: Ability!
+  pokemon: Pokemon!
+}
+
+type PokemonAbilityList {
+  total: Int!
+  pokemonAbilities: [PokemonAbility!]!
+}
+
+type PokemonEvolution {
+  pokemon: Pokemon!
+  trigger: EvolutionTrigger!
+  item: Item
+  gender: Gender!
+  heldItem: Item
+  knownMove: Move
+  knownMoveType: Type
+  minLevel: Int
+  minHappiness: Int
+  minBeauty: Int
+  minAffection: Int
+  needsOverworldRain: Boolean!
+  partyPokemon: Pokemon
+  partyPokemonType: Type
+  relativePhysicalStats: Int
+  timeOfDay: TimeOfDay!
+  tradeWithPokemon: Pokemon
+  turnUpsideDown: Boolean!
+  spin: Boolean!
+  takeDamage: Int
+  criticalHits: Int
+}
+
+type PokemonEvolutionList {
+  total: Int!
+  pokemonEvolutions: [PokemonEvolution!]!
+}
+
+type PokemonMove {
+  move: Move!
+  pokemon: Pokemon!
+  learnMethod: MoveLearnMethod!
+  levelLearnedAt: Int!
+}
+
+type PokemonMoveList {
+  total: Int!
+  pokemonMoves: [PokemonMove!]!
+}
+
+type PokemonType {
+  type: Type!
+  pokemon: Pokemon!
+  slot: Int!
+}
+
+type PokemonTypeList {
+  total: Int!
+  pokemonTypes: [PokemonType!]!
+}
+
+type Ability {
+  id: ID!
+  slug: String!
+  name: String!
+  effect: String
+  pokemon: PokemonAbilityList!
+}
+
+type AbilityList {
+  total: Int!
+  abilities: [Ability!]!
+}
+
+type EggGroup {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type EggGroupList {
+  total: Int!
+  eggGroups: [EggGroup!]!
+}
+
+type Item {
+  id: ID!
+  slug: String!
+  name: String!
+  cost: Int
+  flingPower: Int
+  flingEffect: String
+  effect: String
+  sprite: String
+  category: ItemCategory!
+  attributes: [ItemAttribute!]!
+}
+
+type Move {
+  id: ID!
+  slug: String!
+  name: String!
+  accuracy: Int
+  pp: Int
+  power: Int
+  damageClass: DamageClass!
+  effect: String
+  effectChance: Int
+  target: MoveTarget!
+  type: Type!
+  pokemon: PokemonMoveList!
+}
+
+type MoveList {
+  total: Int!
+  moves: [Move!]!
+}
+
+type Type {
+  id: ID!
+  slug: String!
+  name: String!
+  pokemon: PokemonTypeList!
+  moves: MoveList!
+  noDamageTo: TypeList!
+  halfDamageTo: TypeList!
+  doubleDamageTo: TypeList!
+  noDamageFrom: TypeList!
+  halfDamageFrom: TypeList!
+  doubleDamageFrom: TypeList!
+}
+
+type TypeList {
+  total: Int!
+  types: [Type!]!
+}
+
+enum Color {
   BLACK
+  BLUE
   BROWN
   GRAY
   GREEN
@@ -1265,6 +1480,20 @@ enum DamageClass {
   STATUS
 }
 
+enum EvolutionTrigger {
+  LEVEL_UP
+  OTHER
+  SHED
+  TRADE
+  USE_ITEM
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  ANY
+}
+
 enum Habitat {
   CAVE
   FOREST
@@ -1275,43 +1504,6 @@ enum Habitat {
   SEA
   URBAN
   WATERS_EDGE
-}
-
-enum Shape {
-  BALL
-  SQUIGGLE
-  FISH
-  ARMS
-  BLOB
-  UPRIGHT
-  LEGS
-  QUADRUPED
-  WINGS
-  TENTACLES
-  HEADS
-  HUMANOID
-  BUG_WINGS
-  ARMOR
-}
-
-enum EvolutionTrigger {
-  LEVEL_UP
-  OTHER
-  SHED
-  TRADE
-  USE_ITEM
-}
-
-enum Gender {
-  FEMALE
-  MALE
-  UNKNOWN
-}
-
-enum TimeOfDay {
-  ANY
-  DAY
-  NIGHT
 }
 
 enum ItemCategory {
@@ -1373,191 +1565,60 @@ enum ItemAttribute {
   USABLE_OVERWORLD
 }
 
-type Ability {
-  id: ID!
-  slug: String!
-  name: String!
-  effect: String!
-  pokemon: PokemonList!
+enum MoveLearnMethod {
+  LEVEL_UP
+  EGG
+  TUTOR
+  MACHINE
+  STADIUM_SURFING_PIKACHU
+  LIGHT_BALL_EGG
+  COLOSSEUM_PURIFICATION
+  XD_SHADOW
+  XD_PURIFICATION
+  FORM_CHANGE
+  RECORD
+  TRANSFER
 }
 
-type AbilityList {
-  total: Int!
-  abilities: [Ability!]!
+enum MoveTarget {
+  SPECIFIC_MOVE
+  SELECTED_POKEMON_ME_FIRST
+  ALLY
+  USERS_FIELD
+  USER_OR_ALLY
+  OPPONENTS_FIELD
+  USER
+  RANDOM_OPPONENT
+  ALL_OTHER_POKEMON
+  SELECTED_POKEMON
+  ALL_OPPONENTS
+  ENTIRE_FIELD
+  USER_AND_ALLIES
+  ALL_POKEMON
+  ALL_ALLIES
 }
 
-type Evolution {
-  pokemon: Pokemon!
-  trigger: EvolutionTrigger!
-  item: Item
-  gender: Gender!
-  heldItem: Item
-  knownMove: Move
-  knownMoveType: Type
-  location: Location
-  minLevel: Int!
-  minHappiness: Int!
-  minBeauty: Int!
-  minAffection: Int!
-  needsOverworldRain: Boolean!
-  partyPokemon: Pokemon
-  partyPokemonType: Type
-  relativePhysicalStats: Int!
-  timeOfDay: TimeOfDay!
-  tradeWithPokemon: Pokemon
-  turnUpsideDown: Boolean!
-  spin: Boolean!
-  takeDamage: Int!
-  criticalHits: Int!
+enum Shape {
+  BALL
+  SQUIGGLE
+  FISH
+  ARMS
+  BLOB
+  UPRIGHT
+  LEGS
+  QUADRUPED
+  WINGS
+  TENTACLES
+  HEADS
+  HUMANOID
+  BUG_WINGS
+  ARMOR
 }
 
-type EvolutionList {
-  total: Int!
-  evolutions: [Evolution!]!
-}
-
-type Item {
-  id: ID!
-  slug: String!
-  name: String!
-  cost: Int!
-  flingPower: Int!
-  flingEffect: String!
-  effect: String!
-  sprite: String!
-  category: ItemCategory!
-  attributes: [ItemAttribute!]!
-}
-
-type Location {
-  id: ID!
-  slug: String!
-  region: Region!
-  name: String!
-}
-
-type Region {
-  id: ID!
-  slug: String!
-  name: String!
-}
-
-type PokemonAbility {
-  slot: Int!
-  isHidden: Boolean!
-  ability: Ability!
-}
-
-type PokemonAbilityList {
-  total: Int!
-  pokemonAbilities: [PokemonAbility!]!
-}
-
-type EggGroup {
-  id: ID!
-  name: String!
-  slug: String!
-}
-
-type EggGroupList {
-  total: Int!
-  eggGroups: [EggGroup!]!
-}
-
-type Move {
-  id: ID!
-  slug: String!
-  name: String!
-  accuracy: Int!
-  pp: Int!
-  power: Int!
-  damageClass: DamageClass!
-  effect: String!
-  effectChance: Int!
-  target: String!
-  type: Type!
-  pokemon: PokemonList!
-}
-
-type MoveList {
-  total: Int!
-  moves: [Move!]!
-}
-
-type Pokemon {
-  id: ID!
-  name: String!
-  slug: String!
-  pokedexId: Int!
-  sprite: String!
-  hp: Int!
-  attack: Int!
-  defense: Int!
-  specialAttack: Int!
-  specialDefense: Int!
-  speed: Int!
-  isBaby: Boolean!
-  isLegendary: Boolean!
-  isMythical: Boolean!
-  description: String!
-  color: Color!
-  shape: Shape!
-  habitat: Habitat
-  height: Int!
-  weight: Int!
-  isDefaultVariant: Boolean!
-  genus: String!
-  abilities: PokemonAbilityList!
-  types: PokemonTypeList!
-  moves: MoveList!
-  eggGroups: EggGroupList!
-  evolvesTo: EvolutionList!
-  evolvesFrom: EvolutionList!
-}
-
-type PokemonList {
-  total: Int!
-  pokemon: [Pokemon!]!
-}
-
-type PokemonType {
-  type: Type!
-  slot: Int!
-}
-
-type PokemonTypeList {
-  total: Int!
-  pokemonTypes: [PokemonType!]!
-}
-
-type Type {
-  id: ID!
-  slug: String!
-  name: String!
-  pokemon: PokemonList!
-  moves: MoveList!
-  noDamageTo: TypeList!
-  halfDamageTo: TypeList!
-  doubleDamageTo: TypeList!
-  noDamageFrom: TypeList!
-  halfDamageFrom: TypeList!
-  doubleDamageFrom: TypeList!
-}
-
-type TypeList {
-  total: Int!
-  types: [Type!]!
-}
-
-type Query {
-  abilityById(id: ID!): Ability
-  abilities: AbilityList!
-  moveById(id: ID!): Move
-  moves: MoveList!
-  pokemonById(id: ID!): Pokemon
-  pokemon: PokemonList!
-  typeById(id: ID!): Type
-  types: TypeList!
+enum TimeOfDay {
+  DAY
+  NIGHT
+  ANY
 }
 `, BuiltIn: false},
 }
@@ -1810,14 +1871,11 @@ func (ec *executionContext) _Ability_effect(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Ability_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.Ability) (ret graphql.Marshaler) {
@@ -1850,9 +1908,9 @@ func (ec *executionContext) _Ability_pokemon(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PokemonList)
+	res := resTmp.(*model.PokemonAbilityList)
 	fc.Result = res
-	return ec.marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonList(ctx, field.Selections, res)
+	return ec.marshalNPokemonAbilityList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _AbilityList_total(ctx context.Context, field graphql.CollectedField, obj *model.AbilityList) (ret graphql.Marshaler) {
@@ -1920,9 +1978,9 @@ func (ec *executionContext) _AbilityList_abilities(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Ability)
+	res := resTmp.([]*model.Ability)
 	fc.Result = res
-	return ec.marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx, field.Selections, res)
+	return ec.marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EggGroup_id(ctx context.Context, field graphql.CollectedField, obj *model.EggGroup) (ret graphql.Marshaler) {
@@ -2095,825 +2153,9 @@ func (ec *executionContext) _EggGroupList_eggGroups(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.EggGroup)
+	res := resTmp.([]*model.EggGroup)
 	fc.Result = res
-	return ec.marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().Pokemon(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*model.Pokemon)
-	fc.Result = res
-	return ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_trigger(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Trigger, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.EvolutionTrigger)
-	fc.Result = res
-	return ec.marshalNEvolutionTrigger2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionTrigger(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_item(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Item, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Item)
-	fc.Result = res
-	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_gender(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Gender, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.Gender)
-	fc.Result = res
-	return ec.marshalNGender2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐGender(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_heldItem(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.HeldItem, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Item)
-	fc.Result = res
-	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_knownMove(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().KnownMove(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Move)
-	fc.Result = res
-	return ec.marshalOMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_knownMoveType(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().KnownMoveType(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Type)
-	fc.Result = res
-	return ec.marshalOType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_location(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Location, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Location)
-	fc.Result = res
-	return ec.marshalOLocation2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_minLevel(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MinLevel, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_minHappiness(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MinHappiness, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_minBeauty(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MinBeauty, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_minAffection(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.MinAffection, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_needsOverworldRain(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.NeedsOverworldRain, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_partyPokemon(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().PartyPokemon(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Pokemon)
-	fc.Result = res
-	return ec.marshalOPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_partyPokemonType(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().PartyPokemonType(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Type)
-	fc.Result = res
-	return ec.marshalOType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_relativePhysicalStats(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.RelativePhysicalStats, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_timeOfDay(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TimeOfDay, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.TimeOfDay)
-	fc.Result = res
-	return ec.marshalNTimeOfDay2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTimeOfDay(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_tradeWithPokemon(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Evolution().TradeWithPokemon(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.Pokemon)
-	fc.Result = res
-	return ec.marshalOPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_turnUpsideDown(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TurnUpsideDown, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_spin(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Spin, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_takeDamage(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TakeDamage, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Evolution_criticalHits(ctx context.Context, field graphql.CollectedField, obj *model.Evolution) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Evolution",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CriticalHits, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EvolutionList_total(ctx context.Context, field graphql.CollectedField, obj *model.EvolutionList) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "EvolutionList",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Total, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EvolutionList_evolutions(ctx context.Context, field graphql.CollectedField, obj *model.EvolutionList) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "EvolutionList",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Evolutions, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]model.Evolution)
-	fc.Result = res
-	return ec.marshalNEvolution2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionᚄ(ctx, field.Selections, res)
+	return ec.marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_id(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3046,14 +2288,11 @@ func (ec *executionContext) _Item_cost(ctx context.Context, field graphql.Collec
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_flingPower(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3081,14 +2320,11 @@ func (ec *executionContext) _Item_flingPower(ctx context.Context, field graphql.
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_flingEffect(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3116,14 +2352,11 @@ func (ec *executionContext) _Item_flingEffect(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_effect(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3151,14 +2384,11 @@ func (ec *executionContext) _Item_effect(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_sprite(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3186,14 +2416,11 @@ func (ec *executionContext) _Item_sprite(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Item_category(ctx context.Context, field graphql.CollectedField, obj *model.Item) (ret graphql.Marshaler) {
@@ -3264,146 +2491,6 @@ func (ec *executionContext) _Item_attributes(ctx context.Context, field graphql.
 	res := resTmp.([]model.ItemAttribute)
 	fc.Result = res
 	return ec.marshalNItemAttribute2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItemAttributeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_id(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_slug(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Slug, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_region(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Region, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(model.Region)
-	fc.Result = res
-	return ec.marshalNRegion2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐRegion(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Location_name(ctx context.Context, field graphql.CollectedField, obj *model.Location) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Location",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_id(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3536,14 +2623,11 @@ func (ec *executionContext) _Move_accuracy(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_pp(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3564,21 +2648,18 @@ func (ec *executionContext) _Move_pp(ctx context.Context, field graphql.Collecte
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.PP, nil
+		return obj.Pp, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_power(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3606,14 +2687,11 @@ func (ec *executionContext) _Move_power(ctx context.Context, field graphql.Colle
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_damageClass(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3676,14 +2754,11 @@ func (ec *executionContext) _Move_effect(ctx context.Context, field graphql.Coll
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_effectChance(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3711,14 +2786,11 @@ func (ec *executionContext) _Move_effectChance(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_target(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3751,9 +2823,9 @@ func (ec *executionContext) _Move_target(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.MoveTarget)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNMoveTarget2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveTarget(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_type(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3767,14 +2839,14 @@ func (ec *executionContext) _Move_type(ctx context.Context, field graphql.Collec
 		Object:     "Move",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.Move().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3786,9 +2858,9 @@ func (ec *executionContext) _Move_type(ctx context.Context, field graphql.Collec
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Type)
+	res := resTmp.(*model.Type)
 	fc.Result = res
-	return ec.marshalNType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
+	return ec.marshalNType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Move_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.Move) (ret graphql.Marshaler) {
@@ -3821,9 +2893,9 @@ func (ec *executionContext) _Move_pokemon(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PokemonList)
+	res := resTmp.(*model.PokemonMoveList)
 	fc.Result = res
-	return ec.marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonList(ctx, field.Selections, res)
+	return ec.marshalNPokemonMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MoveList_total(ctx context.Context, field graphql.CollectedField, obj *model.MoveList) (ret graphql.Marshaler) {
@@ -3891,9 +2963,9 @@ func (ec *executionContext) _MoveList_moves(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Move)
+	res := resTmp.([]*model.Move)
 	fc.Result = res
-	return ec.marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx, field.Selections, res)
+	return ec.marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_id(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4019,7 +3091,7 @@ func (ec *executionContext) _Pokemon_pokedexId(ctx context.Context, field graphq
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.PokedexId, nil
+		return obj.PokedexID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4066,9 +3138,9 @@ func (ec *executionContext) _Pokemon_sprite(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_hp(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4089,7 +3161,7 @@ func (ec *executionContext) _Pokemon_hp(ctx context.Context, field graphql.Colle
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HP, nil
+		return obj.Hp, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4411,14 +3483,11 @@ func (ec *executionContext) _Pokemon_description(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_color(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4518,9 +3587,9 @@ func (ec *executionContext) _Pokemon_habitat(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(model.Habitat)
+	res := resTmp.(*model.Habitat)
 	fc.Result = res
-	return ec.marshalOHabitat2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx, field.Selections, res)
+	return ec.marshalOHabitat2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_height(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4674,14 +3743,14 @@ func (ec *executionContext) _Pokemon_abilities(ctx context.Context, field graphq
 		Object:     "Pokemon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Abilities, nil
+		return ec.resolvers.Pokemon().Abilities(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4693,9 +3762,9 @@ func (ec *executionContext) _Pokemon_abilities(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.PokemonAbilityList)
+	res := resTmp.(*model.PokemonAbilityList)
 	fc.Result = res
-	return ec.marshalNPokemonAbilityList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityList(ctx, field.Selections, res)
+	return ec.marshalNPokemonAbilityList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_types(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4709,14 +3778,14 @@ func (ec *executionContext) _Pokemon_types(ctx context.Context, field graphql.Co
 		Object:     "Pokemon",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Types, nil
+		return ec.resolvers.Pokemon().Types(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4728,9 +3797,9 @@ func (ec *executionContext) _Pokemon_types(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.PokemonTypeList)
+	res := resTmp.(*model.PokemonTypeList)
 	fc.Result = res
-	return ec.marshalNPokemonTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx, field.Selections, res)
+	return ec.marshalNPokemonTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_moves(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4763,9 +3832,9 @@ func (ec *executionContext) _Pokemon_moves(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.MoveList)
+	res := resTmp.(*model.PokemonMoveList)
 	fc.Result = res
-	return ec.marshalNMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx, field.Selections, res)
+	return ec.marshalNPokemonMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_eggGroups(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4798,9 +3867,9 @@ func (ec *executionContext) _Pokemon_eggGroups(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.EggGroupList)
+	res := resTmp.(*model.EggGroupList)
 	fc.Result = res
-	return ec.marshalNEggGroupList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx, field.Selections, res)
+	return ec.marshalNEggGroupList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_evolvesTo(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4833,9 +3902,9 @@ func (ec *executionContext) _Pokemon_evolvesTo(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.EvolutionList)
+	res := resTmp.(*model.PokemonEvolutionList)
 	fc.Result = res
-	return ec.marshalNEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx, field.Selections, res)
+	return ec.marshalNPokemonEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Pokemon_evolvesFrom(ctx context.Context, field graphql.CollectedField, obj *model.Pokemon) (ret graphql.Marshaler) {
@@ -4868,9 +3937,9 @@ func (ec *executionContext) _Pokemon_evolvesFrom(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.EvolutionList)
+	res := resTmp.(*model.PokemonEvolutionList)
 	fc.Result = res
-	return ec.marshalNEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx, field.Selections, res)
+	return ec.marshalNPokemonEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonAbility_slot(ctx context.Context, field graphql.CollectedField, obj *model.PokemonAbility) (ret graphql.Marshaler) {
@@ -4954,14 +4023,14 @@ func (ec *executionContext) _PokemonAbility_ability(ctx context.Context, field g
 		Object:     "PokemonAbility",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Ability, nil
+		return ec.resolvers.PokemonAbility().Ability(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4973,9 +4042,44 @@ func (ec *executionContext) _PokemonAbility_ability(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Ability)
+	res := resTmp.(*model.Ability)
 	fc.Result = res
-	return ec.marshalNAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, field.Selections, res)
+	return ec.marshalNAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonAbility_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonAbility) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonAbility",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonAbility().Pokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonAbilityList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonAbilityList) (ret graphql.Marshaler) {
@@ -5043,9 +4147,772 @@ func (ec *executionContext) _PokemonAbilityList_pokemonAbilities(ctx context.Con
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.PokemonAbility)
+	res := resTmp.([]*model.PokemonAbility)
 	fc.Result = res
-	return ec.marshalNPokemonAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityᚄ(ctx, field.Selections, res)
+	return ec.marshalNPokemonAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().Pokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_trigger(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trigger, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.EvolutionTrigger)
+	fc.Result = res
+	return ec.marshalNEvolutionTrigger2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionTrigger(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_item(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().Item(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Item)
+	fc.Result = res
+	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_gender(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gender, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Gender)
+	fc.Result = res
+	return ec.marshalNGender2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐGender(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_heldItem(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().HeldItem(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Item)
+	fc.Result = res
+	return ec.marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_knownMove(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().KnownMove(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Move)
+	fc.Result = res
+	return ec.marshalOMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_knownMoveType(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().KnownMoveType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Type)
+	fc.Result = res
+	return ec.marshalOType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_minLevel(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinLevel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_minHappiness(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinHappiness, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_minBeauty(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinBeauty, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_minAffection(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinAffection, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_needsOverworldRain(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NeedsOverworldRain, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_partyPokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().PartyPokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalOPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_partyPokemonType(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().PartyPokemonType(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Type)
+	fc.Result = res
+	return ec.marshalOType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_relativePhysicalStats(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RelativePhysicalStats, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_timeOfDay(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimeOfDay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.TimeOfDay)
+	fc.Result = res
+	return ec.marshalNTimeOfDay2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTimeOfDay(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_tradeWithPokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonEvolution().TradeWithPokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalOPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_turnUpsideDown(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TurnUpsideDown, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_spin(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Spin, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_takeDamage(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TakeDamage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolution_criticalHits(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolution) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolution",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CriticalHits, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolutionList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolutionList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolutionList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonEvolutionList_pokemonEvolutions(ctx context.Context, field graphql.CollectedField, obj *model.PokemonEvolutionList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonEvolutionList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PokemonEvolutions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PokemonEvolution)
+	fc.Result = res
+	return ec.marshalNPokemonEvolution2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonList) (ret graphql.Marshaler) {
@@ -5113,9 +4980,219 @@ func (ec *executionContext) _PokemonList_pokemon(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Pokemon)
+	res := resTmp.([]*model.Pokemon)
 	fc.Result = res
-	return ec.marshalNPokemon2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonᚄ(ctx, field.Selections, res)
+	return ec.marshalNPokemon2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMove_move(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMove) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMove",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonMove().Move(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Move)
+	fc.Result = res
+	return ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMove_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMove) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMove",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonMove().Pokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMove_learnMethod(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMove) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMove",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LearnMethod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.MoveLearnMethod)
+	fc.Result = res
+	return ec.marshalNMoveLearnMethod2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveLearnMethod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMove_levelLearnedAt(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMove) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMove",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LevelLearnedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMoveList_total(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMoveList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMoveList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonMoveList_pokemonMoves(ctx context.Context, field graphql.CollectedField, obj *model.PokemonMoveList) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonMoveList",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PokemonMoves, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.PokemonMove)
+	fc.Result = res
+	return ec.marshalNPokemonMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonType_type(ctx context.Context, field graphql.CollectedField, obj *model.PokemonType) (ret graphql.Marshaler) {
@@ -5129,14 +5206,14 @@ func (ec *executionContext) _PokemonType_type(ctx context.Context, field graphql
 		Object:     "PokemonType",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return ec.resolvers.PokemonType().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5148,9 +5225,44 @@ func (ec *executionContext) _PokemonType_type(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Type)
+	res := resTmp.(*model.Type)
 	fc.Result = res
-	return ec.marshalNType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
+	return ec.marshalNType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PokemonType_pokemon(ctx context.Context, field graphql.CollectedField, obj *model.PokemonType) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PokemonType",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PokemonType().Pokemon(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Pokemon)
+	fc.Result = res
+	return ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PokemonType_slot(ctx context.Context, field graphql.CollectedField, obj *model.PokemonType) (ret graphql.Marshaler) {
@@ -5253,9 +5365,9 @@ func (ec *executionContext) _PokemonTypeList_pokemonTypes(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.PokemonType)
+	res := resTmp.([]*model.PokemonType)
 	fc.Result = res
-	return ec.marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_abilityById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5625,111 +5737,6 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Region_id(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Region",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Region_slug(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Region",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Slug, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Region_name(ctx context.Context, field graphql.CollectedField, obj *model.Region) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Region",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Type_id(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5865,9 +5872,9 @@ func (ec *executionContext) _Type_pokemon(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.PokemonList)
+	res := resTmp.(*model.PokemonTypeList)
 	fc.Result = res
-	return ec.marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonList(ctx, field.Selections, res)
+	return ec.marshalNPokemonTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_moves(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -5916,14 +5923,14 @@ func (ec *executionContext) _Type_noDamageTo(ctx context.Context, field graphql.
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.NoDamageTo, nil
+		return ec.resolvers.Type().NoDamageTo(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5935,9 +5942,9 @@ func (ec *executionContext) _Type_noDamageTo(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_halfDamageTo(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -5951,14 +5958,14 @@ func (ec *executionContext) _Type_halfDamageTo(ctx context.Context, field graphq
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HalfDamageTo, nil
+		return ec.resolvers.Type().HalfDamageTo(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5970,9 +5977,9 @@ func (ec *executionContext) _Type_halfDamageTo(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_doubleDamageTo(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -5986,14 +5993,14 @@ func (ec *executionContext) _Type_doubleDamageTo(ctx context.Context, field grap
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DoubleDamageTo, nil
+		return ec.resolvers.Type().DoubleDamageTo(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6005,9 +6012,9 @@ func (ec *executionContext) _Type_doubleDamageTo(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_noDamageFrom(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -6021,14 +6028,14 @@ func (ec *executionContext) _Type_noDamageFrom(ctx context.Context, field graphq
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.NoDamageFrom, nil
+		return ec.resolvers.Type().NoDamageFrom(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6040,9 +6047,9 @@ func (ec *executionContext) _Type_noDamageFrom(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_halfDamageFrom(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -6056,14 +6063,14 @@ func (ec *executionContext) _Type_halfDamageFrom(ctx context.Context, field grap
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HalfDamageFrom, nil
+		return ec.resolvers.Type().HalfDamageFrom(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6075,9 +6082,9 @@ func (ec *executionContext) _Type_halfDamageFrom(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Type_doubleDamageFrom(ctx context.Context, field graphql.CollectedField, obj *model.Type) (ret graphql.Marshaler) {
@@ -6091,14 +6098,14 @@ func (ec *executionContext) _Type_doubleDamageFrom(ctx context.Context, field gr
 		Object:     "Type",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DoubleDamageFrom, nil
+		return ec.resolvers.Type().DoubleDamageFrom(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6110,9 +6117,9 @@ func (ec *executionContext) _Type_doubleDamageFrom(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.TypeList)
+	res := resTmp.(*model.TypeList)
 	fc.Result = res
-	return ec.marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
+	return ec.marshalNTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TypeList_total(ctx context.Context, field graphql.CollectedField, obj *model.TypeList) (ret graphql.Marshaler) {
@@ -6180,9 +6187,9 @@ func (ec *executionContext) _TypeList_types(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Type)
+	res := resTmp.([]*model.Type)
 	fc.Result = res
-	return ec.marshalNType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx, field.Selections, res)
+	return ec.marshalNType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -7308,9 +7315,6 @@ func (ec *executionContext) _Ability(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "effect":
 			out.Values[i] = ec._Ability_effect(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "pokemon":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7437,200 +7441,6 @@ func (ec *executionContext) _EggGroupList(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var evolutionImplementors = []string{"Evolution"}
-
-func (ec *executionContext) _Evolution(ctx context.Context, sel ast.SelectionSet, obj *model.Evolution) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, evolutionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Evolution")
-		case "pokemon":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_pokemon(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "trigger":
-			out.Values[i] = ec._Evolution_trigger(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "item":
-			out.Values[i] = ec._Evolution_item(ctx, field, obj)
-		case "gender":
-			out.Values[i] = ec._Evolution_gender(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "heldItem":
-			out.Values[i] = ec._Evolution_heldItem(ctx, field, obj)
-		case "knownMove":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_knownMove(ctx, field, obj)
-				return res
-			})
-		case "knownMoveType":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_knownMoveType(ctx, field, obj)
-				return res
-			})
-		case "location":
-			out.Values[i] = ec._Evolution_location(ctx, field, obj)
-		case "minLevel":
-			out.Values[i] = ec._Evolution_minLevel(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "minHappiness":
-			out.Values[i] = ec._Evolution_minHappiness(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "minBeauty":
-			out.Values[i] = ec._Evolution_minBeauty(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "minAffection":
-			out.Values[i] = ec._Evolution_minAffection(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "needsOverworldRain":
-			out.Values[i] = ec._Evolution_needsOverworldRain(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "partyPokemon":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_partyPokemon(ctx, field, obj)
-				return res
-			})
-		case "partyPokemonType":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_partyPokemonType(ctx, field, obj)
-				return res
-			})
-		case "relativePhysicalStats":
-			out.Values[i] = ec._Evolution_relativePhysicalStats(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "timeOfDay":
-			out.Values[i] = ec._Evolution_timeOfDay(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "tradeWithPokemon":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Evolution_tradeWithPokemon(ctx, field, obj)
-				return res
-			})
-		case "turnUpsideDown":
-			out.Values[i] = ec._Evolution_turnUpsideDown(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "spin":
-			out.Values[i] = ec._Evolution_spin(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "takeDamage":
-			out.Values[i] = ec._Evolution_takeDamage(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "criticalHits":
-			out.Values[i] = ec._Evolution_criticalHits(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var evolutionListImplementors = []string{"EvolutionList"}
-
-func (ec *executionContext) _EvolutionList(ctx context.Context, sel ast.SelectionSet, obj *model.EvolutionList) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, evolutionListImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("EvolutionList")
-		case "total":
-			out.Values[i] = ec._EvolutionList_total(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "evolutions":
-			out.Values[i] = ec._EvolutionList_evolutions(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var itemImplementors = []string{"Item"}
 
 func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj *model.Item) graphql.Marshaler {
@@ -7659,29 +7469,14 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "cost":
 			out.Values[i] = ec._Item_cost(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "flingPower":
 			out.Values[i] = ec._Item_flingPower(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "flingEffect":
 			out.Values[i] = ec._Item_flingEffect(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "effect":
 			out.Values[i] = ec._Item_effect(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "sprite":
 			out.Values[i] = ec._Item_sprite(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "category":
 			out.Values[i] = ec._Item_category(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7689,48 +7484,6 @@ func (ec *executionContext) _Item(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "attributes":
 			out.Values[i] = ec._Item_attributes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var locationImplementors = []string{"Location"}
-
-func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet, obj *model.Location) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, locationImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Location")
-		case "id":
-			out.Values[i] = ec._Location_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "slug":
-			out.Values[i] = ec._Location_slug(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "region":
-			out.Values[i] = ec._Location_region(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._Location_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -7773,19 +7526,10 @@ func (ec *executionContext) _Move(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "accuracy":
 			out.Values[i] = ec._Move_accuracy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "pp":
 			out.Values[i] = ec._Move_pp(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "power":
 			out.Values[i] = ec._Move_power(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "damageClass":
 			out.Values[i] = ec._Move_damageClass(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7793,24 +7537,27 @@ func (ec *executionContext) _Move(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "effect":
 			out.Values[i] = ec._Move_effect(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "effectChance":
 			out.Values[i] = ec._Move_effectChance(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "target":
 			out.Values[i] = ec._Move_target(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
-			out.Values[i] = ec._Move_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Move_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "pokemon":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -7951,9 +7698,6 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "description":
 			out.Values[i] = ec._Pokemon_description(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "color":
 			out.Values[i] = ec._Pokemon_color(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7987,15 +7731,33 @@ func (ec *executionContext) _Pokemon(ctx context.Context, sel ast.SelectionSet, 
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "abilities":
-			out.Values[i] = ec._Pokemon_abilities(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Pokemon_abilities(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "types":
-			out.Values[i] = ec._Pokemon_types(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Pokemon_types(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "moves":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -8068,18 +7830,41 @@ func (ec *executionContext) _PokemonAbility(ctx context.Context, sel ast.Selecti
 		case "slot":
 			out.Values[i] = ec._PokemonAbility_slot(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "isHidden":
 			out.Values[i] = ec._PokemonAbility_isHidden(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "ability":
-			out.Values[i] = ec._PokemonAbility_ability(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonAbility_ability(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonAbility_pokemon(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8109,6 +7894,195 @@ func (ec *executionContext) _PokemonAbilityList(ctx context.Context, sel ast.Sel
 			}
 		case "pokemonAbilities":
 			out.Values[i] = ec._PokemonAbilityList_pokemonAbilities(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var pokemonEvolutionImplementors = []string{"PokemonEvolution"}
+
+func (ec *executionContext) _PokemonEvolution(ctx context.Context, sel ast.SelectionSet, obj *model.PokemonEvolution) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pokemonEvolutionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PokemonEvolution")
+		case "pokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_pokemon(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "trigger":
+			out.Values[i] = ec._PokemonEvolution_trigger(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "item":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_item(ctx, field, obj)
+				return res
+			})
+		case "gender":
+			out.Values[i] = ec._PokemonEvolution_gender(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "heldItem":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_heldItem(ctx, field, obj)
+				return res
+			})
+		case "knownMove":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_knownMove(ctx, field, obj)
+				return res
+			})
+		case "knownMoveType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_knownMoveType(ctx, field, obj)
+				return res
+			})
+		case "minLevel":
+			out.Values[i] = ec._PokemonEvolution_minLevel(ctx, field, obj)
+		case "minHappiness":
+			out.Values[i] = ec._PokemonEvolution_minHappiness(ctx, field, obj)
+		case "minBeauty":
+			out.Values[i] = ec._PokemonEvolution_minBeauty(ctx, field, obj)
+		case "minAffection":
+			out.Values[i] = ec._PokemonEvolution_minAffection(ctx, field, obj)
+		case "needsOverworldRain":
+			out.Values[i] = ec._PokemonEvolution_needsOverworldRain(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "partyPokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_partyPokemon(ctx, field, obj)
+				return res
+			})
+		case "partyPokemonType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_partyPokemonType(ctx, field, obj)
+				return res
+			})
+		case "relativePhysicalStats":
+			out.Values[i] = ec._PokemonEvolution_relativePhysicalStats(ctx, field, obj)
+		case "timeOfDay":
+			out.Values[i] = ec._PokemonEvolution_timeOfDay(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "tradeWithPokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonEvolution_tradeWithPokemon(ctx, field, obj)
+				return res
+			})
+		case "turnUpsideDown":
+			out.Values[i] = ec._PokemonEvolution_turnUpsideDown(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "spin":
+			out.Values[i] = ec._PokemonEvolution_spin(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "takeDamage":
+			out.Values[i] = ec._PokemonEvolution_takeDamage(ctx, field, obj)
+		case "criticalHits":
+			out.Values[i] = ec._PokemonEvolution_criticalHits(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var pokemonEvolutionListImplementors = []string{"PokemonEvolutionList"}
+
+func (ec *executionContext) _PokemonEvolutionList(ctx context.Context, sel ast.SelectionSet, obj *model.PokemonEvolutionList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pokemonEvolutionListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PokemonEvolutionList")
+		case "total":
+			out.Values[i] = ec._PokemonEvolutionList_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pokemonEvolutions":
+			out.Values[i] = ec._PokemonEvolutionList_pokemonEvolutions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -8155,6 +8129,98 @@ func (ec *executionContext) _PokemonList(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var pokemonMoveImplementors = []string{"PokemonMove"}
+
+func (ec *executionContext) _PokemonMove(ctx context.Context, sel ast.SelectionSet, obj *model.PokemonMove) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pokemonMoveImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PokemonMove")
+		case "move":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonMove_move(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonMove_pokemon(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "learnMethod":
+			out.Values[i] = ec._PokemonMove_learnMethod(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "levelLearnedAt":
+			out.Values[i] = ec._PokemonMove_levelLearnedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var pokemonMoveListImplementors = []string{"PokemonMoveList"}
+
+func (ec *executionContext) _PokemonMoveList(ctx context.Context, sel ast.SelectionSet, obj *model.PokemonMoveList) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, pokemonMoveListImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PokemonMoveList")
+		case "total":
+			out.Values[i] = ec._PokemonMoveList_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pokemonMoves":
+			out.Values[i] = ec._PokemonMoveList_pokemonMoves(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var pokemonTypeImplementors = []string{"PokemonType"}
 
 func (ec *executionContext) _PokemonType(ctx context.Context, sel ast.SelectionSet, obj *model.PokemonType) graphql.Marshaler {
@@ -8167,14 +8233,37 @@ func (ec *executionContext) _PokemonType(ctx context.Context, sel ast.SelectionS
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PokemonType")
 		case "type":
-			out.Values[i] = ec._PokemonType_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonType_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "pokemon":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PokemonType_pokemon(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "slot":
 			out.Values[i] = ec._PokemonType_slot(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8349,43 +8438,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var regionImplementors = []string{"Region"}
-
-func (ec *executionContext) _Region(ctx context.Context, sel ast.SelectionSet, obj *model.Region) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, regionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Region")
-		case "id":
-			out.Values[i] = ec._Region_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "slug":
-			out.Values[i] = ec._Region_slug(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._Region_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var typeImplementors = []string{"Type"}
 
 func (ec *executionContext) _Type(ctx context.Context, sel ast.SelectionSet, obj *model.Type) graphql.Marshaler {
@@ -8441,35 +8493,89 @@ func (ec *executionContext) _Type(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			})
 		case "noDamageTo":
-			out.Values[i] = ec._Type_noDamageTo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_noDamageTo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "halfDamageTo":
-			out.Values[i] = ec._Type_halfDamageTo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_halfDamageTo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "doubleDamageTo":
-			out.Values[i] = ec._Type_doubleDamageTo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_doubleDamageTo(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "noDamageFrom":
-			out.Values[i] = ec._Type_noDamageFrom(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_noDamageFrom(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "halfDamageFrom":
-			out.Values[i] = ec._Type_halfDamageFrom(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_halfDamageFrom(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "doubleDamageFrom":
-			out.Values[i] = ec._Type_doubleDamageFrom(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Type_doubleDamageFrom(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8762,7 +8868,7 @@ func (ec *executionContext) marshalNAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋda
 	return ec._Ability(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Ability) graphql.Marshaler {
+func (ec *executionContext) marshalNAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Ability) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8786,7 +8892,7 @@ func (ec *executionContext) marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, sel, v[i])
+			ret[i] = ec.marshalNAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8797,6 +8903,16 @@ func (ec *executionContext) marshalNAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphql�
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbility(ctx context.Context, sel ast.SelectionSet, v *model.Ability) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Ability(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNAbilityList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐAbilityList(ctx context.Context, sel ast.SelectionSet, v model.AbilityList) graphql.Marshaler {
@@ -8848,11 +8964,7 @@ func (ec *executionContext) marshalNDamageClass2bekapodᚋpkmnᚑteamᚑgraphql�
 	return v
 }
 
-func (ec *executionContext) marshalNEggGroup2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx context.Context, sel ast.SelectionSet, v model.EggGroup) graphql.Marshaler {
-	return ec._EggGroup(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []model.EggGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNEggGroup2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.EggGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8876,7 +8988,7 @@ func (ec *executionContext) marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNEggGroup2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNEggGroup2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -8889,63 +9001,24 @@ func (ec *executionContext) marshalNEggGroup2ᚕbekapodᚋpkmnᚑteamᚑgraphql�
 	return ret
 }
 
-func (ec *executionContext) marshalNEggGroupList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx context.Context, sel ast.SelectionSet, v model.EggGroupList) graphql.Marshaler {
-	return ec._EggGroupList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNEvolution2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolution(ctx context.Context, sel ast.SelectionSet, v model.Evolution) graphql.Marshaler {
-	return ec._Evolution(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNEvolution2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Evolution) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNEvolution2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolution(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNEvolutionList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx context.Context, sel ast.SelectionSet, v model.EvolutionList) graphql.Marshaler {
-	return ec._EvolutionList(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionList(ctx context.Context, sel ast.SelectionSet, v *model.EvolutionList) graphql.Marshaler {
+func (ec *executionContext) marshalNEggGroup2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroup(ctx context.Context, sel ast.SelectionSet, v *model.EggGroup) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
 		return graphql.Null
 	}
-	return ec._EvolutionList(ctx, sel, v)
+	return ec._EggGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEggGroupList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEggGroupList(ctx context.Context, sel ast.SelectionSet, v *model.EggGroupList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EggGroupList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEvolutionTrigger2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐEvolutionTrigger(ctx context.Context, v interface{}) (model.EvolutionTrigger, error) {
@@ -9080,7 +9153,7 @@ func (ec *executionContext) marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdata�
 	return ec._Move(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Move) graphql.Marshaler {
+func (ec *executionContext) marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Move) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9104,7 +9177,7 @@ func (ec *executionContext) marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, sel, v[i])
+			ret[i] = ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9115,6 +9188,26 @@ func (ec *executionContext) marshalNMove2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Move(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNMoveLearnMethod2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveLearnMethod(ctx context.Context, v interface{}) (model.MoveLearnMethod, error) {
+	var res model.MoveLearnMethod
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMoveLearnMethod2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveLearnMethod(ctx context.Context, sel ast.SelectionSet, v model.MoveLearnMethod) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNMoveList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveList(ctx context.Context, sel ast.SelectionSet, v model.MoveList) graphql.Marshaler {
@@ -9131,11 +9224,21 @@ func (ec *executionContext) marshalNMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphql�
 	return ec._MoveList(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNMoveTarget2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveTarget(ctx context.Context, v interface{}) (model.MoveTarget, error) {
+	var res model.MoveTarget
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNMoveTarget2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveTarget(ctx context.Context, sel ast.SelectionSet, v model.MoveTarget) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNPokemon2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx context.Context, sel ast.SelectionSet, v model.Pokemon) graphql.Marshaler {
 	return ec._Pokemon(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPokemon2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Pokemon) graphql.Marshaler {
+func (ec *executionContext) marshalNPokemon2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Pokemon) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9159,7 +9262,7 @@ func (ec *executionContext) marshalNPokemon2ᚕbekapodᚋpkmnᚑteamᚑgraphql�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPokemon2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, sel, v[i])
+			ret[i] = ec.marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemon(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9182,11 +9285,7 @@ func (ec *executionContext) marshalNPokemon2ᚖbekapodᚋpkmnᚑteamᚑgraphql�
 	return ec._Pokemon(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPokemonAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbility(ctx context.Context, sel ast.SelectionSet, v model.PokemonAbility) graphql.Marshaler {
-	return ec._PokemonAbility(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPokemonAbility2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PokemonAbility) graphql.Marshaler {
+func (ec *executionContext) marshalNPokemonAbility2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PokemonAbility) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9210,7 +9309,7 @@ func (ec *executionContext) marshalNPokemonAbility2ᚕbekapodᚋpkmnᚑteamᚑgr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPokemonAbility2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbility(ctx, sel, v[i])
+			ret[i] = ec.marshalNPokemonAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbility(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9223,8 +9322,89 @@ func (ec *executionContext) marshalNPokemonAbility2ᚕbekapodᚋpkmnᚑteamᚑgr
 	return ret
 }
 
+func (ec *executionContext) marshalNPokemonAbility2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbility(ctx context.Context, sel ast.SelectionSet, v *model.PokemonAbility) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonAbility(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPokemonAbilityList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityList(ctx context.Context, sel ast.SelectionSet, v model.PokemonAbilityList) graphql.Marshaler {
 	return ec._PokemonAbilityList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPokemonAbilityList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonAbilityList(ctx context.Context, sel ast.SelectionSet, v *model.PokemonAbilityList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonAbilityList(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPokemonEvolution2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PokemonEvolution) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPokemonEvolution2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolution(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPokemonEvolution2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolution(ctx context.Context, sel ast.SelectionSet, v *model.PokemonEvolution) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonEvolution(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPokemonEvolutionList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionList(ctx context.Context, sel ast.SelectionSet, v model.PokemonEvolutionList) graphql.Marshaler {
+	return ec._PokemonEvolutionList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPokemonEvolutionList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonEvolutionList(ctx context.Context, sel ast.SelectionSet, v *model.PokemonEvolutionList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonEvolutionList(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPokemonList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonList(ctx context.Context, sel ast.SelectionSet, v model.PokemonList) graphql.Marshaler {
@@ -9241,11 +9421,7 @@ func (ec *executionContext) marshalNPokemonList2ᚖbekapodᚋpkmnᚑteamᚑgraph
 	return ec._PokemonList(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPokemonType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx context.Context, sel ast.SelectionSet, v model.PokemonType) graphql.Marshaler {
-	return ec._PokemonType(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.PokemonType) graphql.Marshaler {
+func (ec *executionContext) marshalNPokemonMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PokemonMove) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9269,7 +9445,7 @@ func (ec *executionContext) marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraph
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPokemonType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx, sel, v[i])
+			ret[i] = ec.marshalNPokemonMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMove(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9282,12 +9458,89 @@ func (ec *executionContext) marshalNPokemonType2ᚕbekapodᚋpkmnᚑteamᚑgraph
 	return ret
 }
 
+func (ec *executionContext) marshalNPokemonMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMove(ctx context.Context, sel ast.SelectionSet, v *model.PokemonMove) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonMove(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPokemonMoveList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveList(ctx context.Context, sel ast.SelectionSet, v model.PokemonMoveList) graphql.Marshaler {
+	return ec._PokemonMoveList(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPokemonMoveList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonMoveList(ctx context.Context, sel ast.SelectionSet, v *model.PokemonMoveList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonMoveList(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPokemonType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PokemonType) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPokemonType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNPokemonType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonType(ctx context.Context, sel ast.SelectionSet, v *model.PokemonType) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonType(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNPokemonTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx context.Context, sel ast.SelectionSet, v model.PokemonTypeList) graphql.Marshaler {
 	return ec._PokemonTypeList(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRegion2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐRegion(ctx context.Context, sel ast.SelectionSet, v model.Region) graphql.Marshaler {
-	return ec._Region(ctx, sel, &v)
+func (ec *executionContext) marshalNPokemonTypeList2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐPokemonTypeList(ctx context.Context, sel ast.SelectionSet, v *model.PokemonTypeList) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._PokemonTypeList(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNShape2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐShape(ctx context.Context, v interface{}) (model.Shape, error) {
@@ -9315,6 +9568,27 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
+	res, err := graphql.UnmarshalString(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalString(*v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) unmarshalNTimeOfDay2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTimeOfDay(ctx context.Context, v interface{}) (model.TimeOfDay, error) {
 	var res model.TimeOfDay
 	err := res.UnmarshalGQL(v)
@@ -9329,7 +9603,7 @@ func (ec *executionContext) marshalNType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdata�
 	return ec._Type(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []model.Type) graphql.Marshaler {
+func (ec *executionContext) marshalNType2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Type) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -9353,7 +9627,7 @@ func (ec *executionContext) marshalNType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNType2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, sel, v[i])
+			ret[i] = ec.marshalNType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9364,6 +9638,16 @@ func (ec *executionContext) marshalNType2ᚕbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNType2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐType(ctx context.Context, sel ast.SelectionSet, v *model.Type) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Type(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTypeList2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTypeList(ctx context.Context, sel ast.SelectionSet, v model.TypeList) graphql.Marshaler {
@@ -9640,14 +9924,35 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) unmarshalOHabitat2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx context.Context, v interface{}) (model.Habitat, error) {
-	var res model.Habitat
+func (ec *executionContext) unmarshalOHabitat2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx context.Context, v interface{}) (*model.Habitat, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.Habitat)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOHabitat2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx context.Context, sel ast.SelectionSet, v model.Habitat) graphql.Marshaler {
+func (ec *executionContext) marshalOHabitat2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐHabitat(ctx context.Context, sel ast.SelectionSet, v *model.Habitat) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalInt(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalInt(*v)
 }
 
 func (ec *executionContext) marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItem(ctx context.Context, sel ast.SelectionSet, v *model.Item) graphql.Marshaler {
@@ -9655,13 +9960,6 @@ func (ec *executionContext) marshalOItem2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋda
 		return graphql.Null
 	}
 	return ec._Item(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOLocation2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐLocation(ctx context.Context, sel ast.SelectionSet, v *model.Location) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Location(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {

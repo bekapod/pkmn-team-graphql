@@ -1,34 +1,48 @@
 package main
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/pokeapi"
 	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	start := time.Now()
-	config := &helpers.Config{
-		OutputFile: "seeds/types.sql",
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
 	}
+
+	start := time.Now()
+	config := &helpers.Config{}
 	arg.MustParse(config)
 
 	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+	prisma := db.NewClient()
+	if err := prisma.Prisma.Connect(); err != nil {
+		panic(err)
+	}
 
-	f := helpers.OpenFile(config.OutputFile)
-	defer f.Close()
+	defer func() {
+		if err := prisma.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()
 
-	typeList := client.GetResourceList("type")
+	ctx := context.Background()
+
+	typeList := client.GetResourceList("type", 10000)
 	results := typeList.Results
 	resultsLength := len(results)
-	values := make([]string, 0)
-	damageRelationValues := make([]string, 0)
+	types := make([]pokeapi.Type, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -39,94 +53,117 @@ func main() {
 			urlParts := strings.Split(results[i].Url, "/")
 			id := urlParts[len(urlParts)-2]
 			fullType := client.GetType(id)
-
+			types = append(types, fullType)
 			englishName, err := pokeapi.GetEnglishName(fullType.Names, fullType.Name)
 			if err != nil {
 				log.Logger.Fatal(err)
 			}
 
-			values = append(values, fmt.Sprintf(
-				"('%s', '%s', now())",
-				fullType.Name,
-				helpers.EscapeSingleQuote(englishName.Name),
-			))
+			_, dbErr := prisma.Type.UpsertOne(db.Type.Slug.Equals(fullType.Name)).
+				Create(db.Type.Slug.Set(fullType.Name), db.Type.Name.Set(englishName.Name), db.Type.UpdatedAt.Set(time.Now())).
+				Update(db.Type.Name.Set(englishName.Name), db.Type.UpdatedAt.Set(time.Now())).
+				Exec(ctx)
 
-			if len(fullType.DamageRelations.NoDamageTo) > 0 {
-				for _, relation := range fullType.DamageRelations.NoDamageTo {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'no-damage-to', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
-			}
-
-			if len(fullType.DamageRelations.HalfDamageTo) > 0 {
-				for _, relation := range fullType.DamageRelations.HalfDamageTo {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'half-damage-to', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
-			}
-
-			if len(fullType.DamageRelations.DoubleDamageTo) > 0 {
-				for _, relation := range fullType.DamageRelations.DoubleDamageTo {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'double-damage-to', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
-			}
-
-			if len(fullType.DamageRelations.NoDamageFrom) > 0 {
-				for _, relation := range fullType.DamageRelations.NoDamageFrom {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'no-damage-from', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
-			}
-
-			if len(fullType.DamageRelations.HalfDamageFrom) > 0 {
-				for _, relation := range fullType.DamageRelations.HalfDamageFrom {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'half-damage-from', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
-			}
-
-			if len(fullType.DamageRelations.DoubleDamageFrom) > 0 {
-				for _, relation := range fullType.DamageRelations.DoubleDamageFrom {
-					damageRelationValues = append(damageRelationValues, fmt.Sprintf(
-						"(%s, %s, 'double-damage-from', now())",
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", fullType.Name),
-						fmt.Sprintf("(SELECT id FROM types WHERE slug='%s')", relation.Name),
-					))
-				}
+			if dbErr != nil {
+				log.Logger.Fatal(dbErr)
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	sql := fmt.Sprintf(
-		"INSERT INTO types (slug, name, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name, updated_at = EXCLUDED.updated_at;\n\nINSERT INTO type_damage_relations (type_id, related_type_id, damage_relation_enum, updated_at)\n\tVALUES %s\nON CONFLICT (type_id, related_type_id, damage_relation_enum)\n\tDO UPDATE SET\n\t\tupdated_at = EXCLUDED.updated_at;",
-		strings.Join(values, ", "),
-		strings.Join(damageRelationValues, ", "),
-	)
+	for _, fullType := range types {
+		if len(fullType.DamageRelations.NoDamageTo) > 0 {
+			for _, relation := range fullType.DamageRelations.NoDamageTo {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("NO_DAMAGE_TO"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
 
-	o, err := f.WriteString(sql)
-	if err != nil {
-		log.Logger.Fatal(err)
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
+
+		if len(fullType.DamageRelations.HalfDamageTo) > 0 {
+			for _, relation := range fullType.DamageRelations.HalfDamageTo {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("HALF_DAMAGE_TO"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
+
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
+
+		if len(fullType.DamageRelations.DoubleDamageTo) > 0 {
+			for _, relation := range fullType.DamageRelations.DoubleDamageTo {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("DOUBLE_DAMAGE_TO"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
+
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
+
+		if len(fullType.DamageRelations.NoDamageFrom) > 0 {
+			for _, relation := range fullType.DamageRelations.NoDamageFrom {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("NO_DAMAGE_FROM"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
+
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
+
+		if len(fullType.DamageRelations.HalfDamageFrom) > 0 {
+			for _, relation := range fullType.DamageRelations.HalfDamageFrom {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("HALF_DAMAGE_FROM"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
+
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
+
+		if len(fullType.DamageRelations.DoubleDamageFrom) > 0 {
+			for _, relation := range fullType.DamageRelations.DoubleDamageFrom {
+				_, err := prisma.TypeDamageRelation.CreateOne(
+					db.TypeDamageRelation.TypeA.Link(db.Type.Slug.Equals(fullType.Name)),
+					db.TypeDamageRelation.TypeB.Link(db.Type.Slug.Equals(relation.Name)),
+					db.TypeDamageRelation.DamageRelation.Set("DOUBLE_DAMAGE_FROM"),
+					db.TypeDamageRelation.UpdatedAt.Set(time.Now()),
+				).Exec(ctx)
+
+				if err != nil {
+					log.Logger.Fatal(err)
+				}
+			}
+		}
 	}
-	f.Sync()
 
 	elapsed := time.Since(start)
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+	log.Logger.Info(fmt.Sprintf("Completed in %s\n", elapsed))
 }

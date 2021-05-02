@@ -1,22 +1,18 @@
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "bekapod/pkmn-team-graphql/data/db"
 
-type EggGroup struct {
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
+func NewEggGroupFromDb(dbEggGroup db.EggGroupModel) EggGroup {
+	e := EggGroup{
+		ID:   dbEggGroup.ID,
+		Slug: dbEggGroup.Slug,
+		Name: dbEggGroup.Name,
+	}
+
+	return e
 }
 
-type EggGroupList struct {
-	Total     int        `json:"total"`
-	EggGroups []EggGroup `json:"egg_groups"`
-}
-
-func NewEggGroupList(eggGroups []EggGroup) EggGroupList {
+func NewEggGroupList(eggGroups []*EggGroup) EggGroupList {
 	return EggGroupList{
 		Total:     len(eggGroups),
 		EggGroups: eggGroups,
@@ -26,23 +22,11 @@ func NewEggGroupList(eggGroups []EggGroup) EggGroupList {
 func NewEmptyEggGroupList() EggGroupList {
 	return EggGroupList{
 		Total:     0,
-		EggGroups: []EggGroup{},
+		EggGroups: []*EggGroup{},
 	}
 }
 
-func (l *EggGroupList) AddEggGroup(e EggGroup) {
+func (l *EggGroupList) AddEggGroup(eg *EggGroup) {
 	l.Total++
-	l.EggGroups = append(l.EggGroups, e)
+	l.EggGroups = append(l.EggGroups, eg)
 }
-
-func (e *EggGroup) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []uint8:
-		err := json.Unmarshal([]byte(v), &e)
-		return err
-	}
-
-	return fmt.Errorf("failed to scan egg group")
-}
-
-func (EggGroup) IsEntity() {}

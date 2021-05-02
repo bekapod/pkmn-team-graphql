@@ -1,0 +1,374 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator db {
+  provider = "go run github.com/prisma/prisma-client-go"
+}
+
+model Pokemon {
+  id                    String             @id @default(cuid())
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  pokedexId             Int
+  slug                  String             @unique
+  name                  String
+  sprite                String?
+  hp                    Int
+  attack                Int
+  defense               Int
+  specialAttack         Int
+  specialDefense        Int
+  speed                 Int
+  isBaby                Boolean
+  isLegendary           Boolean
+  isMythical            Boolean
+  description           String?
+  color                 Color
+  shape                 Shape
+  habitat               Habitat?
+  isDefaultVariant      Boolean
+  genus                 String
+  height                Int
+  weight                Int
+  abilities             PokemonAbility[]
+  eggGroups             EggGroup[]
+  learnableMoves        PokemonMove[]
+  types                 PokemonType[]
+  evolvesTo             PokemonEvolution[] @relation(name: "fromPokemon")
+  evolvesFrom           PokemonEvolution[] @relation(name: "toPokemon")
+  usedForPartyEvolution PokemonEvolution[] @relation(name: "partyPokemon")
+  usedForTradeEvolution PokemonEvolution[] @relation(name: "tradeWithPokemon")
+}
+
+model PokemonAbility {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pokemon   Pokemon  @relation(fields: [pokemonId], references: [id])
+  pokemonId String
+  ability   Ability  @relation(fields: [abilityId], references: [id])
+  abilityId String
+  slot      Int
+  isHidden  Boolean
+
+  @@unique([pokemonId, abilityId])
+}
+
+model PokemonEvolution {
+  id                    String           @id @default(cuid())
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  fromPokemon           Pokemon          @relation(name: "fromPokemon", fields: [fromPokemonId], references: [id])
+  fromPokemonId         String
+  toPokemon             Pokemon          @relation(name: "toPokemon", fields: [toPokemonId], references: [id])
+  toPokemonId           String
+  trigger               EvolutionTrigger
+  item                  Item?            @relation("item", fields: [itemId], references: [id])
+  itemId                String?
+  gender                Gender
+  heldItem              Item?            @relation("heldItem", fields: [heldItemId], references: [id])
+  heldItemId            String?
+  knownMove             Move?            @relation(fields: [knownMoveId], references: [id])
+  knownMoveId           String?
+  knownMoveType         Type?            @relation("knownMoveType", fields: [knownMoveTypeId], references: [id])
+  knownMoveTypeId       String?
+  minLevel              Int?
+  minHappiness          Int?
+  minBeauty             Int?
+  minAffection          Int?
+  needsOverworldRain    Boolean
+  partyPokemon          Pokemon?         @relation("partyPokemon", fields: [partyPokemonId], references: [id])
+  partyPokemonId        String?
+  partyType             Type?            @relation("partyType", fields: [partyTypeId], references: [id])
+  partyTypeId           String?
+  relativePhysicalStats Int?
+  timeOfDay             TimeOfDay
+  tradeWithPokemon      Pokemon?         @relation("tradeWithPokemon", fields: [tradeWithPokemonId], references: [id])
+  tradeWithPokemonId    String?
+  turnUpsideDown        Boolean
+  spin                  Boolean
+  takeDamage            Int?
+  criticalHits          Int?
+
+  @@unique([fromPokemonId, toPokemonId, timeOfDay, gender, trigger])
+}
+
+model PokemonMove {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  pokemon        Pokemon         @relation(fields: [pokemonId], references: [id])
+  pokemonId      String
+  move           Move            @relation(fields: [moveId], references: [id])
+  moveId         String
+  learnMethod    MoveLearnMethod
+  levelLearnedAt Int
+
+  @@unique([pokemonId, moveId, learnMethod])
+}
+
+model PokemonType {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pokemon   Pokemon  @relation(fields: [pokemonId], references: [id])
+  pokemonId String
+  type      Type     @relation(fields: [typeId], references: [id])
+  typeId    String
+  slot      Int
+
+  @@unique([pokemonId, typeId])
+}
+
+model Ability {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  slug      String           @unique
+  name      String
+  effect    String?
+  pokemon   PokemonAbility[]
+}
+
+model EggGroup {
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  slug      String    @unique
+  name      String
+  pokemon   Pokemon[]
+}
+
+model Item {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  slug             String             @unique
+  name             String
+  cost             Int?
+  flingPower       Int?
+  flingEffect      String?
+  effect           String?
+  sprite           String?
+  category         ItemCategory
+  attributes       ItemAttribute[]
+  usedToEvolve     PokemonEvolution[] @relation(name: "item")
+  heldForEvolution PokemonEvolution[] @relation(name: "heldItem")
+}
+
+model Move {
+  id               String             @id @default(cuid())
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  slug             String             @unique
+  name             String
+  accuracy         Int?
+  pp               Int?
+  power            Int?
+  damageClass      DamageClass
+  effect           String?
+  effectChance     Int?
+  target           MoveTarget
+  learnedBy        PokemonMove[]
+  type             Type               @relation(fields: [typeId], references: [id])
+  typeId           String
+  PokemonEvolution PokemonEvolution[]
+}
+
+model Type {
+  id                         String               @id @default(cuid())
+  createdAt                  DateTime             @default(now())
+  updatedAt                  DateTime             @updatedAt
+  slug                       String               @unique
+  name                       String
+  pokemon                    PokemonType[]
+  moves                      Move[]
+  neededInPartyForEvolution  PokemonEvolution[]   @relation(name: "partyType")
+  neededMoveTypeForEvolution PokemonEvolution[]   @relation(name: "knownMoveType")
+  affectedByTypes            TypeDamageRelation[] @relation(name: "typeB")
+  affectsTypes               TypeDamageRelation[] @relation(name: "typeA")
+}
+
+model TypeDamageRelation {
+  id             String         @id @default(cuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  typeA          Type           @relation("typeA", fields: [typeAId], references: [id])
+  typeAId        String
+  typeB          Type           @relation("typeB", fields: [typeBId], references: [id])
+  typeBId        String
+  damageRelation DamageRelation
+
+  @@unique([typeAId, typeBId, damageRelation])
+}
+
+enum Color {
+  BLACK
+  BLUE
+  BROWN
+  GRAY
+  GREEN
+  PINK
+  PURPLE
+  RED
+  WHITE
+  YELLOW
+}
+
+enum DamageClass {
+  PHYSICAL
+  SPECIAL
+  STATUS
+}
+
+enum DamageRelation {
+  NO_DAMAGE_TO
+  HALF_DAMAGE_TO
+  DOUBLE_DAMAGE_TO
+  NO_DAMAGE_FROM
+  HALF_DAMAGE_FROM
+  DOUBLE_DAMAGE_FROM
+}
+
+enum EvolutionTrigger {
+  LEVEL_UP
+  OTHER
+  SHED
+  TRADE
+  USE_ITEM
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  ANY
+}
+
+enum Habitat {
+  CAVE
+  FOREST
+  GRASSLAND
+  MOUNTAIN
+  RARE
+  ROUGH_TERRAIN
+  SEA
+  URBAN
+  WATERS_EDGE
+}
+
+enum ItemCategory {
+  ALL_MACHINES
+  ALL_MAIL
+  APRICORN_BALLS
+  APRICORN_BOX
+  BAD_HELD_ITEMS
+  BAKING_ONLY
+  CHOICE
+  COLLECTIBLES
+  DATA_CARDS
+  DEX_COMPLETION
+  EFFORT_DROP
+  EFFORT_TRAINING
+  EVENT_ITEMS
+  EVOLUTION
+  FLUTES
+  GAMEPLAY
+  HEALING
+  HELD_ITEMS
+  IN_A_PINCH
+  JEWELS
+  LOOT
+  MEDICINE
+  MEGA_STONES
+  MEMORIES
+  MIRACLE_SHOOTER
+  MULCH
+  OTHER
+  PICKY_HEALING
+  PLATES
+  PLOT_ADVANCEMENT
+  PP_RECOVERY
+  REVIVAL
+  SCARVES
+  SPECIAL_BALLS
+  SPECIES_SPECIFIC
+  SPELUNKING
+  STANDARD_BALLS
+  STAT_BOOSTS
+  STATUS_CURES
+  TRAINING
+  TYPE_ENHANCEMENT
+  TYPE_PROTECTION
+  UNUSED
+  VITAMINS
+  Z_CRYSTALS
+}
+
+enum ItemAttribute {
+  CONSUMABLE
+  COUNTABLE
+  HOLDABLE
+  HOLDABLE_ACTIVE
+  HOLDABLE_PASSIVE
+  UNDERGROUND
+  USABLE_IN_BATTLE
+  USABLE_OVERWORLD
+}
+
+enum MoveLearnMethod {
+  LEVEL_UP
+  EGG
+  TUTOR
+  MACHINE
+  STADIUM_SURFING_PIKACHU
+  LIGHT_BALL_EGG
+  COLOSSEUM_PURIFICATION
+  XD_SHADOW
+  XD_PURIFICATION
+  FORM_CHANGE
+  RECORD
+  TRANSFER
+}
+
+enum MoveTarget {
+  SPECIFIC_MOVE
+  SELECTED_POKEMON_ME_FIRST
+  ALLY
+  USERS_FIELD
+  USER_OR_ALLY
+  OPPONENTS_FIELD
+  USER
+  RANDOM_OPPONENT
+  ALL_OTHER_POKEMON
+  SELECTED_POKEMON
+  ALL_OPPONENTS
+  ENTIRE_FIELD
+  USER_AND_ALLIES
+  ALL_POKEMON
+  ALL_ALLIES
+}
+
+enum Shape {
+  BALL
+  SQUIGGLE
+  FISH
+  ARMS
+  BLOB
+  UPRIGHT
+  LEGS
+  QUADRUPED
+  WINGS
+  TENTACLES
+  HEADS
+  HUMANOID
+  BUG_WINGS
+  ARMOR
+}
+
+enum TimeOfDay {
+  DAY
+  NIGHT
+  ANY
+}

@@ -1,47 +1,38 @@
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "bekapod/pkmn-team-graphql/data/db"
 
 type PokemonType struct {
-	Type Type `json:"type"`
-	Slot int  `json:"slot"`
+	TypeID    string `json:"typeId"`
+	PokemonID string `json:"pokemonId"`
+	Slot      int    `json:"slot"`
 }
 
-type PokemonTypeList struct {
-	Total        int           `json:"total"`
-	PokemonTypes []PokemonType `json:"pokemonTypes"`
+func NewPokemonTypeFromDb(dbPokemonType db.PokemonTypeModel) PokemonType {
+	pt := PokemonType{
+		TypeID:    dbPokemonType.TypeID,
+		PokemonID: dbPokemonType.PokemonID,
+		Slot:      dbPokemonType.Slot,
+	}
+
+	return pt
 }
 
-func NewPokemonTypeList(t []PokemonType) PokemonTypeList {
+func NewPokemonTypeList(pokemonTypes []*PokemonType) PokemonTypeList {
 	return PokemonTypeList{
-		Total:        len(t),
-		PokemonTypes: t,
+		Total:        len(pokemonTypes),
+		PokemonTypes: pokemonTypes,
 	}
 }
 
 func NewEmptyPokemonTypeList() PokemonTypeList {
 	return PokemonTypeList{
 		Total:        0,
-		PokemonTypes: []PokemonType{},
+		PokemonTypes: []*PokemonType{},
 	}
 }
 
-func (l *PokemonTypeList) AddPokemonType(t *PokemonType) {
+func (l *PokemonTypeList) AddPokemonType(pt *PokemonType) {
 	l.Total++
-	l.PokemonTypes = append(l.PokemonTypes, *t)
+	l.PokemonTypes = append(l.PokemonTypes, pt)
 }
-
-func (t *PokemonType) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []uint8:
-		err := json.Unmarshal([]byte(v), &t)
-		return err
-	}
-
-	return fmt.Errorf("failed to scan pokemon type")
-}
-
-func (PokemonType) IsEntity() {}

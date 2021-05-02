@@ -1,6 +1,7 @@
 package pokeapi
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"encoding/json"
 	"fmt"
@@ -26,9 +27,9 @@ func New(config PokeApiConfig) *PokeApiClient {
 	}
 }
 
-func (client PokeApiClient) GetResourceList(resource string) ResourcePointerList {
+func (client PokeApiClient) GetResourceList(resource string, limit int) ResourcePointerList {
 	result := ResourcePointerList{}
-	client.getResource(resource+"/?limit=10000", &result)
+	client.getResource(fmt.Sprintf("%s/?limit=%d", resource, limit), &result)
 	return result
 }
 
@@ -47,7 +48,46 @@ func (client PokeApiClient) GetEggGroup(idOrName string) EggGroup {
 func (client PokeApiClient) GetEvolutionChain(id string) EvolutionChain {
 	result := EvolutionChain{}
 	client.getResource(fmt.Sprintf("evolution-chain/%s/", id), &result)
+	normalizeEvolutionChain(&result.Chain)
 	return result
+}
+
+func normalizeEvolutionChain(chain *Evolution) {
+	for i := range chain.EvolutionDetails {
+		switch chain.EvolutionDetails[i].Trigger.Name {
+		case "level-up":
+			chain.EvolutionDetails[i].Trigger.Name = string(db.EvolutionTriggerLEVELUP)
+		case "other":
+			chain.EvolutionDetails[i].Trigger.Name = string(db.EvolutionTriggerOTHER)
+		case "shed":
+			chain.EvolutionDetails[i].Trigger.Name = string(db.EvolutionTriggerSHED)
+		case "trade":
+			chain.EvolutionDetails[i].Trigger.Name = string(db.EvolutionTriggerTRADE)
+		case "use-item":
+			chain.EvolutionDetails[i].Trigger.Name = string(db.EvolutionTriggerUSEITEM)
+		}
+
+		day := string(db.TimeOfDayDAY)
+		night := string(db.TimeOfDayNIGHT)
+		anyTime := string(db.TimeOfDayANY)
+
+		if chain.EvolutionDetails[i].TimeOfDay != nil {
+			switch *chain.EvolutionDetails[i].TimeOfDay {
+			case "day":
+				chain.EvolutionDetails[i].TimeOfDay = &day
+			case "night":
+				chain.EvolutionDetails[i].TimeOfDay = &night
+			default:
+				chain.EvolutionDetails[i].TimeOfDay = &anyTime
+			}
+		} else {
+			chain.EvolutionDetails[i].TimeOfDay = &anyTime
+		}
+	}
+
+	for i := range chain.EvolvesTo {
+		normalizeEvolutionChain(&chain.EvolvesTo[i])
+	}
 }
 
 func (client PokeApiClient) GetGeneration(idOrName string) Generation {
@@ -59,6 +99,121 @@ func (client PokeApiClient) GetGeneration(idOrName string) Generation {
 func (client PokeApiClient) GetItem(nameOrId string) Item {
 	result := Item{}
 	client.getResource(fmt.Sprintf("item/%s/", nameOrId), &result)
+
+	switch result.Category.Name {
+	case "all-machines":
+		result.Category.Name = string(db.ItemCategoryALLMACHINES)
+	case "all-mail":
+		result.Category.Name = string(db.ItemCategoryALLMAIL)
+	case "apricorn-balls":
+		result.Category.Name = string(db.ItemCategoryAPRICORNBALLS)
+	case "apricorn-box":
+		result.Category.Name = string(db.ItemCategoryAPRICORNBOX)
+	case "bad-held-items":
+		result.Category.Name = string(db.ItemCategoryBADHELDITEMS)
+	case "baking-only":
+		result.Category.Name = string(db.ItemCategoryBAKINGONLY)
+	case "choice":
+		result.Category.Name = string(db.ItemCategoryCHOICE)
+	case "collectibles":
+		result.Category.Name = string(db.ItemCategoryCOLLECTIBLES)
+	case "data-cards":
+		result.Category.Name = string(db.ItemCategoryDATACARDS)
+	case "dex-completion":
+		result.Category.Name = string(db.ItemCategoryDEXCOMPLETION)
+	case "effort-drop":
+		result.Category.Name = string(db.ItemCategoryEFFORTDROP)
+	case "effort-training":
+		result.Category.Name = string(db.ItemCategoryEFFORTTRAINING)
+	case "event-items":
+		result.Category.Name = string(db.ItemCategoryEVENTITEMS)
+	case "evolution":
+		result.Category.Name = string(db.ItemCategoryEVOLUTION)
+	case "flutes":
+		result.Category.Name = string(db.ItemCategoryFLUTES)
+	case "gameplay":
+		result.Category.Name = string(db.ItemCategoryGAMEPLAY)
+	case "healing":
+		result.Category.Name = string(db.ItemCategoryHEALING)
+	case "held-items":
+		result.Category.Name = string(db.ItemCategoryHELDITEMS)
+	case "in-a-pinch":
+		result.Category.Name = string(db.ItemCategoryINAPINCH)
+	case "jewels":
+		result.Category.Name = string(db.ItemCategoryJEWELS)
+	case "loot":
+		result.Category.Name = string(db.ItemCategoryLOOT)
+	case "medicine":
+		result.Category.Name = string(db.ItemCategoryMEDICINE)
+	case "mega-stones":
+		result.Category.Name = string(db.ItemCategoryMEGASTONES)
+	case "memories":
+		result.Category.Name = string(db.ItemCategoryMEMORIES)
+	case "miracle-shooter":
+		result.Category.Name = string(db.ItemCategoryMIRACLESHOOTER)
+	case "mulch":
+		result.Category.Name = string(db.ItemCategoryMULCH)
+	case "other":
+		result.Category.Name = string(db.ItemCategoryOTHER)
+	case "picky-healing":
+		result.Category.Name = string(db.ItemCategoryPICKYHEALING)
+	case "plates":
+		result.Category.Name = string(db.ItemCategoryPLATES)
+	case "plot-advancement":
+		result.Category.Name = string(db.ItemCategoryPLOTADVANCEMENT)
+	case "pp-recovery":
+		result.Category.Name = string(db.ItemCategoryPPRECOVERY)
+	case "revival":
+		result.Category.Name = string(db.ItemCategoryREVIVAL)
+	case "scarves":
+		result.Category.Name = string(db.ItemCategorySCARVES)
+	case "special-balls":
+		result.Category.Name = string(db.ItemCategorySPECIALBALLS)
+	case "species-specific":
+		result.Category.Name = string(db.ItemCategorySPECIESSPECIFIC)
+	case "spelunking":
+		result.Category.Name = string(db.ItemCategorySPELUNKING)
+	case "standard-balls":
+		result.Category.Name = string(db.ItemCategorySTANDARDBALLS)
+	case "stat-boosts":
+		result.Category.Name = string(db.ItemCategorySTATBOOSTS)
+	case "status-cures":
+		result.Category.Name = string(db.ItemCategorySTATUSCURES)
+	case "training":
+		result.Category.Name = string(db.ItemCategoryTRAINING)
+	case "type-enhancement":
+		result.Category.Name = string(db.ItemCategoryTYPEENHANCEMENT)
+	case "type-protection":
+		result.Category.Name = string(db.ItemCategoryTYPEPROTECTION)
+	case "unused":
+		result.Category.Name = string(db.ItemCategoryUNUSED)
+	case "vitamins":
+		result.Category.Name = string(db.ItemCategoryVITAMINS)
+	case "z-crystals":
+		result.Category.Name = string(db.ItemCategoryZCRYSTALS)
+	}
+
+	for i, attribute := range result.Attributes {
+		switch attribute.Name {
+		case "consumable":
+			result.Attributes[i].Name = string(db.ItemAttributeCONSUMABLE)
+		case "countable":
+			result.Attributes[i].Name = string(db.ItemAttributeCOUNTABLE)
+		case "holdable":
+			result.Attributes[i].Name = string(db.ItemAttributeHOLDABLE)
+		case "holdable-active":
+			result.Attributes[i].Name = string(db.ItemAttributeHOLDABLEACTIVE)
+		case "holdable-passive":
+			result.Attributes[i].Name = string(db.ItemAttributeHOLDABLEPASSIVE)
+		case "underground":
+			result.Attributes[i].Name = string(db.ItemAttributeUNDERGROUND)
+		case "usable-in-battle":
+			result.Attributes[i].Name = string(db.ItemAttributeUSABLEINBATTLE)
+		case "usable-overworld":
+			result.Attributes[i].Name = string(db.ItemAttributeUSABLEOVERWORLD)
+		}
+	}
+
 	return result
 }
 
@@ -71,6 +226,49 @@ func (client PokeApiClient) GetLocation(nameOrId string) Location {
 func (client PokeApiClient) GetMove(idOrName string) Move {
 	result := Move{}
 	client.getResource(fmt.Sprintf("move/%s/", idOrName), &result)
+
+	switch result.DamageClass.Name {
+	case "physical":
+		result.DamageClass.Name = string(db.DamageClassPHYSICAL)
+	case "special":
+		result.DamageClass.Name = string(db.DamageClassSPECIAL)
+	case "status":
+		result.DamageClass.Name = string(db.DamageClassSTATUS)
+	}
+
+	switch result.Target.Name {
+	case "specific-move":
+		result.Target.Name = string(db.MoveTargetSPECIFICMOVE)
+	case "selected-pokemon-me-first":
+		result.Target.Name = string(db.MoveTargetSELECTEDPOKEMONMEFIRST)
+	case "ally":
+		result.Target.Name = string(db.MoveTargetALLY)
+	case "users-field":
+		result.Target.Name = string(db.MoveTargetUSERSFIELD)
+	case "user-or-ally":
+		result.Target.Name = string(db.MoveTargetUSERORALLY)
+	case "opponents-field":
+		result.Target.Name = string(db.MoveTargetOPPONENTSFIELD)
+	case "user":
+		result.Target.Name = string(db.MoveTargetUSER)
+	case "random-opponent":
+		result.Target.Name = string(db.MoveTargetRANDOMOPPONENT)
+	case "all-other-pokemon":
+		result.Target.Name = string(db.MoveTargetALLOTHERPOKEMON)
+	case "selected-pokemon":
+		result.Target.Name = string(db.MoveTargetSELECTEDPOKEMON)
+	case "all-opponents":
+		result.Target.Name = string(db.MoveTargetALLOPPONENTS)
+	case "entire-field":
+		result.Target.Name = string(db.MoveTargetENTIREFIELD)
+	case "user-and-allies":
+		result.Target.Name = string(db.MoveTargetUSERANDALLIES)
+	case "all-pokemon":
+		result.Target.Name = string(db.MoveTargetALLPOKEMON)
+	case "all-allies":
+		result.Target.Name = string(db.MoveTargetALLALLIES)
+	}
+
 	return result
 }
 
@@ -89,12 +287,128 @@ func (client PokeApiClient) GetPokedex(nameOrId string) Pokedex {
 func (client PokeApiClient) GetPokemon(nameOrId string) Pokemon {
 	result := Pokemon{}
 	client.getResource(fmt.Sprintf("pokemon/%s/", nameOrId), &result)
+	moves := make([]PokemonMove, 0)
+
+	for _, move := range result.Moves {
+		for i, versionGroup := range move.VersionGroupDetails {
+			if versionGroup.VersionGroup.Name == "sword-shield" && !strings.Contains(move.Move.Name, "max-") {
+				switch move.VersionGroupDetails[i].MoveLearnMethod.Name {
+				case "level-up":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodLEVELUP)
+				case "egg":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodEGG)
+				case "tutor":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodTUTOR)
+				case "machine":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodMACHINE)
+				case "stadium-surfing-pikachu":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodSTADIUMSURFINGPIKACHU)
+				case "light-ball-egg":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodLIGHTBALLEGG)
+				case "colosseum-purification":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodCOLOSSEUMPURIFICATION)
+				case "xd-shadow":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodXDSHADOW)
+				case "xd-purification":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodXDPURIFICATION)
+				case "form-change":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodFORMCHANGE)
+				case "record":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodRECORD)
+				case "transfer":
+					move.VersionGroupDetails[i].MoveLearnMethod.Name = string(db.MoveLearnMethodTRANSFER)
+				}
+				moves = append(moves, move)
+			}
+		}
+	}
+
+	result.Moves = moves
+
 	return result
 }
 
 func (client PokeApiClient) GetPokemonSpecies(nameOrId string) PokemonSpecies {
 	result := PokemonSpecies{}
 	client.getResource(fmt.Sprintf("pokemon-species/%s/", nameOrId), &result)
+
+	switch result.Color.Name {
+	case "black":
+		result.Color.Name = string(db.ColorBLACK)
+	case "blue":
+		result.Color.Name = string(db.ColorBLUE)
+	case "brown":
+		result.Color.Name = string(db.ColorBROWN)
+	case "gray":
+		result.Color.Name = string(db.ColorGRAY)
+	case "green":
+		result.Color.Name = string(db.ColorGREEN)
+	case "pink":
+		result.Color.Name = string(db.ColorPINK)
+	case "purple":
+		result.Color.Name = string(db.ColorPURPLE)
+	case "red":
+		result.Color.Name = string(db.ColorRED)
+	case "white":
+		result.Color.Name = string(db.ColorWHITE)
+	case "yellow":
+		result.Color.Name = string(db.ColorYELLOW)
+	}
+
+	if result.Habitat != nil {
+		switch result.Habitat.Name {
+		case "cave":
+			result.Habitat.Name = string(db.HabitatCAVE)
+		case "forest":
+			result.Habitat.Name = string(db.HabitatFOREST)
+		case "grassland":
+			result.Habitat.Name = string(db.HabitatGRASSLAND)
+		case "mountain":
+			result.Habitat.Name = string(db.HabitatMOUNTAIN)
+		case "rare":
+			result.Habitat.Name = string(db.HabitatRARE)
+		case "rough-terrain":
+			result.Habitat.Name = string(db.HabitatROUGHTERRAIN)
+		case "sea":
+			result.Habitat.Name = string(db.HabitatSEA)
+		case "urban":
+			result.Habitat.Name = string(db.HabitatURBAN)
+		case "waters-edge":
+			result.Habitat.Name = string(db.HabitatWATERSEDGE)
+		}
+	}
+
+	switch result.Shape.Name {
+	case "ball":
+		result.Shape.Name = string(db.ShapeBALL)
+	case "squiggle":
+		result.Shape.Name = string(db.ShapeSQUIGGLE)
+	case "fish":
+		result.Shape.Name = string(db.ShapeFISH)
+	case "arms":
+		result.Shape.Name = string(db.ShapeARMS)
+	case "blob":
+		result.Shape.Name = string(db.ShapeBLOB)
+	case "upright":
+		result.Shape.Name = string(db.ShapeUPRIGHT)
+	case "legs":
+		result.Shape.Name = string(db.ShapeLEGS)
+	case "quadruped":
+		result.Shape.Name = string(db.ShapeQUADRUPED)
+	case "wings":
+		result.Shape.Name = string(db.ShapeWINGS)
+	case "tentacles":
+		result.Shape.Name = string(db.ShapeTENTACLES)
+	case "heads":
+		result.Shape.Name = string(db.ShapeHEADS)
+	case "humanoid":
+		result.Shape.Name = string(db.ShapeHUMANOID)
+	case "bug-wings":
+		result.Shape.Name = string(db.ShapeBUGWINGS)
+	case "armor":
+		result.Shape.Name = string(db.ShapeARMOR)
+	}
+
 	return result
 }
 
@@ -265,29 +579,24 @@ func GetEnglishGenus(genera []Genus, resourceName string) (Genus, error) {
 	}, fmt.Errorf("no english genus found for %s", resourceName)
 }
 
-func GetEnglishEffectEntry(effectEntries []EffectEntry, resourceName string) (EffectEntry, error) {
+func GetEnglishEffectEntry(effectEntries []EffectEntry, resourceName string) (*EffectEntry, error) {
 	for i := range effectEntries {
 		if effectEntries[i].Language.Name == "en" {
-			return effectEntries[i], nil
+			return &effectEntries[i], nil
 		}
 	}
 
-	return EffectEntry{
-		Effect:      "",
-		ShortEffect: "",
-	}, fmt.Errorf("no english effect entry found for %s", resourceName)
+	return nil, fmt.Errorf("no english effect entry found for %s", resourceName)
 }
 
-func GetEnglishFlavourTextEntry(flavourTextEntries []FlavourTextEntry, resourceName string) (FlavourTextEntry, error) {
+func GetEnglishFlavourTextEntry(flavourTextEntries []FlavourTextEntry, resourceName string) (*FlavourTextEntry, error) {
 	for i := range flavourTextEntries {
 		if flavourTextEntries[i].Language.Name == "en" && (flavourTextEntries[i].VersionGroup.Name == "ultra-sun-ultra-moon" || flavourTextEntries[i].Version.Name == "ultra-moon" || flavourTextEntries[i].Version.Name == "lets-go-pikachu") {
-			return flavourTextEntries[i], nil
+			return &flavourTextEntries[i], nil
 		}
 	}
 
-	return FlavourTextEntry{
-		FlavourText: "",
-	}, fmt.Errorf("no english flavour text entry found for %s", resourceName)
+	return nil, fmt.Errorf("no english flavour text entry found for %s", resourceName)
 }
 
 func GetPokemonStat(pkmn Pokemon, stat string) (int, error) {
@@ -350,7 +659,7 @@ type Evolution struct {
 	EvolutionDetails []struct {
 		Item                  *ResourcePointer `json:"item"`
 		Trigger               ResourcePointer  `json:"trigger"`
-		Gender                int              `json:"gender"`
+		Gender                *int             `json:"gender"`
 		HeldItem              *ResourcePointer `json:"held_item"`
 		KnownMove             *ResourcePointer `json:"known_move"`
 		KnownMoveType         *ResourcePointer `json:"known_move_type"`
@@ -363,7 +672,7 @@ type Evolution struct {
 		PartySpecies          *ResourcePointer `json:"party_species"`
 		PartyType             *ResourcePointer `json:"party_type"`
 		RelativePhysicalStats int              `json:"relative_physical_stats"`
-		TimeOfDay             string           `json:"time_of_day"`
+		TimeOfDay             *string          `json:"time_of_day"`
 		TradeSpecies          *ResourcePointer `json:"trade_species"`
 		TurnUpsideDown        bool             `json:"turn_upside_down"`
 	} `json:"evolution_details"`
@@ -407,9 +716,9 @@ type Genus struct {
 type Item struct {
 	ID                 int                `json:"id"`
 	Name               string             `json:"name"`
-	Cost               int                `json:"cost"`
-	FlingPower         int                `json:"fling_power"`
-	FlingEffect        ResourcePointer    `json:"fling_effect"`
+	Cost               *int               `json:"cost"`
+	FlingPower         *int               `json:"fling_power"`
+	FlingEffect        *ResourcePointer   `json:"fling_effect"`
 	Attributes         []ResourcePointer  `json:"attributes"`
 	Category           ResourcePointer    `json:"category"`
 	EffectEntries      []EffectEntry      `json:"effect_entries"`
@@ -417,7 +726,7 @@ type Item struct {
 	Names              []TranslatedName   `json:"names"`
 	HeldByPokemon      []ResourcePointer  `json:"held_by_pokemon"`
 	Sprites            struct {
-		Default string `json:"default"`
+		Default *string `json:"default"`
 	} `json:"sprites"`
 	GameIndices []GameIndex `json:"game_indices"`
 }
@@ -433,11 +742,11 @@ type Location struct {
 type Move struct {
 	Id            int                `json:"id"`
 	Name          string             `json:"name"`
-	Accuracy      int                `json:"accuracy"`
-	EffectChance  int                `json:"effect_chance"`
-	PP            int                `json:"pp"`
+	Accuracy      *int               `json:"accuracy"`
+	EffectChance  *int               `json:"effect_chance"`
+	PP            *int               `json:"pp"`
 	Priority      int                `json:"priority"`
-	Power         int                `json:"power"`
+	Power         *int               `json:"power"`
 	DamageClass   ResourcePointer    `json:"damage_class"`
 	EffectEntries []EffectEntry      `json:"effect_entries"`
 	Names         []TranslatedName   `json:"names"`
@@ -478,14 +787,7 @@ type Pokemon struct {
 		Slot     int             `json:"slot"`
 		Ability  ResourcePointer `json:"ability"`
 	} `json:"abilities"`
-	Moves []struct {
-		Move                ResourcePointer `json:"move"`
-		VersionGroupDetails []struct {
-			LevelLearnedAt  int             `json:"level_learned_at"`
-			VersionGroup    ResourcePointer `json:"version_group"`
-			MoveLearnMethod ResourcePointer `json:"move_learn_method"`
-		} `json:"version_group_details"`
-	} `json:"moves"`
+	Moves   []PokemonMove `json:"moves"`
 	Sprites struct {
 		FrontDefault     string `json:"front_default"`
 		FrontFemale      string `json:"front_female"`
@@ -516,6 +818,15 @@ type Pokemon struct {
 	} `json:"types"`
 }
 
+type PokemonMove struct {
+	Move                ResourcePointer `json:"move"`
+	VersionGroupDetails []struct {
+		LevelLearnedAt  int             `json:"level_learned_at"`
+		VersionGroup    ResourcePointer `json:"version_group"`
+		MoveLearnMethod ResourcePointer `json:"move_learn_method"`
+	} `json:"version_group_details"`
+}
+
 type PokemonSpecies struct {
 	ID                   int                `json:"id"`
 	Name                 string             `json:"name"`
@@ -535,7 +846,7 @@ type PokemonSpecies struct {
 	Shape                ResourcePointer    `json:"shape"`
 	EvolvesFromSpecies   ResourcePointer    `json:"evolves_from_species"`
 	EvolutionChain       ResourcePointer    `json:"evolution_chain"`
-	Habitat              ResourcePointer    `json:"habitat"`
+	Habitat              *ResourcePointer   `json:"habitat"`
 	Names                []TranslatedName   `json:"names"`
 	FlavourTextEntries   []FlavourTextEntry `json:"flavor_text_entries"`
 	Genera               []Genus            `json:"genera"`

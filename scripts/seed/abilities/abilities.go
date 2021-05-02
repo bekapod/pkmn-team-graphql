@@ -1,33 +1,47 @@
 package main
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/pokeapi"
 	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	start := time.Now()
-	config := &helpers.Config{
-		OutputFile: "seeds/abilities.sql",
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
 	}
+
+	start := time.Now()
+	config := &helpers.Config{}
 	arg.MustParse(config)
 
 	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+	prisma := db.NewClient()
+	if err := prisma.Prisma.Connect(); err != nil {
+		panic(err)
+	}
 
-	f := helpers.OpenFile(config.OutputFile)
-	defer f.Close()
+	defer func() {
+		if err := prisma.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()
 
-	abilityList := client.GetResourceList("ability")
+	ctx := context.Background()
+
+	abilityList := client.GetResourceList("ability", 10000)
 	results := abilityList.Results
 	resultsLength := len(results)
-	values := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -57,27 +71,25 @@ func main() {
 					log.Logger.Fatal(err)
 				}
 				englishEffectEntry, _ := pokeapi.GetEnglishEffectEntry(fullAbility.EffectEntries, fullAbility.Name)
+				var effect *string
+				if englishEffectEntry != nil {
+					effect = &englishEffectEntry.ShortEffect
+				}
 
-				values = append(values, fmt.Sprintf(
-					"('%s', '%s', '%s', now())",
-					name,
-					helpers.EscapeSingleQuote(englishName.Name),
-					helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
-				))
+				_, dbErr := prisma.Ability.UpsertOne(db.Ability.Slug.Equals(name)).
+					Create(db.Ability.Slug.Set(name), db.Ability.Name.Set(englishName.Name), db.Ability.Effect.SetIfPresent(effect), db.Ability.UpdatedAt.Set(time.Now())).
+					Update(db.Ability.Name.Set(englishName.Name), db.Ability.Effect.SetIfPresent(effect), db.Ability.UpdatedAt.Set(time.Now())).
+					Exec(ctx)
+
+				if dbErr != nil {
+					log.Logger.Fatal(dbErr)
+				}
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO abilities (slug, name, effect, updated_at)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name, effect = EXCLUDED.effect, updated_at = EXCLUDED.updated_at;", strings.Join(values, ", "))
-
-	o, err := f.WriteString(sql)
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	f.Sync()
-
 	elapsed := time.Since(start)
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+	log.Logger.Info(fmt.Sprintf("Completed in %s\n", elapsed))
 }

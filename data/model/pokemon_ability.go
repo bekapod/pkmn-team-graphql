@@ -1,48 +1,40 @@
 package model
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "bekapod/pkmn-team-graphql/data/db"
 
 type PokemonAbility struct {
-	Ability  Ability `json:"ability"`
-	Slot     int     `json:"slot"`
-	IsHidden bool    `json:"isHidden"`
+	AbilityID string `json:"typeId"`
+	PokemonID string `json:"pokemonId"`
+	Slot      int    `json:"slot"`
+	IsHidden  bool   `json:"isHidden"`
 }
 
-type PokemonAbilityList struct {
-	Total            int              `json:"total"`
-	PokemonAbilities []PokemonAbility `json:"pokemonAbilities"`
+func NewPokemonAbilityFromDb(dbPokemonAbility db.PokemonAbilityModel) PokemonAbility {
+	pa := PokemonAbility{
+		AbilityID: dbPokemonAbility.AbilityID,
+		PokemonID: dbPokemonAbility.PokemonID,
+		Slot:      dbPokemonAbility.Slot,
+		IsHidden:  dbPokemonAbility.IsHidden,
+	}
+
+	return pa
 }
 
-func NewPokemonAbilityList(a []PokemonAbility) PokemonAbilityList {
+func NewPokemonAbilityList(pokemonAbilities []*PokemonAbility) PokemonAbilityList {
 	return PokemonAbilityList{
-		Total:            len(a),
-		PokemonAbilities: a,
+		Total:            len(pokemonAbilities),
+		PokemonAbilities: pokemonAbilities,
 	}
 }
 
 func NewEmptyPokemonAbilityList() PokemonAbilityList {
 	return PokemonAbilityList{
 		Total:            0,
-		PokemonAbilities: []PokemonAbility{},
+		PokemonAbilities: []*PokemonAbility{},
 	}
 }
 
-func (l *PokemonAbilityList) AddPokemonAbility(a *PokemonAbility) {
+func (l *PokemonAbilityList) AddPokemonAbility(pt *PokemonAbility) {
 	l.Total++
-	l.PokemonAbilities = append(l.PokemonAbilities, *a)
+	l.PokemonAbilities = append(l.PokemonAbilities, pt)
 }
-
-func (a *PokemonAbility) Scan(src interface{}) error {
-	switch v := src.(type) {
-	case []uint8:
-		err := json.Unmarshal([]byte(v), &a)
-		return err
-	}
-
-	return fmt.Errorf("failed to scan pokemon ability")
-}
-
-func (PokemonAbility) IsEntity() {}
