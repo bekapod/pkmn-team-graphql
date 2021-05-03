@@ -1,14 +1,21 @@
 package model
 
+import (
+	"bekapod/pkmn-team-graphql/data/db"
+)
+
 type Type struct {
 	ID   string `json:"id"`
 	Slug string `json:"slug"`
 	Name string `json:"name"`
 }
 
-type TypeList struct {
-	Total int     `json:"total"`
-	Types []*Type `json:"types"`
+func NewTypeFromDb(dbType db.TypeModel) Type {
+	return Type{
+		ID:   dbType.ID,
+		Slug: dbType.Slug,
+		Name: dbType.Name,
+	}
 }
 
 func NewTypeList(types []*Type) TypeList {
@@ -29,5 +36,3 @@ func (l *TypeList) AddType(t *Type) {
 	l.Total++
 	l.Types = append(l.Types, t)
 }
-
-func (Type) IsEntity() {}

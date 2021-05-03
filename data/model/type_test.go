@@ -1,11 +1,32 @@
 package model
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
+
+func TestNewTypeFromDb_WithEffect(t *testing.T) {
+	typ := db.TypeModel{
+		InnerType: db.InnerType{
+			ID:   "123",
+			Slug: "some-type",
+			Name: "Some Type",
+		},
+	}
+	exp := Type{
+		ID:   typ.ID,
+		Slug: typ.Slug,
+		Name: typ.Name,
+	}
+
+	got := NewTypeFromDb(typ)
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
 
 func TestNewTypeList(t *testing.T) {
 	types := []*Type{

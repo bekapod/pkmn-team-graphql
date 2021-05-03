@@ -1,0 +1,41 @@
+{
+	"info": {
+		"_postman_id": "13a8510d-94e5-4232-867f-ad3e905b8d10",
+		"name": "Pokemon Data",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Pokemon",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "{\n  pokemon {\n    total\n    pokemon {\n      id\n      name\n      slug\n      pokedexId\n      sprite\n      color\n      shape\n      habitat\n      hp\n      attack\n      defense\n      specialAttack\n      specialDefense\n      speed\n      height\n      weight\n      isDefaultVariant\n      isBaby\n      isLegendary\n      isMythical\n      description\n    }\n  }\n}\n",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}",
+					"host": [
+						"{{baseUrl}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

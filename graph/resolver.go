@@ -1,7 +1,5 @@
 package graph
 
-//go:generate go run github.com/99designs/gqlgen
-
 import (
 	"bekapod/pkmn-team-graphql/data/repository"
 )
@@ -11,9 +9,13 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	AbilityRepository     repository.Ability
-	MoveRepository        repository.Move
-	PokemonRepository     repository.Pokemon
-	PokemonTypeRepository repository.PokemonType
-	TypeRepository        repository.Type
+	AbilityRepository          repository.Ability
+	ItemRepository             repository.Item
+	MoveRepository             repository.Move
+	PokemonRepository          repository.Pokemon
+	PokemonAbilityRepository   repository.PokemonAbility
+	PokemonEvolutionRepository repository.PokemonEvolution
+	PokemonMoveRepository      repository.PokemonMove
+	PokemonTypeRepository      repository.PokemonType
+	TypeRepository             repository.Type
 }

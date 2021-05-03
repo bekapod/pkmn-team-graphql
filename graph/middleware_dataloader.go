@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/dataloader"
 	"context"
 	"net/http"
@@ -12,65 +13,131 @@ type key string
 const loadersKey key = "dataloaders"
 
 type loaders struct {
-	AbilitiesByPokemonId    dataloader.AbilityListLoader
-	MovesByPokemonId        dataloader.MoveListLoader
-	MovesByTypeId           dataloader.MoveListLoader
-	PokemonByPokemonId      dataloader.PokemonLoader
-	PokemonByAbilityId      dataloader.PokemonListLoader
-	PokemonByMoveId         dataloader.PokemonListLoader
-	PokemonByTypeId         dataloader.PokemonListLoader
-	PokemonTypesByPokemonId dataloader.PokemonTypeListLoader
-	TypeByTypeId            dataloader.TypeLoader
+	AbilityById                           dataloader.AbilityLoader
+	ItemById                              dataloader.ItemLoader
+	MoveById                              dataloader.MoveLoader
+	MovesByTypeId                         dataloader.MoveListLoader
+	PokemonById                           dataloader.PokemonLoader
+	PokemonAbilitiesByAbilityId           dataloader.PokemonAbilityListLoader
+	PokemonAbilitiesByPokemonId           dataloader.PokemonAbilityListLoader
+	PokemonEvolutionsByFromPokemonId      dataloader.PokemonEvolutionListLoader
+	PokemonEvolutionsByToPokemonId        dataloader.PokemonEvolutionListLoader
+	PokemonMovesByMoveId                  dataloader.PokemonMoveListLoader
+	PokemonMovesByPokemonId               dataloader.PokemonMoveListLoader
+	PokemonTypesByPokemonId               dataloader.PokemonTypeListLoader
+	PokemonTypesByTypeId                  dataloader.PokemonTypeListLoader
+	TypeById                              dataloader.TypeLoader
+	TypesByIdWithNoDamageToRelation       dataloader.TypeListLoader
+	TypesByIdWithHalfDamageToRelation     dataloader.TypeListLoader
+	TypesByIdWithDoubleDamageToRelation   dataloader.TypeListLoader
+	TypesByIdWithNoDamageFromRelation     dataloader.TypeListLoader
+	TypesByIdWithHalfDamageFromRelation   dataloader.TypeListLoader
+	TypesByIdWithDoubleDamageFromRelation dataloader.TypeListLoader
 }
 
 func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := context.WithValue(r.Context(), loadersKey, &loaders{
-				AbilitiesByPokemonId: *dataloader.NewAbilityListLoader(dataloader.AbilityListLoaderConfig{
-					MaxBatch: 1000,
+				AbilityById: *dataloader.NewAbilityLoader(dataloader.AbilityLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.AbilityRepository.AbilitiesByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.AbilityRepository.AbilityByIdDataLoader(r.Context()),
 				}),
-				MovesByPokemonId: *dataloader.NewMoveListLoader(dataloader.MoveListLoaderConfig{
-					MaxBatch: 1000,
+				ItemById: *dataloader.NewItemLoader(dataloader.ItemLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.MoveRepository.MovesByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.ItemRepository.ItemByIdDataLoader(r.Context()),
+				}),
+				MoveById: *dataloader.NewMoveLoader(dataloader.MoveLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.MoveRepository.MoveByIdDataLoader(r.Context()),
 				}),
 				MovesByTypeId: *dataloader.NewMoveListLoader(dataloader.MoveListLoaderConfig{
-					MaxBatch: 1000,
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.MoveRepository.MovesByTypeIdDataLoader(r.Context()),
 				}),
-				PokemonByPokemonId: *dataloader.NewPokemonLoader(dataloader.PokemonLoaderConfig{
-					MaxBatch: 1000,
+				PokemonById: *dataloader.NewPokemonLoader(dataloader.PokemonLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.PokemonRepository.PokemonByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonRepository.PokemonByIdDataLoader(r.Context()),
 				}),
-				PokemonByAbilityId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
-					MaxBatch: 1000,
+				PokemonAbilitiesByAbilityId: *dataloader.NewPokemonAbilityListLoader(dataloader.PokemonAbilityListLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.PokemonRepository.PokemonByAbilityIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonAbilityRepository.PokemonAbilityByAbilityIdDataLoader(r.Context()),
 				}),
-				PokemonByMoveId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
-					MaxBatch: 1000,
+				PokemonAbilitiesByPokemonId: *dataloader.NewPokemonAbilityListLoader(dataloader.PokemonAbilityListLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.PokemonRepository.PokemonByMoveIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonAbilityRepository.PokemonAbilityByPokemonIdDataLoader(r.Context()),
 				}),
-				PokemonByTypeId: *dataloader.NewPokemonListLoader(dataloader.PokemonListLoaderConfig{
-					MaxBatch: 1000,
+				PokemonEvolutionsByFromPokemonId: *dataloader.NewPokemonEvolutionListLoader(dataloader.PokemonEvolutionListLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.PokemonRepository.PokemonByTypeIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonEvolutionRepository.PokemonEvolutionByFromPokemonIdDataLoader(r.Context()),
+				}),
+				PokemonEvolutionsByToPokemonId: *dataloader.NewPokemonEvolutionListLoader(dataloader.PokemonEvolutionListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonEvolutionRepository.PokemonEvolutionByToPokemonIdDataLoader(r.Context()),
+				}),
+				PokemonMovesByMoveId: *dataloader.NewPokemonMoveListLoader(dataloader.PokemonMoveListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonMoveRepository.PokemonMoveByMoveIdDataLoader(r.Context()),
+				}),
+				PokemonMovesByPokemonId: *dataloader.NewPokemonMoveListLoader(dataloader.PokemonMoveListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonMoveRepository.PokemonMoveByPokemonIdDataLoader(r.Context()),
 				}),
 				PokemonTypesByPokemonId: *dataloader.NewPokemonTypeListLoader(dataloader.PokemonTypeListLoaderConfig{
-					MaxBatch: 1000,
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.PokemonTypeRepository.PokemonTypesByPokemonIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonTypeRepository.PokemonTypeByPokemonIdDataLoader(r.Context()),
 				}),
-				TypeByTypeId: *dataloader.NewTypeLoader(dataloader.TypeLoaderConfig{
-					MaxBatch: 1000,
+				PokemonTypesByTypeId: *dataloader.NewPokemonTypeListLoader(dataloader.PokemonTypeListLoaderConfig{
+					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
-					Fetch:    resolver.TypeRepository.TypesByTypeIdDataLoader(r.Context()),
+					Fetch:    resolver.PokemonTypeRepository.PokemonTypeByTypeIdDataLoader(r.Context()),
+				}),
+				TypeById: *dataloader.NewTypeLoader(dataloader.TypeLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdDataLoader(r.Context()),
+				}),
+				TypesByIdWithNoDamageToRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationNODAMAGETO),
+				}),
+				TypesByIdWithHalfDamageToRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationHALFDAMAGETO),
+				}),
+				TypesByIdWithDoubleDamageToRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationDOUBLEDAMAGETO),
+				}),
+				TypesByIdWithNoDamageFromRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationNODAMAGEFROM),
+				}),
+				TypesByIdWithHalfDamageFromRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationHALFDAMAGEFROM),
+				}),
+				TypesByIdWithDoubleDamageFromRelation: *dataloader.NewTypeListLoader(dataloader.TypeListLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.TypeRepository.TypeByIdWithDamageRelationDataLoader(r.Context(), db.DamageRelationDOUBLEDAMAGEFROM),
 				}),
 			})
 			r = r.WithContext(ctx)

@@ -1,21 +1,34 @@
 package model
 
+import "bekapod/pkmn-team-graphql/data/db"
+
 type Ability struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Slug   string `json:"slug"`
-	Effect string `json:"effect"`
+	ID     string  `json:"id"`
+	Slug   string  `json:"slug"`
+	Name   string  `json:"name"`
+	Effect *string `json:"effect"`
 }
 
-type AbilityList struct {
-	Total     int        `json:"total"`
-	Abilities []*Ability `json:"abilities"`
+func NewAbilityFromDb(dbAbility db.AbilityModel) Ability {
+	a := Ability{
+		ID:   dbAbility.ID,
+		Slug: dbAbility.Slug,
+		Name: dbAbility.Name,
+	}
+
+	if value, ok := dbAbility.Effect(); ok {
+		a.Effect = &value
+	} else {
+		a.Effect = nil
+	}
+
+	return a
 }
 
-func NewAbilityList(a []*Ability) AbilityList {
+func NewAbilityList(abilities []*Ability) AbilityList {
 	return AbilityList{
-		Total:     len(a),
-		Abilities: a,
+		Total:     len(abilities),
+		Abilities: abilities,
 	}
 }
 
@@ -30,5 +43,3 @@ func (l *AbilityList) AddAbility(a *Ability) {
 	l.Total++
 	l.Abilities = append(l.Abilities, a)
 }
-
-func (Ability) IsEntity() {}

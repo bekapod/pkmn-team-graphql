@@ -1,20 +1,27 @@
 package model
 
+import "bekapod/pkmn-team-graphql/data/db"
+
 type PokemonType struct {
-	TypeID    string `json:"type"`
-	PokemonID string `json:"pokemon"`
+	TypeID    string `json:"typeId"`
+	PokemonID string `json:"pokemonId"`
 	Slot      int    `json:"slot"`
 }
 
-type PokemonTypeList struct {
-	Total        int            `json:"total"`
-	PokemonTypes []*PokemonType `json:"pokemonTypes"`
+func NewPokemonTypeFromDb(dbPokemonType db.PokemonTypeModel) PokemonType {
+	pt := PokemonType{
+		TypeID:    dbPokemonType.TypeID,
+		PokemonID: dbPokemonType.PokemonID,
+		Slot:      dbPokemonType.Slot,
+	}
+
+	return pt
 }
 
-func NewPokemonTypeList(t []*PokemonType) PokemonTypeList {
+func NewPokemonTypeList(pokemonTypes []*PokemonType) PokemonTypeList {
 	return PokemonTypeList{
-		Total:        len(t),
-		PokemonTypes: t,
+		Total:        len(pokemonTypes),
+		PokemonTypes: pokemonTypes,
 	}
 }
 
@@ -25,9 +32,7 @@ func NewEmptyPokemonTypeList() PokemonTypeList {
 	}
 }
 
-func (l *PokemonTypeList) AddPokemonType(t *PokemonType) {
+func (l *PokemonTypeList) AddPokemonType(pt *PokemonType) {
 	l.Total++
-	l.PokemonTypes = append(l.PokemonTypes, t)
+	l.PokemonTypes = append(l.PokemonTypes, pt)
 }
-
-func (PokemonType) IsEntity() {}

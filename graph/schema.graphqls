@@ -1,40 +1,12 @@
-enum DamageClass {
-  PHYSICAL
-  SPECIAL
-  STATUS
-}
-
-type Ability {
-  id: ID!
-  slug: String!
-  name: String!
-  effect: String!
+type Query {
+  abilityById(id: ID!): Ability
+  abilities: AbilityList!
+  moveById(id: ID!): Move
+  moves: MoveList!
+  pokemonById(id: ID!): Pokemon
   pokemon: PokemonList!
-}
-
-type AbilityList {
-  total: Int!
-  abilities: [Ability!]!
-}
-
-type Move {
-  id: ID!
-  slug: String!
-  name: String!
-  accuracy: Int!
-  pp: Int!
-  power: Int!
-  damageClass: DamageClass!
-  effect: String!
-  effectChance: Int!
-  target: String!
-  type: Type!
-  pokemon: PokemonList!
-}
-
-type MoveList {
-  total: Int!
-  moves: [Move!]!
+  typeById(id: ID!): Type
+  types: TypeList!
 }
 
 type Pokemon {
@@ -52,15 +24,78 @@ type Pokemon {
   isBaby: Boolean!
   isLegendary: Boolean!
   isMythical: Boolean!
-  description: String!
-  abilities: AbilityList!
+  description: String
+  color: Color!
+  shape: Shape!
+  habitat: Habitat
+  height: Int!
+  weight: Int!
+  isDefaultVariant: Boolean!
+  genus: String!
+  abilities: PokemonAbilityList!
   types: PokemonTypeList!
-  moves: MoveList!
+  moves: PokemonMoveList!
+  eggGroups: EggGroupList!
+  evolvesTo: PokemonEvolutionList!
+  evolvesFrom: PokemonEvolutionList!
 }
 
 type PokemonList {
   total: Int!
   pokemon: [Pokemon!]!
+}
+
+type PokemonAbility {
+  slot: Int!
+  isHidden: Boolean!
+  ability: Ability!
+  pokemon: Pokemon!
+}
+
+type PokemonAbilityList {
+  total: Int!
+  pokemonAbilities: [PokemonAbility!]!
+}
+
+type PokemonEvolution {
+  pokemon: Pokemon!
+  trigger: EvolutionTrigger!
+  item: Item
+  gender: Gender!
+  heldItem: Item
+  knownMove: Move
+  knownMoveType: Type
+  minLevel: Int
+  minHappiness: Int
+  minBeauty: Int
+  minAffection: Int
+  needsOverworldRain: Boolean!
+  partyPokemon: Pokemon
+  partyPokemonType: Type
+  relativePhysicalStats: Int
+  timeOfDay: TimeOfDay!
+  tradeWithPokemon: Pokemon
+  turnUpsideDown: Boolean!
+  spin: Boolean!
+  takeDamage: Int
+  criticalHits: Int
+}
+
+type PokemonEvolutionList {
+  total: Int!
+  pokemonEvolutions: [PokemonEvolution!]!
+}
+
+type PokemonMove {
+  move: Move!
+  pokemon: Pokemon!
+  learnMethod: MoveLearnMethod!
+  levelLearnedAt: Int!
+}
+
+type PokemonMoveList {
+  total: Int!
+  pokemonMoves: [PokemonMove!]!
 }
 
 type PokemonType {
@@ -74,12 +109,75 @@ type PokemonTypeList {
   pokemonTypes: [PokemonType!]!
 }
 
+type Ability {
+  id: ID!
+  slug: String!
+  name: String!
+  effect: String
+  pokemon: PokemonAbilityList!
+}
+
+type AbilityList {
+  total: Int!
+  abilities: [Ability!]!
+}
+
+type EggGroup {
+  id: ID!
+  name: String!
+  slug: String!
+}
+
+type EggGroupList {
+  total: Int!
+  eggGroups: [EggGroup!]!
+}
+
+type Item {
+  id: ID!
+  slug: String!
+  name: String!
+  cost: Int
+  flingPower: Int
+  flingEffect: String
+  effect: String
+  sprite: String
+  category: ItemCategory!
+  attributes: [ItemAttribute!]!
+}
+
+type Move {
+  id: ID!
+  slug: String!
+  name: String!
+  accuracy: Int
+  pp: Int
+  power: Int
+  damageClass: DamageClass!
+  effect: String
+  effectChance: Int
+  target: MoveTarget!
+  type: Type!
+  pokemon: PokemonMoveList!
+}
+
+type MoveList {
+  total: Int!
+  moves: [Move!]!
+}
+
 type Type {
   id: ID!
   slug: String!
   name: String!
-  pokemon: PokemonList!
+  pokemon: PokemonTypeList!
   moves: MoveList!
+  noDamageTo: TypeList!
+  halfDamageTo: TypeList!
+  doubleDamageTo: TypeList!
+  noDamageFrom: TypeList!
+  halfDamageFrom: TypeList!
+  doubleDamageFrom: TypeList!
 }
 
 type TypeList {
@@ -87,13 +185,162 @@ type TypeList {
   types: [Type!]!
 }
 
-type Query {
-  abilityById(id: ID!): Ability
-  abilities: AbilityList!
-  moveById(id: ID!): Move
-  moves: MoveList!
-  pokemonById(id: ID!): Pokemon
-  pokemon: PokemonList!
-  typeById(id: ID!): Type
-  types: TypeList!
+enum Color {
+  BLACK
+  BLUE
+  BROWN
+  GRAY
+  GREEN
+  PINK
+  PURPLE
+  RED
+  WHITE
+  YELLOW
+}
+
+enum DamageClass {
+  PHYSICAL
+  SPECIAL
+  STATUS
+}
+
+enum EvolutionTrigger {
+  LEVEL_UP
+  OTHER
+  SHED
+  TRADE
+  USE_ITEM
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  ANY
+}
+
+enum Habitat {
+  CAVE
+  FOREST
+  GRASSLAND
+  MOUNTAIN
+  RARE
+  ROUGH_TERRAIN
+  SEA
+  URBAN
+  WATERS_EDGE
+}
+
+enum ItemCategory {
+  ALL_MACHINES
+  ALL_MAIL
+  APRICORN_BALLS
+  APRICORN_BOX
+  BAD_HELD_ITEMS
+  BAKING_ONLY
+  CHOICE
+  COLLECTIBLES
+  DATA_CARDS
+  DEX_COMPLETION
+  EFFORT_DROP
+  EFFORT_TRAINING
+  EVENT_ITEMS
+  EVOLUTION
+  FLUTES
+  GAMEPLAY
+  HEALING
+  HELD_ITEMS
+  IN_A_PINCH
+  JEWELS
+  LOOT
+  MEDICINE
+  MEGA_STONES
+  MEMORIES
+  MIRACLE_SHOOTER
+  MULCH
+  OTHER
+  PICKY_HEALING
+  PLATES
+  PLOT_ADVANCEMENT
+  PP_RECOVERY
+  REVIVAL
+  SCARVES
+  SPECIAL_BALLS
+  SPECIES_SPECIFIC
+  SPELUNKING
+  STANDARD_BALLS
+  STAT_BOOSTS
+  STATUS_CURES
+  TRAINING
+  TYPE_ENHANCEMENT
+  TYPE_PROTECTION
+  UNUSED
+  VITAMINS
+  Z_CRYSTALS
+}
+
+enum ItemAttribute {
+  CONSUMABLE
+  COUNTABLE
+  HOLDABLE
+  HOLDABLE_ACTIVE
+  HOLDABLE_PASSIVE
+  UNDERGROUND
+  USABLE_IN_BATTLE
+  USABLE_OVERWORLD
+}
+
+enum MoveLearnMethod {
+  LEVEL_UP
+  EGG
+  TUTOR
+  MACHINE
+  STADIUM_SURFING_PIKACHU
+  LIGHT_BALL_EGG
+  COLOSSEUM_PURIFICATION
+  XD_SHADOW
+  XD_PURIFICATION
+  FORM_CHANGE
+  RECORD
+  TRANSFER
+}
+
+enum MoveTarget {
+  SPECIFIC_MOVE
+  SELECTED_POKEMON_ME_FIRST
+  ALLY
+  USERS_FIELD
+  USER_OR_ALLY
+  OPPONENTS_FIELD
+  USER
+  RANDOM_OPPONENT
+  ALL_OTHER_POKEMON
+  SELECTED_POKEMON
+  ALL_OPPONENTS
+  ENTIRE_FIELD
+  USER_AND_ALLIES
+  ALL_POKEMON
+  ALL_ALLIES
+}
+
+enum Shape {
+  BALL
+  SQUIGGLE
+  FISH
+  ARMS
+  BLOB
+  UPRIGHT
+  LEGS
+  QUADRUPED
+  WINGS
+  TENTACLES
+  HEADS
+  HUMANOID
+  BUG_WINGS
+  ARMOR
+}
+
+enum TimeOfDay {
+  DAY
+  NIGHT
+  ANY
 }

@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// PokemonListLoaderConfig captures the config to create a new PokemonListLoader
-type PokemonListLoaderConfig struct {
+// PokemonEvolutionListLoaderConfig captures the config to create a new PokemonEvolutionListLoader
+type PokemonEvolutionListLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.PokemonList, []error)
+	Fetch func(keys []string) ([]*model.PokemonEvolutionList, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type PokemonListLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewPokemonListLoader creates a new PokemonListLoader given a fetch, wait, and maxBatch
-func NewPokemonListLoader(config PokemonListLoaderConfig) *PokemonListLoader {
-	return &PokemonListLoader{
+// NewPokemonEvolutionListLoader creates a new PokemonEvolutionListLoader given a fetch, wait, and maxBatch
+func NewPokemonEvolutionListLoader(config PokemonEvolutionListLoaderConfig) *PokemonEvolutionListLoader {
+	return &PokemonEvolutionListLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// PokemonListLoader batches and caches requests
-type PokemonListLoader struct {
+// PokemonEvolutionListLoader batches and caches requests
+type PokemonEvolutionListLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.PokemonList, []error)
+	fetch func(keys []string) ([]*model.PokemonEvolutionList, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type PokemonListLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.PokemonList
+	cache map[string]*model.PokemonEvolutionList
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *pokemonListLoaderBatch
+	batch *pokemonEvolutionListLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type pokemonListLoaderBatch struct {
+type pokemonEvolutionListLoaderBatch struct {
 	keys    []string
-	data    []*model.PokemonList
+	data    []*model.PokemonEvolutionList
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a PokemonList by key, batching and caching will be applied automatically
-func (l *PokemonListLoader) Load(key string) (*model.PokemonList, error) {
+// Load a PokemonEvolutionList by key, batching and caching will be applied automatically
+func (l *PokemonEvolutionListLoader) Load(key string) (*model.PokemonEvolutionList, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a PokemonList.
+// LoadThunk returns a function that when called will block waiting for a PokemonEvolutionList.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonListLoader) LoadThunk(key string) func() (*model.PokemonList, error) {
+func (l *PokemonEvolutionListLoader) LoadThunk(key string) func() (*model.PokemonEvolutionList, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.PokemonList, error) {
+		return func() (*model.PokemonEvolutionList, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &pokemonListLoaderBatch{done: make(chan struct{})}
+		l.batch = &pokemonEvolutionListLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.PokemonList, error) {
+	return func() (*model.PokemonEvolutionList, error) {
 		<-batch.done
 
-		var data *model.PokemonList
+		var data *model.PokemonEvolutionList
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *PokemonListLoader) LoadThunk(key string) func() (*model.PokemonList, er
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *PokemonListLoader) LoadAll(keys []string) ([]*model.PokemonList, []error) {
-	results := make([]func() (*model.PokemonList, error), len(keys))
+func (l *PokemonEvolutionListLoader) LoadAll(keys []string) ([]*model.PokemonEvolutionList, []error) {
+	results := make([]func() (*model.PokemonEvolutionList, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	pokemonLists := make([]*model.PokemonList, len(keys))
+	pokemonEvolutionLists := make([]*model.PokemonEvolutionList, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		pokemonLists[i], errors[i] = thunk()
+		pokemonEvolutionLists[i], errors[i] = thunk()
 	}
-	return pokemonLists, errors
+	return pokemonEvolutionLists, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a PokemonLists.
+// LoadAllThunk returns a function that when called will block waiting for a PokemonEvolutionLists.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonListLoader) LoadAllThunk(keys []string) func() ([]*model.PokemonList, []error) {
-	results := make([]func() (*model.PokemonList, error), len(keys))
+func (l *PokemonEvolutionListLoader) LoadAllThunk(keys []string) func() ([]*model.PokemonEvolutionList, []error) {
+	results := make([]func() (*model.PokemonEvolutionList, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.PokemonList, []error) {
-		pokemonLists := make([]*model.PokemonList, len(keys))
+	return func() ([]*model.PokemonEvolutionList, []error) {
+		pokemonEvolutionLists := make([]*model.PokemonEvolutionList, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			pokemonLists[i], errors[i] = thunk()
+			pokemonEvolutionLists[i], errors[i] = thunk()
 		}
-		return pokemonLists, errors
+		return pokemonEvolutionLists, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *PokemonListLoader) Prime(key string, value *model.PokemonList) bool {
+func (l *PokemonEvolutionListLoader) Prime(key string, value *model.PokemonEvolutionList) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *PokemonListLoader) Prime(key string, value *model.PokemonList) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *PokemonListLoader) Clear(key string) {
+func (l *PokemonEvolutionListLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *PokemonListLoader) unsafeSet(key string, value *model.PokemonList) {
+func (l *PokemonEvolutionListLoader) unsafeSet(key string, value *model.PokemonEvolutionList) {
 	if l.cache == nil {
-		l.cache = map[string]*model.PokemonList{}
+		l.cache = map[string]*model.PokemonEvolutionList{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *pokemonListLoaderBatch) keyIndex(l *PokemonListLoader, key string) int {
+func (b *pokemonEvolutionListLoaderBatch) keyIndex(l *PokemonEvolutionListLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *pokemonListLoaderBatch) keyIndex(l *PokemonListLoader, key string) int 
 	return pos
 }
 
-func (b *pokemonListLoaderBatch) startTimer(l *PokemonListLoader) {
+func (b *pokemonEvolutionListLoaderBatch) startTimer(l *PokemonEvolutionListLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *pokemonListLoaderBatch) startTimer(l *PokemonListLoader) {
 	b.end(l)
 }
 
-func (b *pokemonListLoaderBatch) end(l *PokemonListLoader) {
+func (b *pokemonEvolutionListLoaderBatch) end(l *PokemonEvolutionListLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }

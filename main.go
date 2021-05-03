@@ -4,7 +4,7 @@ package main
 
 import (
 	"bekapod/pkmn-team-graphql/config"
-	"bekapod/pkmn-team-graphql/data"
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/repository"
 	"bekapod/pkmn-team-graphql/graph"
 	"bekapod/pkmn-team-graphql/log"
@@ -23,15 +23,21 @@ func main() {
 	cfg := config.New()
 	log.Logger.WithField("config", cfg).Info("service starting")
 
-	db := data.NewDB(cfg.DatabaseUrl)
-	data.MigrateDatabase(db, cfg)
+	client := db.NewClient()
+	if err := client.Prisma.Connect(); err != nil {
+		log.Logger.Fatalf("failed to connect to client: %s", err)
+	}
 
 	resolver := &graph.Resolver{
-		AbilityRepository:     repository.NewAbility(db),
-		MoveRepository:        repository.NewMove(db),
-		PokemonRepository:     repository.NewPokemon(db),
-		PokemonTypeRepository: repository.NewPokemonType(db),
-		TypeRepository:        repository.NewType(db),
+		AbilityRepository:          repository.NewAbility(client),
+		ItemRepository:             repository.NewItem(client),
+		MoveRepository:             repository.NewMove(client),
+		PokemonRepository:          repository.NewPokemon(client),
+		PokemonAbilityRepository:   repository.NewPokemonAbility(client),
+		PokemonEvolutionRepository: repository.NewPokemonEvolution(client),
+		PokemonMoveRepository:      repository.NewPokemonMove(client),
+		PokemonTypeRepository:      repository.NewPokemonType(client),
+		TypeRepository:             repository.NewType(client),
 	}
 
 	srv := http.Server{Addr: fmt.Sprintf(":%s", cfg.Port), Handler: router.New(resolver, cfg.Tracing)}
@@ -43,6 +49,9 @@ func main() {
 		log.Logger.Info("shutting down HTTP server")
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		if err := client.Prisma.Disconnect(); err != nil {
+			log.Logger.Errorf("Client did not disconnect correctly: %s", err)
+		}
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Logger.Errorf("HTTP server did not shutdown correctly: %s", err)
 		}

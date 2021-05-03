@@ -1,58 +1,46 @@
 package main
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/log"
 	"bekapod/pkmn-team-graphql/pokeapi"
 	"bekapod/pkmn-team-graphql/scripts/seed/helpers"
+	"context"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexflint/go-arg"
+	"github.com/joho/godotenv"
 )
 
-func getListOfMoveTargets(client *pokeapi.PokeApiClient) map[string]string {
-	moveTargetList := client.GetResourceList("move-target")
-	results := moveTargetList.Results
-	resultsLength := len(results)
-	targets := make(map[string]string)
-	var wg sync.WaitGroup
-	wg.Add(resultsLength)
-
-	for i := 0; i < resultsLength; i++ {
-		go func(i int) {
-			defer wg.Done()
-			target := client.GetMoveTarget(results[i].Name)
-			englishName, err := pokeapi.GetEnglishName(target.Names, target.Name)
-			if err != nil {
-				log.Logger.Fatal(err)
-			}
-			targets[target.Name] = englishName.Name
-		}(i)
-	}
-
-	wg.Wait()
-	return targets
-}
-
 func main() {
-	start := time.Now()
-	config := &helpers.Config{
-		OutputFile: "seeds/moves.sql",
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
 	}
+
+	start := time.Now()
+	config := &helpers.Config{}
 	arg.MustParse(config)
 
 	client := pokeapi.New(pokeapi.PokeApiConfig{Host: config.Host, Prefix: config.Prefix})
+	prisma := db.NewClient()
+	if err := prisma.Prisma.Connect(); err != nil {
+		panic(err)
+	}
 
-	f := helpers.OpenFile(config.OutputFile)
-	defer f.Close()
+	defer func() {
+		if err := prisma.Prisma.Disconnect(); err != nil {
+			panic(err)
+		}
+	}()
 
-	moveList := client.GetResourceList("move")
-	targets := getListOfMoveTargets(client)
+	ctx := context.Background()
+
+	moveList := client.GetResourceList("move", 10000)
 	results := moveList.Results
 	resultsLength := len(results)
-	values := make([]string, 0)
 
 	var wg sync.WaitGroup
 	wg.Add(resultsLength)
@@ -65,41 +53,51 @@ func main() {
 			defer wg.Done()
 			fullMove := client.GetMove(results[i].Name)
 			if fullMove.DamageClass.Name != "" {
-				target := targets[fullMove.Target.Name]
-
 				englishName, err := pokeapi.GetEnglishName(fullMove.Names, fullMove.Name)
 				if err != nil {
 					log.Logger.Fatal(err)
 				}
 				englishEffectEntry, _ := pokeapi.GetEnglishEffectEntry(fullMove.EffectEntries, fullMove.Name)
+				var effect *string
+				if englishEffectEntry != nil {
+					effect = &englishEffectEntry.ShortEffect
+				}
 
-				values = append(values, fmt.Sprintf(
-					"('%s', '%s', %d, %d, %d, '%s', '%s', %d, '%s', %s)",
-					fullMove.Name,
-					helpers.EscapeSingleQuote(englishName.Name),
-					fullMove.Accuracy,
-					fullMove.PP,
-					fullMove.Power,
-					helpers.EscapeSingleQuote(fullMove.DamageClass.Name),
-					helpers.EscapeSingleQuote(englishEffectEntry.ShortEffect),
-					fullMove.EffectChance,
-					helpers.EscapeSingleQuote(target),
-					fmt.Sprintf("(SELECT id from types WHERE slug='%s')", fullMove.Type.Name),
-				))
+				_, dbErr := prisma.Move.UpsertOne(db.Move.Slug.Equals(fullMove.Name)).
+					Create(
+						db.Move.Slug.Set(fullMove.Name),
+						db.Move.Name.Set(englishName.Name),
+						db.Move.DamageClass.Set(db.DamageClass(fullMove.DamageClass.Name)),
+						db.Move.Target.Set(db.MoveTarget(fullMove.Target.Name)),
+						db.Move.Type.Link(db.Type.Slug.Equals(fullMove.Type.Name)),
+						db.Move.Effect.SetIfPresent(effect),
+						db.Move.EffectChance.SetIfPresent(fullMove.EffectChance),
+						db.Move.Accuracy.SetIfPresent(fullMove.Accuracy),
+						db.Move.Pp.SetIfPresent(fullMove.PP),
+						db.Move.Power.SetIfPresent(fullMove.Power),
+						db.Move.UpdatedAt.Set(time.Now())).
+					Update(
+						db.Move.Name.Set(englishName.Name),
+						db.Move.DamageClass.Set(db.DamageClass(fullMove.DamageClass.Name)),
+						db.Move.Target.Set(db.MoveTarget(fullMove.Target.Name)),
+						db.Move.Type.Link(db.Type.Slug.Equals(fullMove.Type.Name)),
+						db.Move.Effect.SetIfPresent(effect),
+						db.Move.EffectChance.SetIfPresent(fullMove.EffectChance),
+						db.Move.Accuracy.SetIfPresent(fullMove.Accuracy),
+						db.Move.Pp.SetIfPresent(fullMove.PP),
+						db.Move.Power.SetIfPresent(fullMove.Power),
+						db.Move.UpdatedAt.Set(time.Now())).
+					Exec(ctx)
+
+				if dbErr != nil {
+					log.Logger.WithField("move", fullMove.Name).Fatal(dbErr)
+				}
 			}
 		}(i)
 	}
 
 	wg.Wait()
 
-	sql := fmt.Sprintf("INSERT INTO moves (slug, name, accuracy, pp, power, damage_class_enum, effect, effect_chance, target, type_id)\n\tVALUES %s\nON CONFLICT (slug)\n\tDO UPDATE SET\n\t\tname = EXCLUDED.name,\n\t\taccuracy = EXCLUDED.accuracy,\n\t\tpp = EXCLUDED.pp,\n\t\tpower = EXCLUDED.power,\n\t\tdamage_class_enum = EXCLUDED.damage_class_enum,\n\t\teffect = EXCLUDED.effect,\n\t\teffect_chance = EXCLUDED.effect_chance,\n\t\ttarget = EXCLUDED.target,\n\t\ttype_id = EXCLUDED.type_id;", strings.Join(values, ", "))
-
-	o, err := f.WriteString(sql)
-	if err != nil {
-		log.Logger.Fatal(err)
-	}
-	f.Sync()
-
 	elapsed := time.Since(start)
-	log.Logger.Info(fmt.Sprintf("Wrote %d bytes in %s\n", o, elapsed))
+	log.Logger.Info(fmt.Sprintf("Completed in %s\n", elapsed))
 }

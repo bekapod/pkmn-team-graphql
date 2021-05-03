@@ -1,23 +1,42 @@
 package model
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
 
+func TestNewPokemonTypeFromDb(t *testing.T) {
+	pokemonType := db.PokemonTypeModel{
+		InnerPokemonType: db.InnerPokemonType{
+			TypeID:    "type-1",
+			PokemonID: "pokemon-1",
+			Slot:      2,
+		},
+	}
+	exp := PokemonType{
+		TypeID:    pokemonType.TypeID,
+		PokemonID: pokemonType.PokemonID,
+		Slot:      pokemonType.Slot,
+	}
+
+	got := NewPokemonTypeFromDb(pokemonType)
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
 func TestNewPokemonTypeList(t *testing.T) {
 	pokemonTypes := []*PokemonType{
 		{
-			TypeID:    "123-456",
-			PokemonID: "456-789",
-			Slot:      1,
+			TypeID:    "type-1",
+			PokemonID: "pokemon-1",
 		},
 		{
-			TypeID:    "456-789",
-			PokemonID: "123-456",
-			Slot:      2,
+			TypeID:    "type-2",
+			PokemonID: "pokemon-1",
 		},
 	}
 
@@ -56,6 +75,6 @@ func TestPokemonTypeList_AddPokemonType(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual([]*PokemonType{pokemonType1, pokemonType2}, pokemonTypes.PokemonTypes) {
-		t.Errorf("the pokemonTypes added do not match")
+		t.Errorf("the pokemon types added do not match")
 	}
 }
