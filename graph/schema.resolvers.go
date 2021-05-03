@@ -7,7 +7,6 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
-	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonAbilityList, error) {
@@ -151,11 +150,11 @@ func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error)
 }
 
 func (r *queryResolver) TeamByID(ctx context.Context, id string) (*model.Team, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.TeamRepository.GetTeamById(ctx, id)
 }
 
 func (r *queryResolver) Teams(ctx context.Context) (*model.TeamList, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.TeamRepository.GetTeams(ctx)
 }
 
 func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {

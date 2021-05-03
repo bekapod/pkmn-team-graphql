@@ -1,9 +1,19 @@
 package model
 
+import "bekapod/pkmn-team-graphql/data/db"
+
 type TeamMemberMove struct {
 	ID            string `json:"id"`
 	Slot          int    `json:"slot"`
 	PokemonMoveID string `json:"pokemonMoveId"`
+}
+
+func NewTeamMemberMoveFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMemberMove {
+	return TeamMemberMove{
+		ID:            dbTeamMemberMove.ID,
+		Slot:          dbTeamMemberMove.Slot,
+		PokemonMoveID: dbTeamMemberMove.PokemonMoveID,
+	}
 }
 
 func NewTeamMemberMoveList(teams []*TeamMemberMove) TeamMemberMoveList {
