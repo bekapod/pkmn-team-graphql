@@ -40,6 +40,7 @@ model Pokemon {
   evolvesFrom           PokemonEvolution[] @relation(name: "toPokemon")
   usedForPartyEvolution PokemonEvolution[] @relation(name: "partyPokemon")
   usedForTradeEvolution PokemonEvolution[] @relation(name: "tradeWithPokemon")
+  teamMembers           TeamMember[]
 }
 
 model PokemonAbility {
@@ -96,15 +97,16 @@ model PokemonEvolution {
 }
 
 model PokemonMove {
-  id             String          @id @default(cuid())
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  pokemon        Pokemon         @relation(fields: [pokemonId], references: [id])
-  pokemonId      String
-  move           Move            @relation(fields: [moveId], references: [id])
-  moveId         String
-  learnMethod    MoveLearnMethod
-  levelLearnedAt Int
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  pokemon         Pokemon          @relation(fields: [pokemonId], references: [id])
+  pokemonId       String
+  move            Move             @relation(fields: [moveId], references: [id])
+  moveId          String
+  learnMethod     MoveLearnMethod
+  levelLearnedAt  Int
+  teamMemberMoves TeamMemberMove[]
 
   @@unique([pokemonId, moveId, learnMethod])
 }
@@ -202,6 +204,39 @@ model TypeDamageRelation {
   damageRelation DamageRelation
 
   @@unique([typeAId, typeBId, damageRelation])
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  name        String
+  teamMembers TeamMember[]
+}
+
+model TeamMember {
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  slot      Int
+  pokemon   Pokemon          @relation(fields: [pokemonId], references: [id])
+  pokemonId String
+  Team      Team             @relation(fields: [teamId], references: [id])
+  teamId    String
+  moves     TeamMemberMove[]
+}
+
+model TeamMemberMove {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  slot          Int
+  teamMember    TeamMember  @relation(fields: [teamMemberId], references: [id])
+  teamMemberId  String
+  pokemonMove   PokemonMove @relation(fields: [pokemonMoveId], references: [id])
+  pokemonMoveId String
+
+  @@unique([teamMemberId, pokemonMoveId])
 }
 
 enum Color {
