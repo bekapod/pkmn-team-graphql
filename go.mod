@@ -1,6 +1,7 @@
 module bekapod/pkmn-team-graphql
 
 // +heroku goVersion 1.16
+// +heroku install bekapod/pkmn-team-graphql
 go 1.16
 
 require (
