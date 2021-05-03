@@ -11,6 +11,34 @@ type Query {
   types: TypeList!
 }
 
+type Mutation {
+  createTeam(input: CreateTeamInput!): Team!
+  updateTeam(input: UpdateTeamInput!): Team!
+  deleteTeam(id: ID!): Team!
+}
+
+input CreateTeamInput {
+  name: String!
+  members: [CreateTeamMemberInput!]
+}
+
+input UpdateTeamInput {
+  id: ID!
+  name: String
+  members: [UpdateTeamMemberInput!]
+}
+
+input CreateTeamMemberInput {
+  pokemonId: ID!
+  slot: Int!
+}
+
+input UpdateTeamMemberInput {
+  id: ID
+  pokemonId: ID
+  slot: Int
+}
+
 type Pokemon {
   id: ID!
   name: String!
