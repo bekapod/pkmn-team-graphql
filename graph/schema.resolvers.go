@@ -171,7 +171,7 @@ func (r *teamMemberResolver) Pokemon(ctx context.Context, obj *model.TeamMember)
 }
 
 func (r *teamMemberMoveResolver) Move(ctx context.Context, obj *model.TeamMemberMove) (*model.PokemonMove, error) {
-	panic(fmt.Errorf("not implemented"))
+	return DataLoaderFor(ctx).PokemonMoveById.Load(obj.ID)
 }
 
 func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonTypeList, error) {

@@ -22,6 +22,7 @@ type loaders struct {
 	PokemonAbilitiesByPokemonId           dataloader.PokemonAbilityListLoader
 	PokemonEvolutionsByFromPokemonId      dataloader.PokemonEvolutionListLoader
 	PokemonEvolutionsByToPokemonId        dataloader.PokemonEvolutionListLoader
+	PokemonMoveById                       dataloader.PokemonMoveLoader
 	PokemonMovesByMoveId                  dataloader.PokemonMoveListLoader
 	PokemonMovesByPokemonId               dataloader.PokemonMoveListLoader
 	PokemonTypesByPokemonId               dataloader.PokemonTypeListLoader
@@ -83,6 +84,11 @@ func DataLoaderMiddleware(resolver *Resolver) func(next http.Handler) http.Handl
 					MaxBatch: 0,
 					Wait:     1 * time.Millisecond,
 					Fetch:    resolver.PokemonEvolutionRepository.PokemonEvolutionByToPokemonIdDataLoader(r.Context()),
+				}),
+				PokemonMoveById: *dataloader.NewPokemonMoveLoader(dataloader.PokemonMoveLoaderConfig{
+					MaxBatch: 0,
+					Wait:     1 * time.Millisecond,
+					Fetch:    resolver.PokemonMoveRepository.PokemonMoveByIdDataLoader(r.Context()),
 				}),
 				PokemonMovesByMoveId: *dataloader.NewPokemonMoveListLoader(dataloader.PokemonMoveListLoaderConfig{
 					MaxBatch: 0,
