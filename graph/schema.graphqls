@@ -5,6 +5,8 @@ type Query {
   moves: MoveList!
   pokemonById(id: ID!): Pokemon
   pokemon: PokemonList!
+  teamById(id: ID!): Team
+  teams: TeamList!
   typeById(id: ID!): Type
   types: TypeList!
 }
@@ -164,6 +166,40 @@ type Move {
 type MoveList {
   total: Int!
   moves: [Move!]!
+}
+
+type Team {
+  id: ID!
+  name: String!
+  members: TeamMemberList!
+}
+
+type TeamList {
+  total: Int!
+  teams: [Team!]!
+}
+
+type TeamMember {
+  id: ID!
+  slot: Int!
+  pokemon: Pokemon!
+  moves: TeamMemberMoveList!
+}
+
+type TeamMemberList {
+  total: Int!
+  teamMembers: [TeamMember!]!
+}
+
+type TeamMemberMove {
+  id: ID!
+  slot: Int!
+  move: PokemonMove!
+}
+
+type TeamMemberMoveList {
+  total: Int!
+  teamMemberMoves: [TeamMemberMove!]!
 }
 
 type Type {

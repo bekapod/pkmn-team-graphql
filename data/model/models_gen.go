@@ -67,6 +67,27 @@ type PokemonTypeList struct {
 	PokemonTypes []*PokemonType `json:"pokemonTypes"`
 }
 
+type Team struct {
+	ID      string          `json:"id"`
+	Name    string          `json:"name"`
+	Members *TeamMemberList `json:"members"`
+}
+
+type TeamList struct {
+	Total int     `json:"total"`
+	Teams []*Team `json:"teams"`
+}
+
+type TeamMemberList struct {
+	Total       int           `json:"total"`
+	TeamMembers []*TeamMember `json:"teamMembers"`
+}
+
+type TeamMemberMoveList struct {
+	Total           int               `json:"total"`
+	TeamMemberMoves []*TeamMemberMove `json:"teamMemberMoves"`
+}
+
 type TypeList struct {
 	Total int     `json:"total"`
 	Types []*Type `json:"types"`

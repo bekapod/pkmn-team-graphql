@@ -7,6 +7,7 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 	"bekapod/pkmn-team-graphql/graph/generated"
 	"context"
+	"fmt"
 )
 
 func (r *abilityResolver) Pokemon(ctx context.Context, obj *model.Ability) (*model.PokemonAbilityList, error) {
@@ -149,12 +150,28 @@ func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error)
 	return r.PokemonRepository.GetPokemon(ctx)
 }
 
+func (r *queryResolver) TeamByID(ctx context.Context, id string) (*model.Team, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) Teams(ctx context.Context) (*model.TeamList, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {
 	return r.TypeRepository.GetTypeById(ctx, id)
 }
 
 func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
 	return r.TypeRepository.GetTypes(ctx)
+}
+
+func (r *teamMemberResolver) Pokemon(ctx context.Context, obj *model.TeamMember) (*model.Pokemon, error) {
+	return DataLoaderFor(ctx).PokemonById.Load(obj.PokemonID)
+}
+
+func (r *teamMemberMoveResolver) Move(ctx context.Context, obj *model.TeamMemberMove) (*model.PokemonMove, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonTypeList, error) {
@@ -217,6 +234,14 @@ func (r *Resolver) PokemonType() generated.PokemonTypeResolver { return &pokemon
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// TeamMember returns generated.TeamMemberResolver implementation.
+func (r *Resolver) TeamMember() generated.TeamMemberResolver { return &teamMemberResolver{r} }
+
+// TeamMemberMove returns generated.TeamMemberMoveResolver implementation.
+func (r *Resolver) TeamMemberMove() generated.TeamMemberMoveResolver {
+	return &teamMemberMoveResolver{r}
+}
+
 // Type returns generated.TypeResolver implementation.
 func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
 
@@ -228,4 +253,6 @@ type pokemonEvolutionResolver struct{ *Resolver }
 type pokemonMoveResolver struct{ *Resolver }
 type pokemonTypeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type teamMemberResolver struct{ *Resolver }
+type teamMemberMoveResolver struct{ *Resolver }
 type typeResolver struct{ *Resolver }
