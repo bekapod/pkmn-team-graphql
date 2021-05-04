@@ -15,6 +15,7 @@ type Mutation {
   createTeam(input: CreateTeamInput!): Team!
   updateTeam(input: UpdateTeamInput!): Team!
   deleteTeam(id: ID!): Team!
+  removeTeamMember(id: ID!): TeamMember!
 }
 
 input CreateTeamInput {
@@ -212,6 +213,7 @@ type TeamMember {
   slot: Int!
   pokemon: Pokemon!
   moves: TeamMemberMoveList!
+  team: Team
 }
 
 type TeamMemberList {

@@ -171,3 +171,30 @@ func (r Team) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
 	team := model.NewTeamFromDb(*result)
 	return &team, nil
 }
+
+func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
+	result, err := r.client.TeamMember.
+		FindUnique(db.TeamMember.ID.Equals(id)).
+		With(
+			db.TeamMember.Team.Fetch().With(
+				db.Team.TeamMembers.Fetch().With(
+					db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+				).OrderBy(db.TeamMember.Slot.Order(db.ASC)),
+			),
+			db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+		).
+		Delete().
+		Exec(ctx)
+
+	if errors.Is(err, db.ErrNotFound) {
+		return nil, fmt.Errorf("couldn't find team member by id: %s", id)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error deleting team member by id %s: %s", id, err)
+	}
+
+	teamMember := model.NewTeamMemberFromDb(*result)
+	teamMember.Team.Members.RemoveTeamMember(id)
+	return &teamMember, nil
+}

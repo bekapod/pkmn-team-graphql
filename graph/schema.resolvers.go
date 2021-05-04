@@ -33,6 +33,10 @@ func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (*model.Te
 	return r.TeamRepository.DeleteTeam(ctx, id)
 }
 
+func (r *mutationResolver) RemoveTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
+	return r.TeamRepository.DeleteTeamMember(ctx, id)
+}
+
 func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityList, error) {
 	return DataLoaderFor(ctx).PokemonAbilitiesByPokemonId.Load(obj.ID)
 }
