@@ -37,6 +37,7 @@ func main() {
 		PokemonEvolutionRepository: repository.NewPokemonEvolution(client),
 		PokemonMoveRepository:      repository.NewPokemonMove(client),
 		PokemonTypeRepository:      repository.NewPokemonType(client),
+		TeamRepository:             repository.NewTeam(client),
 		TypeRepository:             repository.NewType(client),
 	}
 

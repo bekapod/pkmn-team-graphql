@@ -13,6 +13,16 @@ type AbilityList struct {
 	Abilities []*Ability `json:"abilities"`
 }
 
+type CreateTeamInput struct {
+	Name    string                   `json:"name"`
+	Members []*CreateTeamMemberInput `json:"members"`
+}
+
+type CreateTeamMemberInput struct {
+	PokemonID string `json:"pokemonId"`
+	Slot      int    `json:"slot"`
+}
+
 type EggGroup struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -67,9 +77,42 @@ type PokemonTypeList struct {
 	PokemonTypes []*PokemonType `json:"pokemonTypes"`
 }
 
+type Team struct {
+	ID      string          `json:"id"`
+	Name    string          `json:"name"`
+	Members *TeamMemberList `json:"members"`
+}
+
+type TeamList struct {
+	Total int     `json:"total"`
+	Teams []*Team `json:"teams"`
+}
+
+type TeamMemberList struct {
+	Total       int           `json:"total"`
+	TeamMembers []*TeamMember `json:"teamMembers"`
+}
+
+type TeamMemberMoveList struct {
+	Total           int               `json:"total"`
+	TeamMemberMoves []*TeamMemberMove `json:"teamMemberMoves"`
+}
+
 type TypeList struct {
 	Total int     `json:"total"`
 	Types []*Type `json:"types"`
+}
+
+type UpdateTeamInput struct {
+	ID      string                   `json:"id"`
+	Name    *string                  `json:"name"`
+	Members []*UpdateTeamMemberInput `json:"members"`
+}
+
+type UpdateTeamMemberInput struct {
+	ID        *string `json:"id"`
+	PokemonID *string `json:"pokemonId"`
+	Slot      *int    `json:"slot"`
 }
 
 type Color string

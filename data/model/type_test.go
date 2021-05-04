@@ -8,7 +8,7 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestNewTypeFromDb_WithEffect(t *testing.T) {
+func TestNewTypeFromDb(t *testing.T) {
 	typ := db.TypeModel{
 		InnerType: db.InnerType{
 			ID:   "123",

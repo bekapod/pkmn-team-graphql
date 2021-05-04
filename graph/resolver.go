@@ -17,5 +17,6 @@ type Resolver struct {
 	PokemonEvolutionRepository repository.PokemonEvolution
 	PokemonMoveRepository      repository.PokemonMove
 	PokemonTypeRepository      repository.PokemonType
+	TeamRepository             repository.Team
 	TypeRepository             repository.Type
 }

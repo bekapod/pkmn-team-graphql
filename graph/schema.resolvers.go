@@ -21,6 +21,22 @@ func (r *moveResolver) Pokemon(ctx context.Context, obj *model.Move) (*model.Pok
 	return DataLoaderFor(ctx).PokemonMovesByMoveId.Load(obj.ID)
 }
 
+func (r *mutationResolver) CreateTeam(ctx context.Context, input model.CreateTeamInput) (*model.Team, error) {
+	return r.TeamRepository.CreateTeam(ctx, input)
+}
+
+func (r *mutationResolver) UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*model.Team, error) {
+	return r.TeamRepository.UpdateTeam(ctx, input)
+}
+
+func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
+	return r.TeamRepository.DeleteTeam(ctx, id)
+}
+
+func (r *mutationResolver) RemoveTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
+	return r.TeamRepository.DeleteTeamMember(ctx, id)
+}
+
 func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityList, error) {
 	return DataLoaderFor(ctx).PokemonAbilitiesByPokemonId.Load(obj.ID)
 }
@@ -149,12 +165,28 @@ func (r *queryResolver) Pokemon(ctx context.Context) (*model.PokemonList, error)
 	return r.PokemonRepository.GetPokemon(ctx)
 }
 
+func (r *queryResolver) TeamByID(ctx context.Context, id string) (*model.Team, error) {
+	return r.TeamRepository.GetTeamById(ctx, id)
+}
+
+func (r *queryResolver) Teams(ctx context.Context) (*model.TeamList, error) {
+	return r.TeamRepository.GetTeams(ctx)
+}
+
 func (r *queryResolver) TypeByID(ctx context.Context, id string) (*model.Type, error) {
 	return r.TypeRepository.GetTypeById(ctx, id)
 }
 
 func (r *queryResolver) Types(ctx context.Context) (*model.TypeList, error) {
 	return r.TypeRepository.GetTypes(ctx)
+}
+
+func (r *teamMemberResolver) Pokemon(ctx context.Context, obj *model.TeamMember) (*model.Pokemon, error) {
+	return DataLoaderFor(ctx).PokemonById.Load(obj.PokemonID)
+}
+
+func (r *teamMemberMoveResolver) Move(ctx context.Context, obj *model.TeamMemberMove) (*model.PokemonMove, error) {
+	return DataLoaderFor(ctx).PokemonMoveById.Load(obj.ID)
 }
 
 func (r *typeResolver) Pokemon(ctx context.Context, obj *model.Type) (*model.PokemonTypeList, error) {
@@ -195,6 +227,9 @@ func (r *Resolver) Ability() generated.AbilityResolver { return &abilityResolver
 // Move returns generated.MoveResolver implementation.
 func (r *Resolver) Move() generated.MoveResolver { return &moveResolver{r} }
 
+// Mutation returns generated.MutationResolver implementation.
+func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
 // Pokemon returns generated.PokemonResolver implementation.
 func (r *Resolver) Pokemon() generated.PokemonResolver { return &pokemonResolver{r} }
 
@@ -217,15 +252,26 @@ func (r *Resolver) PokemonType() generated.PokemonTypeResolver { return &pokemon
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// TeamMember returns generated.TeamMemberResolver implementation.
+func (r *Resolver) TeamMember() generated.TeamMemberResolver { return &teamMemberResolver{r} }
+
+// TeamMemberMove returns generated.TeamMemberMoveResolver implementation.
+func (r *Resolver) TeamMemberMove() generated.TeamMemberMoveResolver {
+	return &teamMemberMoveResolver{r}
+}
+
 // Type returns generated.TypeResolver implementation.
 func (r *Resolver) Type() generated.TypeResolver { return &typeResolver{r} }
 
 type abilityResolver struct{ *Resolver }
 type moveResolver struct{ *Resolver }
+type mutationResolver struct{ *Resolver }
 type pokemonResolver struct{ *Resolver }
 type pokemonAbilityResolver struct{ *Resolver }
 type pokemonEvolutionResolver struct{ *Resolver }
 type pokemonMoveResolver struct{ *Resolver }
 type pokemonTypeResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type teamMemberResolver struct{ *Resolver }
+type teamMemberMoveResolver struct{ *Resolver }
 type typeResolver struct{ *Resolver }

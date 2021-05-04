@@ -17,6 +17,34 @@ func NewPokemonMove(client *db.PrismaClient) PokemonMove {
 	}
 }
 
+func (r PokemonMove) PokemonMoveByIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMove, []error) {
+	return func(ids []string) ([]*model.PokemonMove, []error) {
+		pokemonMovesById := map[string]*model.PokemonMove{}
+		results, err := r.client.PokemonMove.FindMany(db.PokemonMove.ID.In(ids)).Exec(ctx)
+		pokemonMoves := make([]*model.PokemonMove, len(ids))
+
+		if err != nil {
+			errors := make([]error, len(ids))
+			for i, id := range ids {
+				errors[i] = fmt.Errorf("error loading pokemon move by id %s in dataloader %w", id, err)
+			}
+
+			return pokemonMoves, errors
+		}
+
+		for _, result := range results {
+			pm := model.NewPokemonMoveFromDb(result)
+			pokemonMovesById[result.ID] = &pm
+		}
+
+		for i, id := range ids {
+			pokemonMoves[i] = pokemonMovesById[id]
+		}
+
+		return pokemonMoves, nil
+	}
+}
+
 func (r PokemonMove) PokemonMoveByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMoveList, []error) {
 	return func(ids []string) ([]*model.PokemonMoveList, []error) {
 		pokemonMoveListsById := map[string]*model.PokemonMoveList{}

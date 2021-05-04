@@ -1,0 +1,36 @@
+package model
+
+import "bekapod/pkmn-team-graphql/data/db"
+
+type TeamMemberMove struct {
+	ID            string `json:"id"`
+	Slot          int    `json:"slot"`
+	PokemonMoveID string `json:"pokemonMoveId"`
+}
+
+func NewTeamMemberMoveFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMemberMove {
+	return TeamMemberMove{
+		ID:            dbTeamMemberMove.ID,
+		Slot:          dbTeamMemberMove.Slot,
+		PokemonMoveID: dbTeamMemberMove.PokemonMoveID,
+	}
+}
+
+func NewTeamMemberMoveList(teams []*TeamMemberMove) TeamMemberMoveList {
+	return TeamMemberMoveList{
+		Total:           len(teams),
+		TeamMemberMoves: teams,
+	}
+}
+
+func NewEmptyTeamMemberMoveList() TeamMemberMoveList {
+	return TeamMemberMoveList{
+		Total:           0,
+		TeamMemberMoves: []*TeamMemberMove{},
+	}
+}
+
+func (l *TeamMemberMoveList) AddTeamMemberMove(tm *TeamMemberMove) {
+	l.Total++
+	l.TeamMemberMoves = append(l.TeamMemberMoves, tm)
+}
