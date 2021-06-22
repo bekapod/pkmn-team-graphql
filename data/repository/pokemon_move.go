@@ -17,136 +17,108 @@ func NewPokemonMove(client *db.PrismaClient) PokemonMove {
 	}
 }
 
-func (r PokemonMove) PokemonMoveByIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMove, []error) {
-	return func(ids []string) ([]*model.PokemonMove, []error) {
-		pokemonMovesById := map[string]*model.PokemonMove{}
-		results, err := r.client.PokemonMove.FindMany(db.PokemonMove.ID.In(ids)).Exec(ctx)
-		pokemonMoves := make([]*model.PokemonMove, len(ids))
-
-		if err != nil {
-			errors := make([]error, len(ids))
-			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading pokemon move by id %s in dataloader %w", id, err)
-			}
-
-			return pokemonMoves, errors
-		}
-
-		for _, result := range results {
-			pm := model.NewPokemonMoveFromDb(result)
-			pokemonMovesById[result.ID] = &pm
-		}
-
-		for i, id := range ids {
-			pokemonMoves[i] = pokemonMovesById[id]
-		}
-
-		return pokemonMoves, nil
-	}
-}
-
-func (r PokemonMove) PokemonMoveByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMoveList, []error) {
-	return func(ids []string) ([]*model.PokemonMoveList, []error) {
-		pokemonMoveListsById := map[string]*model.PokemonMoveList{}
+func (r PokemonMove) PokemonMoveByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMoveConnection, []error) {
+	return func(ids []string) ([]*model.PokemonMoveConnection, []error) {
+		pokemonMoveConnectionsById := map[string]*model.PokemonMoveConnection{}
 		results, err := r.client.PokemonMove.
 			FindMany(db.PokemonMove.PokemonID.In(ids)).
 			Exec(ctx)
-		pokemonMoveLists := make([]*model.PokemonMoveList, len(ids))
+		pokemonMoveConnections := make([]*model.PokemonMoveConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				ml := model.NewEmptyPokemonMoveList()
-				pokemonMoveLists[i] = &ml
+				ml := model.NewEmptyPokemonMoveConnection()
+				pokemonMoveConnections[i] = &ml
 				errors[i] = fmt.Errorf("error loading pokemon move by pokemon id %s in dataloader %w", id, err)
 			}
 
-			return pokemonMoveLists, errors
+			return pokemonMoveConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				ml := model.NewEmptyPokemonMoveList()
-				pokemonMoveLists[i] = &ml
+				ml := model.NewEmptyPokemonMoveConnection()
+				pokemonMoveConnections[i] = &ml
 			}
 
-			return pokemonMoveLists, nil
+			return pokemonMoveConnections, nil
 		}
 
 		for _, result := range results {
-			ml := pokemonMoveListsById[result.PokemonID]
+			ml := pokemonMoveConnectionsById[result.PokemonID]
 			if ml == nil {
-				empty := model.NewEmptyPokemonMoveList()
-				pokemonMoveListsById[result.PokemonID] = &empty
+				empty := model.NewEmptyPokemonMoveConnection()
+				pokemonMoveConnectionsById[result.PokemonID] = &empty
 			}
-			m := model.NewPokemonMoveFromDb(result)
-			pokemonMoveListsById[result.PokemonID].AddPokemonMove(&m)
+			m := model.NewPokemonMoveEdgeFromDb(result)
+			pokemonMoveConnectionsById[result.PokemonID].AddEdge(&m)
 		}
 
 		for i, id := range ids {
-			pokemonMoveList := pokemonMoveListsById[id]
+			pokemonMoveConnection := pokemonMoveConnectionsById[id]
 
-			if pokemonMoveList == nil {
-				empty := model.NewEmptyPokemonMoveList()
-				pokemonMoveList = &empty
+			if pokemonMoveConnection == nil {
+				empty := model.NewEmptyPokemonMoveConnection()
+				pokemonMoveConnection = &empty
 			}
 
-			pokemonMoveLists[i] = pokemonMoveList
+			pokemonMoveConnections[i] = pokemonMoveConnection
 		}
 
-		return pokemonMoveLists, nil
+		return pokemonMoveConnections, nil
 	}
 }
 
-func (r PokemonMove) PokemonMoveByMoveIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonMoveList, []error) {
-	return func(ids []string) ([]*model.PokemonMoveList, []error) {
-		pokemonMoveListsById := map[string]*model.PokemonMoveList{}
+func (r PokemonMove) PokemonMoveByMoveIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonWithMoveConnection, []error) {
+	return func(ids []string) ([]*model.PokemonWithMoveConnection, []error) {
+		pokemonMoveConnectionsById := map[string]*model.PokemonWithMoveConnection{}
 		results, err := r.client.PokemonMove.
 			FindMany(db.PokemonMove.MoveID.In(ids)).
 			Exec(ctx)
-		pokemonMoveLists := make([]*model.PokemonMoveList, len(ids))
+		pokemonMoveConnections := make([]*model.PokemonWithMoveConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				ml := model.NewEmptyPokemonMoveList()
-				pokemonMoveLists[i] = &ml
+				ml := model.NewEmptyPokemonWithMoveConnection()
+				pokemonMoveConnections[i] = &ml
 				errors[i] = fmt.Errorf("error loading pokemon move by move id %s in dataloader %w", id, err)
 			}
 
-			return pokemonMoveLists, errors
+			return pokemonMoveConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				ml := model.NewEmptyPokemonMoveList()
-				pokemonMoveLists[i] = &ml
+				ml := model.NewEmptyPokemonWithMoveConnection()
+				pokemonMoveConnections[i] = &ml
 			}
 
-			return pokemonMoveLists, nil
+			return pokemonMoveConnections, nil
 		}
 
 		for _, result := range results {
-			ml := pokemonMoveListsById[result.MoveID]
+			ml := pokemonMoveConnectionsById[result.MoveID]
 			if ml == nil {
-				empty := model.NewEmptyPokemonMoveList()
-				pokemonMoveListsById[result.MoveID] = &empty
+				empty := model.NewEmptyPokemonWithMoveConnection()
+				pokemonMoveConnectionsById[result.MoveID] = &empty
 			}
-			m := model.NewPokemonMoveFromDb(result)
-			pokemonMoveListsById[result.MoveID].AddPokemonMove(&m)
+			m := model.NewPokemonWithMoveEdgeFromDb(result)
+			pokemonMoveConnectionsById[result.MoveID].AddEdge(&m)
 		}
 
 		for i, id := range ids {
-			pokemonMoveList := pokemonMoveListsById[id]
+			pokemonMoveConnection := pokemonMoveConnectionsById[id]
 
-			if pokemonMoveList == nil {
-				empty := model.NewEmptyPokemonMoveList()
-				pokemonMoveList = &empty
+			if pokemonMoveConnection == nil {
+				empty := model.NewEmptyPokemonWithMoveConnection()
+				pokemonMoveConnection = &empty
 			}
 
-			pokemonMoveLists[i] = pokemonMoveList
+			pokemonMoveConnections[i] = pokemonMoveConnection
 		}
 
-		return pokemonMoveLists, nil
+		return pokemonMoveConnections, nil
 	}
 }

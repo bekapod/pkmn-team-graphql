@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"errors"
 	"fmt"
@@ -18,8 +19,8 @@ func NewAbility(client *db.PrismaClient) Ability {
 	}
 }
 
-func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityList, error) {
-	abilities := model.NewEmptyAbilityList()
+func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityConnection, error) {
+	abilities := model.NewEmptyAbilityConnection()
 
 	results, err := r.client.Ability.FindMany().Exec(ctx)
 
@@ -28,12 +29,13 @@ func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityList, error) {
 	}
 
 	if err != nil {
+		log.Logger.WithField("r", results).Debug("resultssssss")
 		return &abilities, fmt.Errorf("error getting abilities: %s", err)
 	}
 
 	for _, result := range results {
-		a := model.NewAbilityFromDb(result)
-		abilities.AddAbility(&a)
+		a := model.NewAbilityEdgeFromDb(result)
+		abilities.AddEdge(&a)
 	}
 
 	return &abilities, nil

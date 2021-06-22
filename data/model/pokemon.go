@@ -3,30 +3,32 @@ package model
 import "bekapod/pkmn-team-graphql/data/db"
 
 type Pokemon struct {
-	ID               string        `json:"id"`
-	Name             string        `json:"name"`
-	Slug             string        `json:"slug"`
-	PokedexID        int           `json:"pokedexId"`
-	Sprite           *string       `json:"sprite"`
-	Hp               int           `json:"hp"`
-	Attack           int           `json:"attack"`
-	Defense          int           `json:"defense"`
-	SpecialAttack    int           `json:"specialAttack"`
-	SpecialDefense   int           `json:"specialDefense"`
-	Speed            int           `json:"speed"`
-	IsBaby           bool          `json:"isBaby"`
-	IsLegendary      bool          `json:"isLegendary"`
-	IsMythical       bool          `json:"isMythical"`
-	Description      *string       `json:"description"`
-	Color            Color         `json:"color"`
-	Shape            Shape         `json:"shape"`
-	Habitat          *Habitat      `json:"habitat"`
-	Height           int           `json:"height"`
-	Weight           int           `json:"weight"`
-	IsDefaultVariant bool          `json:"isDefaultVariant"`
-	Genus            string        `json:"genus"`
-	EggGroups        *EggGroupList `json:"eggGroups"`
+	ID               string              `json:"id"`
+	Name             string              `json:"name"`
+	Slug             string              `json:"slug"`
+	PokedexID        int                 `json:"pokedexId"`
+	Sprite           *string             `json:"sprite"`
+	Hp               int                 `json:"hp"`
+	Attack           int                 `json:"attack"`
+	Defense          int                 `json:"defense"`
+	SpecialAttack    int                 `json:"specialAttack"`
+	SpecialDefense   int                 `json:"specialDefense"`
+	Speed            int                 `json:"speed"`
+	IsBaby           bool                `json:"isBaby"`
+	IsLegendary      bool                `json:"isLegendary"`
+	IsMythical       bool                `json:"isMythical"`
+	Description      *string             `json:"description"`
+	Color            Color               `json:"color"`
+	Shape            Shape               `json:"shape"`
+	Habitat          *Habitat            `json:"habitat"`
+	Height           int                 `json:"height"`
+	Weight           int                 `json:"weight"`
+	IsDefaultVariant bool                `json:"isDefaultVariant"`
+	Genus            string              `json:"genus"`
+	EggGroups        *EggGroupConnection `json:"eggGroups"`
 }
+
+func (Pokemon) IsNode() {}
 
 func NewPokemonFromDb(dbPokemon db.PokemonModel) Pokemon {
 	p := Pokemon{
@@ -70,10 +72,10 @@ func NewPokemonFromDb(dbPokemon db.PokemonModel) Pokemon {
 		p.Description = nil
 	}
 
-	eggGroups := NewEmptyEggGroupList()
+	eggGroups := NewEmptyEggGroupConnection()
 	for _, e := range dbPokemon.EggGroups() {
-		eggGroup := NewEggGroupFromDb(e)
-		eggGroups.AddEggGroup(&eggGroup)
+		eggGroup := NewEggGroupEdgeFromDb(e)
+		eggGroups.AddEdge(&eggGroup)
 	}
 
 	p.EggGroups = &eggGroups
@@ -81,21 +83,28 @@ func NewPokemonFromDb(dbPokemon db.PokemonModel) Pokemon {
 	return p
 }
 
-func NewPokemonList(pokemon []*Pokemon) PokemonList {
-	return PokemonList{
-		Total:   len(pokemon),
-		Pokemon: pokemon,
+func NewPokemonEdgeFromDb(dbPokemon db.PokemonModel) PokemonEdge {
+	node := NewPokemonFromDb(dbPokemon)
+	return PokemonEdge{
+		Cursor: dbPokemon.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyPokemonList() PokemonList {
-	return PokemonList{
-		Total:   0,
-		Pokemon: []*Pokemon{},
+func NewEmptyPokemonConnection() PokemonConnection {
+	return PokemonConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonEdge{},
 	}
 }
 
-func (l *PokemonList) AddPokemon(p *Pokemon) {
-	l.Total++
-	l.Pokemon = append(l.Pokemon, p)
+func (c *PokemonConnection) AddEdge(e *PokemonEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

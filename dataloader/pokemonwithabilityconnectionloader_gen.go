@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// PokemonMoveLoaderConfig captures the config to create a new PokemonMoveLoader
-type PokemonMoveLoaderConfig struct {
+// PokemonWithAbilityConnectionLoaderConfig captures the config to create a new PokemonWithAbilityConnectionLoader
+type PokemonWithAbilityConnectionLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.PokemonMove, []error)
+	Fetch func(keys []string) ([]*model.PokemonWithAbilityConnection, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type PokemonMoveLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewPokemonMoveLoader creates a new PokemonMoveLoader given a fetch, wait, and maxBatch
-func NewPokemonMoveLoader(config PokemonMoveLoaderConfig) *PokemonMoveLoader {
-	return &PokemonMoveLoader{
+// NewPokemonWithAbilityConnectionLoader creates a new PokemonWithAbilityConnectionLoader given a fetch, wait, and maxBatch
+func NewPokemonWithAbilityConnectionLoader(config PokemonWithAbilityConnectionLoaderConfig) *PokemonWithAbilityConnectionLoader {
+	return &PokemonWithAbilityConnectionLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// PokemonMoveLoader batches and caches requests
-type PokemonMoveLoader struct {
+// PokemonWithAbilityConnectionLoader batches and caches requests
+type PokemonWithAbilityConnectionLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.PokemonMove, []error)
+	fetch func(keys []string) ([]*model.PokemonWithAbilityConnection, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type PokemonMoveLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.PokemonMove
+	cache map[string]*model.PokemonWithAbilityConnection
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *pokemonMoveLoaderBatch
+	batch *pokemonWithAbilityConnectionLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type pokemonMoveLoaderBatch struct {
+type pokemonWithAbilityConnectionLoaderBatch struct {
 	keys    []string
-	data    []*model.PokemonMove
+	data    []*model.PokemonWithAbilityConnection
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a PokemonMove by key, batching and caching will be applied automatically
-func (l *PokemonMoveLoader) Load(key string) (*model.PokemonMove, error) {
+// Load a PokemonWithAbilityConnection by key, batching and caching will be applied automatically
+func (l *PokemonWithAbilityConnectionLoader) Load(key string) (*model.PokemonWithAbilityConnection, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a PokemonMove.
+// LoadThunk returns a function that when called will block waiting for a PokemonWithAbilityConnection.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonMoveLoader) LoadThunk(key string) func() (*model.PokemonMove, error) {
+func (l *PokemonWithAbilityConnectionLoader) LoadThunk(key string) func() (*model.PokemonWithAbilityConnection, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.PokemonMove, error) {
+		return func() (*model.PokemonWithAbilityConnection, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &pokemonMoveLoaderBatch{done: make(chan struct{})}
+		l.batch = &pokemonWithAbilityConnectionLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.PokemonMove, error) {
+	return func() (*model.PokemonWithAbilityConnection, error) {
 		<-batch.done
 
-		var data *model.PokemonMove
+		var data *model.PokemonWithAbilityConnection
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *PokemonMoveLoader) LoadThunk(key string) func() (*model.PokemonMove, er
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *PokemonMoveLoader) LoadAll(keys []string) ([]*model.PokemonMove, []error) {
-	results := make([]func() (*model.PokemonMove, error), len(keys))
+func (l *PokemonWithAbilityConnectionLoader) LoadAll(keys []string) ([]*model.PokemonWithAbilityConnection, []error) {
+	results := make([]func() (*model.PokemonWithAbilityConnection, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	pokemonMoves := make([]*model.PokemonMove, len(keys))
+	pokemonWithAbilityConnections := make([]*model.PokemonWithAbilityConnection, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		pokemonMoves[i], errors[i] = thunk()
+		pokemonWithAbilityConnections[i], errors[i] = thunk()
 	}
-	return pokemonMoves, errors
+	return pokemonWithAbilityConnections, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a PokemonMoves.
+// LoadAllThunk returns a function that when called will block waiting for a PokemonWithAbilityConnections.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonMoveLoader) LoadAllThunk(keys []string) func() ([]*model.PokemonMove, []error) {
-	results := make([]func() (*model.PokemonMove, error), len(keys))
+func (l *PokemonWithAbilityConnectionLoader) LoadAllThunk(keys []string) func() ([]*model.PokemonWithAbilityConnection, []error) {
+	results := make([]func() (*model.PokemonWithAbilityConnection, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.PokemonMove, []error) {
-		pokemonMoves := make([]*model.PokemonMove, len(keys))
+	return func() ([]*model.PokemonWithAbilityConnection, []error) {
+		pokemonWithAbilityConnections := make([]*model.PokemonWithAbilityConnection, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			pokemonMoves[i], errors[i] = thunk()
+			pokemonWithAbilityConnections[i], errors[i] = thunk()
 		}
-		return pokemonMoves, errors
+		return pokemonWithAbilityConnections, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *PokemonMoveLoader) Prime(key string, value *model.PokemonMove) bool {
+func (l *PokemonWithAbilityConnectionLoader) Prime(key string, value *model.PokemonWithAbilityConnection) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *PokemonMoveLoader) Prime(key string, value *model.PokemonMove) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *PokemonMoveLoader) Clear(key string) {
+func (l *PokemonWithAbilityConnectionLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *PokemonMoveLoader) unsafeSet(key string, value *model.PokemonMove) {
+func (l *PokemonWithAbilityConnectionLoader) unsafeSet(key string, value *model.PokemonWithAbilityConnection) {
 	if l.cache == nil {
-		l.cache = map[string]*model.PokemonMove{}
+		l.cache = map[string]*model.PokemonWithAbilityConnection{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *pokemonMoveLoaderBatch) keyIndex(l *PokemonMoveLoader, key string) int {
+func (b *pokemonWithAbilityConnectionLoaderBatch) keyIndex(l *PokemonWithAbilityConnectionLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *pokemonMoveLoaderBatch) keyIndex(l *PokemonMoveLoader, key string) int 
 	return pos
 }
 
-func (b *pokemonMoveLoaderBatch) startTimer(l *PokemonMoveLoader) {
+func (b *pokemonWithAbilityConnectionLoaderBatch) startTimer(l *PokemonWithAbilityConnectionLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *pokemonMoveLoaderBatch) startTimer(l *PokemonMoveLoader) {
 	b.end(l)
 }
 
-func (b *pokemonMoveLoaderBatch) end(l *PokemonMoveLoader) {
+func (b *pokemonWithAbilityConnectionLoaderBatch) end(l *PokemonWithAbilityConnectionLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }

@@ -2,31 +2,33 @@ package model
 
 import "bekapod/pkmn-team-graphql/data/db"
 
-func NewEggGroupFromDb(dbEggGroup db.EggGroupModel) EggGroup {
-	e := EggGroup{
-		ID:   dbEggGroup.ID,
-		Slug: dbEggGroup.Slug,
-		Name: dbEggGroup.Name,
+func NewEggGroupEdgeFromDb(dbEggGroup db.EggGroupModel) EggGroupEdge {
+	e := EggGroupEdge{
+		Cursor: dbEggGroup.ID,
+		Node: &EggGroup{
+			ID:   dbEggGroup.ID,
+			Slug: dbEggGroup.Slug,
+			Name: dbEggGroup.Name,
+		},
 	}
 
 	return e
 }
 
-func NewEggGroupList(eggGroups []*EggGroup) EggGroupList {
-	return EggGroupList{
-		Total:     len(eggGroups),
-		EggGroups: eggGroups,
+func NewEmptyEggGroupConnection() EggGroupConnection {
+	return EggGroupConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*EggGroupEdge{},
 	}
 }
 
-func NewEmptyEggGroupList() EggGroupList {
-	return EggGroupList{
-		Total:     0,
-		EggGroups: []*EggGroup{},
+func (c *EggGroupConnection) AddEdge(e *EggGroupEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
 	}
-}
-
-func (l *EggGroupList) AddEggGroup(eg *EggGroup) {
-	l.Total++
-	l.EggGroups = append(l.EggGroups, eg)
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

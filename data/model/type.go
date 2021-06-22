@@ -10,6 +10,8 @@ type Type struct {
 	Name string `json:"name"`
 }
 
+func (Type) IsNode() {}
+
 func NewTypeFromDb(dbType db.TypeModel) Type {
 	return Type{
 		ID:   dbType.ID,
@@ -18,21 +20,28 @@ func NewTypeFromDb(dbType db.TypeModel) Type {
 	}
 }
 
-func NewTypeList(types []*Type) TypeList {
-	return TypeList{
-		Total: len(types),
-		Types: types,
+func NewTypeEdgeFromDb(dbType db.TypeModel) TypeEdge {
+	node := NewTypeFromDb(dbType)
+	return TypeEdge{
+		Cursor: dbType.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyTypeList() TypeList {
-	return TypeList{
-		Total: 0,
-		Types: []*Type{},
+func NewEmptyTypeConnection() TypeConnection {
+	return TypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TypeEdge{},
 	}
 }
 
-func (l *TypeList) AddType(t *Type) {
-	l.Total++
-	l.Types = append(l.Types, t)
+func (c *TypeConnection) AddEdge(e *TypeEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

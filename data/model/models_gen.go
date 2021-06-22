@@ -8,9 +8,18 @@ import (
 	"strconv"
 )
 
-type AbilityList struct {
-	Total     int        `json:"total"`
-	Abilities []*Ability `json:"abilities"`
+type Node interface {
+	IsNode()
+}
+
+type AbilityConnection struct {
+	Edges    []*AbilityEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+type AbilityEdge struct {
+	Cursor string   `json:"cursor"`
+	Node   *Ability `json:"node"`
 }
 
 type CreateTeamInput struct {
@@ -29,9 +38,16 @@ type EggGroup struct {
 	Slug string `json:"slug"`
 }
 
-type EggGroupList struct {
-	Total     int         `json:"total"`
-	EggGroups []*EggGroup `json:"eggGroups"`
+func (EggGroup) IsNode() {}
+
+type EggGroupConnection struct {
+	Edges    []*EggGroupEdge `json:"edges"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+}
+
+type EggGroupEdge struct {
+	Cursor string    `json:"cursor"`
+	Node   *EggGroup `json:"node"`
 }
 
 type Item struct {
@@ -47,60 +63,117 @@ type Item struct {
 	Attributes  []ItemAttribute `json:"attributes"`
 }
 
-type MoveList struct {
-	Total int     `json:"total"`
-	Moves []*Move `json:"moves"`
+func (Item) IsNode() {}
+
+type MoveConnection struct {
+	Edges    []*MoveEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
-type PokemonAbilityList struct {
-	Total            int               `json:"total"`
-	PokemonAbilities []*PokemonAbility `json:"pokemonAbilities"`
+type MoveEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Move  `json:"node"`
 }
 
-type PokemonEvolutionList struct {
-	Total             int                 `json:"total"`
-	PokemonEvolutions []*PokemonEvolution `json:"pokemonEvolutions"`
+type PageInfo struct {
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *string `json:"startCursor"`
+	EndCursor       *string `json:"endCursor"`
 }
 
-type PokemonList struct {
-	Total   int        `json:"total"`
-	Pokemon []*Pokemon `json:"pokemon"`
+type PokemonAbilityConnection struct {
+	Edges    []*PokemonAbilityEdge `json:"edges"`
+	PageInfo *PageInfo             `json:"pageInfo"`
 }
 
-type PokemonMoveList struct {
-	Total        int            `json:"total"`
-	PokemonMoves []*PokemonMove `json:"pokemonMoves"`
+type PokemonConnection struct {
+	Edges    []*PokemonEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
 }
 
-type PokemonTypeList struct {
-	Total        int            `json:"total"`
-	PokemonTypes []*PokemonType `json:"pokemonTypes"`
+type PokemonEdge struct {
+	Cursor string   `json:"cursor"`
+	Node   *Pokemon `json:"node"`
+}
+
+type PokemonEvolutionConnection struct {
+	Edges    []*PokemonEvolutionEdge `json:"edges"`
+	PageInfo *PageInfo               `json:"pageInfo"`
+}
+
+type PokemonEvolutionEdge struct {
+	Cursor string            `json:"cursor"`
+	Node   *PokemonEvolution `json:"node"`
+}
+
+type PokemonMoveConnection struct {
+	Edges    []*PokemonMoveEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+type PokemonTypeConnection struct {
+	Edges    []*PokemonTypeEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+type PokemonWithAbilityConnection struct {
+	Edges    []*PokemonWithAbilityEdge `json:"edges"`
+	PageInfo *PageInfo                 `json:"pageInfo"`
+}
+
+type PokemonWithMoveConnection struct {
+	Edges    []*PokemonWithMoveEdge `json:"edges"`
+	PageInfo *PageInfo              `json:"pageInfo"`
+}
+
+type PokemonWithTypeConnection struct {
+	Edges    []*PokemonWithTypeEdge `json:"edges"`
+	PageInfo *PageInfo              `json:"pageInfo"`
 }
 
 type Team struct {
-	ID      string          `json:"id"`
-	Name    string          `json:"name"`
-	Members *TeamMemberList `json:"members"`
+	ID      string                `json:"id"`
+	Name    string                `json:"name"`
+	Members *TeamMemberConnection `json:"members"`
 }
 
-type TeamList struct {
-	Total int     `json:"total"`
-	Teams []*Team `json:"teams"`
+func (Team) IsNode() {}
+
+type TeamConnection struct {
+	Edges    []*TeamEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
-type TeamMemberList struct {
-	Total       int           `json:"total"`
-	TeamMembers []*TeamMember `json:"teamMembers"`
+type TeamEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Team  `json:"node"`
 }
 
-type TeamMemberMoveList struct {
-	Total           int               `json:"total"`
-	TeamMemberMoves []*TeamMemberMove `json:"teamMemberMoves"`
+type TeamMemberConnection struct {
+	Edges    []*TeamMemberEdge `json:"edges"`
+	PageInfo *PageInfo         `json:"pageInfo"`
 }
 
-type TypeList struct {
-	Total int     `json:"total"`
-	Types []*Type `json:"types"`
+type TeamMemberEdge struct {
+	Cursor string      `json:"cursor"`
+	Node   *TeamMember `json:"node"`
+	Slot   *int        `json:"slot"`
+}
+
+type TeamMemberMoveConnection struct {
+	Edges    []*TeamMemberMoveEdge `json:"edges"`
+	PageInfo *PageInfo             `json:"pageInfo"`
+}
+
+type TypeConnection struct {
+	Edges    []*TypeEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
+}
+
+type TypeEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Type  `json:"node"`
 }
 
 type UpdateTeamInput struct {

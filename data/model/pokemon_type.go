@@ -2,37 +2,70 @@ package model
 
 import "bekapod/pkmn-team-graphql/data/db"
 
-type PokemonType struct {
-	TypeID    string `json:"typeId"`
-	PokemonID string `json:"pokemonId"`
-	Slot      int    `json:"slot"`
+type PokemonTypeEdge struct {
+	Cursor string `json:"cursor"`
+	NodeID string `json:"nodeId"`
+	Slot   int    `json:"slot"`
 }
 
-func NewPokemonTypeFromDb(dbPokemonType db.PokemonTypeModel) PokemonType {
-	pt := PokemonType{
-		TypeID:    dbPokemonType.TypeID,
-		PokemonID: dbPokemonType.PokemonID,
-		Slot:      dbPokemonType.Slot,
+type PokemonWithTypeEdge struct {
+	Cursor string `json:"cursor"`
+	NodeID string `json:"nodeId"`
+	Slot   int    `json:"slot"`
+}
+
+func NewPokemonTypeFromDb(dbPokemonType db.PokemonTypeModel) PokemonTypeEdge {
+	pt := PokemonTypeEdge{
+		Cursor: dbPokemonType.ID,
+		NodeID: dbPokemonType.TypeID,
+		Slot:   dbPokemonType.Slot,
 	}
 
 	return pt
 }
 
-func NewPokemonTypeList(pokemonTypes []*PokemonType) PokemonTypeList {
-	return PokemonTypeList{
-		Total:        len(pokemonTypes),
-		PokemonTypes: pokemonTypes,
+func NewEmptyPokemonTypeConnection() PokemonTypeConnection {
+	return PokemonTypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonTypeEdge{},
 	}
 }
 
-func NewEmptyPokemonTypeList() PokemonTypeList {
-	return PokemonTypeList{
-		Total:        0,
-		PokemonTypes: []*PokemonType{},
+func (c *PokemonTypeConnection) AddEdge(e *PokemonTypeEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
+}
+
+func NewPokemonWithTypeFromDb(dbPokemonType db.PokemonTypeModel) PokemonWithTypeEdge {
+	pt := PokemonWithTypeEdge{
+		Cursor: dbPokemonType.ID,
+		NodeID: dbPokemonType.PokemonID,
+		Slot:   dbPokemonType.Slot,
+	}
+
+	return pt
+}
+
+func NewEmptyPokemonWithTypeConnection() PokemonWithTypeConnection {
+	return PokemonWithTypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonWithTypeEdge{},
 	}
 }
 
-func (l *PokemonTypeList) AddPokemonType(pt *PokemonType) {
-	l.Total++
-	l.PokemonTypes = append(l.PokemonTypes, pt)
+func (c *PokemonWithTypeConnection) AddEdge(e *PokemonWithTypeEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

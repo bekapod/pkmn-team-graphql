@@ -17,108 +17,108 @@ func NewPokemonType(client *db.PrismaClient) PokemonType {
 	}
 }
 
-func (r PokemonType) PokemonTypeByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonTypeList, []error) {
-	return func(ids []string) ([]*model.PokemonTypeList, []error) {
-		pokemonTypeListsById := map[string]*model.PokemonTypeList{}
+func (r PokemonType) PokemonTypeByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonTypeConnection, []error) {
+	return func(ids []string) ([]*model.PokemonTypeConnection, []error) {
+		pokemonTypeConnectionsById := map[string]*model.PokemonTypeConnection{}
 		results, err := r.client.PokemonType.
 			FindMany(db.PokemonType.PokemonID.In(ids)).
 			Exec(ctx)
-		pokemonTypeLists := make([]*model.PokemonTypeList, len(ids))
+		pokemonTypeConnections := make([]*model.PokemonTypeConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				tl := model.NewEmptyPokemonTypeList()
-				pokemonTypeLists[i] = &tl
+				tl := model.NewEmptyPokemonTypeConnection()
+				pokemonTypeConnections[i] = &tl
 				errors[i] = fmt.Errorf("error loading pokemon type by pokemon id %s in dataloader %w", id, err)
 			}
 
-			return pokemonTypeLists, errors
+			return pokemonTypeConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				tl := model.NewEmptyPokemonTypeList()
-				pokemonTypeLists[i] = &tl
+				tl := model.NewEmptyPokemonTypeConnection()
+				pokemonTypeConnections[i] = &tl
 			}
 
-			return pokemonTypeLists, nil
+			return pokemonTypeConnections, nil
 		}
 
 		for _, result := range results {
-			tl := pokemonTypeListsById[result.PokemonID]
+			tl := pokemonTypeConnectionsById[result.PokemonID]
 			if tl == nil {
-				empty := model.NewEmptyPokemonTypeList()
-				pokemonTypeListsById[result.PokemonID] = &empty
+				empty := model.NewEmptyPokemonTypeConnection()
+				pokemonTypeConnectionsById[result.PokemonID] = &empty
 			}
 			t := model.NewPokemonTypeFromDb(result)
-			pokemonTypeListsById[result.PokemonID].AddPokemonType(&t)
+			pokemonTypeConnectionsById[result.PokemonID].AddEdge(&t)
 		}
 
 		for i, id := range ids {
-			pokemonTypeList := pokemonTypeListsById[id]
+			pokemonTypeConnection := pokemonTypeConnectionsById[id]
 
-			if pokemonTypeList == nil {
-				empty := model.NewEmptyPokemonTypeList()
-				pokemonTypeList = &empty
+			if pokemonTypeConnection == nil {
+				empty := model.NewEmptyPokemonTypeConnection()
+				pokemonTypeConnection = &empty
 			}
 
-			pokemonTypeLists[i] = pokemonTypeList
+			pokemonTypeConnections[i] = pokemonTypeConnection
 		}
 
-		return pokemonTypeLists, nil
+		return pokemonTypeConnections, nil
 	}
 }
 
-func (r PokemonType) PokemonTypeByTypeIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonTypeList, []error) {
-	return func(ids []string) ([]*model.PokemonTypeList, []error) {
-		pokemonTypeListsById := map[string]*model.PokemonTypeList{}
+func (r PokemonType) PokemonTypeByTypeIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonWithTypeConnection, []error) {
+	return func(ids []string) ([]*model.PokemonWithTypeConnection, []error) {
+		pokemonTypeConnectionsById := map[string]*model.PokemonWithTypeConnection{}
 		results, err := r.client.PokemonType.
 			FindMany(db.PokemonType.TypeID.In(ids)).
 			Exec(ctx)
-		pokemonTypeLists := make([]*model.PokemonTypeList, len(ids))
+		pokemonTypeConnections := make([]*model.PokemonWithTypeConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				tl := model.NewEmptyPokemonTypeList()
-				pokemonTypeLists[i] = &tl
+				tl := model.NewEmptyPokemonWithTypeConnection()
+				pokemonTypeConnections[i] = &tl
 				errors[i] = fmt.Errorf("error loading pokemon type by type id %s in dataloader %w", id, err)
 			}
 
-			return pokemonTypeLists, errors
+			return pokemonTypeConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				tl := model.NewEmptyPokemonTypeList()
-				pokemonTypeLists[i] = &tl
+				tl := model.NewEmptyPokemonWithTypeConnection()
+				pokemonTypeConnections[i] = &tl
 			}
 
-			return pokemonTypeLists, nil
+			return pokemonTypeConnections, nil
 		}
 
 		for _, result := range results {
-			tl := pokemonTypeListsById[result.TypeID]
+			tl := pokemonTypeConnectionsById[result.TypeID]
 			if tl == nil {
-				empty := model.NewEmptyPokemonTypeList()
-				pokemonTypeListsById[result.TypeID] = &empty
+				empty := model.NewEmptyPokemonWithTypeConnection()
+				pokemonTypeConnectionsById[result.TypeID] = &empty
 			}
-			t := model.NewPokemonTypeFromDb(result)
-			pokemonTypeListsById[result.TypeID].AddPokemonType(&t)
+			t := model.NewPokemonWithTypeFromDb(result)
+			pokemonTypeConnectionsById[result.TypeID].AddEdge(&t)
 		}
 
 		for i, id := range ids {
-			pokemonTypeList := pokemonTypeListsById[id]
+			pokemonTypeConnection := pokemonTypeConnectionsById[id]
 
-			if pokemonTypeList == nil {
-				empty := model.NewEmptyPokemonTypeList()
-				pokemonTypeList = &empty
+			if pokemonTypeConnection == nil {
+				empty := model.NewEmptyPokemonWithTypeConnection()
+				pokemonTypeConnection = &empty
 			}
 
-			pokemonTypeLists[i] = pokemonTypeList
+			pokemonTypeConnections[i] = pokemonTypeConnection
 		}
 
-		return pokemonTypeLists, nil
+		return pokemonTypeConnections, nil
 	}
 }

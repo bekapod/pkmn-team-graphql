@@ -1,57 +1,69 @@
 package model
 
 import (
+	"bekapod/pkmn-team-graphql/data/db"
 	"reflect"
 	"testing"
 
 	"github.com/go-test/deep"
 )
 
-func TestNewTeamMemberMoveList(t *testing.T) {
-	teamMemberMoves := []*TeamMemberMove{
-		{
-			ID: "123-456",
+func TestNewTeamMemberMoveEdgeFromDb(t *testing.T) {
+	teamMemberMove := db.TeamMemberMoveModel{
+		InnerTeamMemberMove: db.InnerTeamMemberMove{
+			ID:            "123",
+			Slot:          2,
+			TeamMemberID:  "team-member-id",
+			PokemonMoveID: "pokemon-move-id",
 		},
-		{
-			ID: "456-789",
+		RelationsTeamMemberMove: db.RelationsTeamMemberMove{
+			PokemonMove: &db.PokemonMoveModel{
+				InnerPokemonMove: db.InnerPokemonMove{
+					ID:             "123",
+					MoveID:         "move-1",
+					PokemonID:      "pokemon-1",
+					LearnMethod:    db.MoveLearnMethodSTADIUMSURFINGPIKACHU,
+					LevelLearnedAt: 30,
+				},
+			},
 		},
 	}
-
-	exp := TeamMemberMoveList{
-		Total:           2,
-		TeamMemberMoves: teamMemberMoves,
+	exp := TeamMemberMoveEdge{
+		Cursor:         teamMemberMove.ID,
+		NodeID:         "move-1",
+		LearnMethod:    MoveLearnMethod(teamMemberMove.PokemonMove().LearnMethod),
+		LevelLearnedAt: teamMemberMove.PokemonMove().LevelLearnedAt,
 	}
 
-	got := NewTeamMemberMoveList(teamMemberMoves)
+	got := NewTeamMemberMoveEdgeFromDb(teamMemberMove)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyTeamMemberMoveList(t *testing.T) {
-	exp := TeamMemberMoveList{
-		Total:           0,
-		TeamMemberMoves: []*TeamMemberMove{},
+func TestNewEmptyTeamMemberMoveConnection(t *testing.T) {
+	exp := TeamMemberMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TeamMemberMoveEdge{},
 	}
 
-	got := NewEmptyTeamMemberMoveList()
+	got := NewEmptyTeamMemberMoveConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestTeamMemberMoveList_AddTeamMemberMove(t *testing.T) {
-	teamMemberMoves := TeamMemberMoveList{}
-	teamMemberMove1 := &TeamMemberMove{}
-	teamMemberMove2 := &TeamMemberMove{}
-	teamMemberMoves.AddTeamMemberMove(teamMemberMove1)
-	teamMemberMoves.AddTeamMemberMove(teamMemberMove2)
+func TestTeamMemberMoveConnection_AddEdge(t *testing.T) {
+	teamMemberMoves := NewEmptyTeamMemberMoveConnection()
+	teamMemberMove1 := &TeamMemberMoveEdge{}
+	teamMemberMove2 := &TeamMemberMoveEdge{}
+	teamMemberMoves.AddEdge(teamMemberMove1)
+	teamMemberMoves.AddEdge(teamMemberMove2)
 
-	if teamMemberMoves.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", teamMemberMoves.Total)
-	}
-
-	if !reflect.DeepEqual([]*TeamMemberMove{teamMemberMove1, teamMemberMove2}, teamMemberMoves.TeamMemberMoves) {
+	if !reflect.DeepEqual([]*TeamMemberMoveEdge{teamMemberMove1, teamMemberMove2}, teamMemberMoves.Edges) {
 		t.Errorf("the teamMemberMoves added do not match")
 	}
 }

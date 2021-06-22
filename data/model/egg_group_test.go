@@ -8,7 +8,7 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestNewEggGroupFromDb(t *testing.T) {
+func TestNewEggGroupEdgeFromDb(t *testing.T) {
 	eggGroup := db.EggGroupModel{
 		InnerEggGroup: db.InnerEggGroup{
 			ID:   "123",
@@ -16,63 +16,44 @@ func TestNewEggGroupFromDb(t *testing.T) {
 			Name: "Some Egg Group",
 		},
 	}
-	exp := EggGroup{
-		ID:   eggGroup.ID,
-		Slug: eggGroup.Slug,
-		Name: eggGroup.Name,
-	}
-
-	got := NewEggGroupFromDb(eggGroup)
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestNewEggGroupList(t *testing.T) {
-	eggGroups := []*EggGroup{
-		{
-			ID: "123-456",
-		},
-		{
-			ID: "456-789",
+	exp := EggGroupEdge{
+		Cursor: eggGroup.ID,
+		Node: &EggGroup{
+			ID:   eggGroup.ID,
+			Slug: eggGroup.Slug,
+			Name: eggGroup.Name,
 		},
 	}
 
-	exp := EggGroupList{
-		Total:     2,
-		EggGroups: eggGroups,
-	}
-
-	got := NewEggGroupList(eggGroups)
+	got := NewEggGroupEdgeFromDb(eggGroup)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyEggGroupList(t *testing.T) {
-	exp := EggGroupList{
-		Total:     0,
-		EggGroups: []*EggGroup{},
+func TestNewEmptyEggGroupConnection(t *testing.T) {
+	exp := EggGroupConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*EggGroupEdge{},
 	}
 
-	got := NewEmptyEggGroupList()
+	got := NewEmptyEggGroupConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestEggGroupList_AddEggGroup(t *testing.T) {
-	eggGroups := EggGroupList{}
-	eggGroup1 := EggGroup{}
-	eggGroup2 := EggGroup{}
-	eggGroups.AddEggGroup(&eggGroup1)
-	eggGroups.AddEggGroup(&eggGroup2)
+func TestEggGroupConnection_AddEdge(t *testing.T) {
+	eggGroups := NewEmptyEggGroupConnection()
+	eggGroup1 := EggGroupEdge{}
+	eggGroup2 := EggGroupEdge{}
+	eggGroups.AddEdge(&eggGroup1)
+	eggGroups.AddEdge(&eggGroup2)
 
-	if eggGroups.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", eggGroups.Total)
-	}
-
-	if !reflect.DeepEqual([]*EggGroup{&eggGroup1, &eggGroup2}, eggGroups.EggGroups) {
+	if !reflect.DeepEqual([]*EggGroupEdge{&eggGroup1, &eggGroup2}, eggGroups.Edges) {
 		t.Errorf("the egg groups added do not match")
 	}
 }

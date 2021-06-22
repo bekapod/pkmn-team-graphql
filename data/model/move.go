@@ -16,6 +16,8 @@ type Move struct {
 	TypeID       string      `json:"typeId"`
 }
 
+func (Move) IsNode() {}
+
 func NewMoveFromDb(dbMove db.MoveModel) Move {
 	m := Move{
 		ID:          dbMove.ID,
@@ -59,21 +61,28 @@ func NewMoveFromDb(dbMove db.MoveModel) Move {
 	return m
 }
 
-func NewMoveList(moves []*Move) MoveList {
-	return MoveList{
-		Total: len(moves),
-		Moves: moves,
+func NewMoveEdgeFromDb(dbMove db.MoveModel) MoveEdge {
+	node := NewMoveFromDb(dbMove)
+	return MoveEdge{
+		Cursor: dbMove.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyMoveList() MoveList {
-	return MoveList{
-		Total: 0,
-		Moves: []*Move{},
+func NewEmptyMoveConnection() MoveConnection {
+	return MoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*MoveEdge{},
 	}
 }
 
-func (l *MoveList) AddMove(m *Move) {
-	l.Total++
-	l.Moves = append(l.Moves, m)
+func (c *MoveConnection) AddEdge(e *MoveEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

@@ -18,8 +18,8 @@ func NewMove(client *db.PrismaClient) Move {
 	}
 }
 
-func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
-	moves := model.NewEmptyMoveList()
+func (r Move) GetMoves(ctx context.Context) (*model.MoveConnection, error) {
+	moves := model.NewEmptyMoveConnection()
 
 	results, err := r.client.Move.FindMany().Exec(ctx)
 
@@ -32,8 +32,8 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveList, error) {
 	}
 
 	for _, result := range results {
-		m := model.NewMoveFromDb(result)
-		moves.AddMove(&m)
+		m := model.NewMoveEdgeFromDb(result)
+		moves.AddEdge(&m)
 	}
 
 	return &moves, nil
@@ -82,55 +82,55 @@ func (r Move) MoveByIdDataLoader(ctx context.Context) func(ids []string) ([]*mod
 	}
 }
 
-func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(ids []string) ([]*model.MoveList, []error) {
-	return func(ids []string) ([]*model.MoveList, []error) {
-		moveListsById := map[string]*model.MoveList{}
+func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(ids []string) ([]*model.MoveConnection, []error) {
+	return func(ids []string) ([]*model.MoveConnection, []error) {
+		moveConnectionsById := map[string]*model.MoveConnection{}
 		results, err := r.client.Move.
 			FindMany(db.Move.TypeID.In(ids)).
 			Exec(ctx)
-		moveLists := make([]*model.MoveList, len(ids))
+		moveConnections := make([]*model.MoveConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				ml := model.NewEmptyMoveList()
-				moveLists[i] = &ml
+				ml := model.NewEmptyMoveConnection()
+				moveConnections[i] = &ml
 				errors[i] = fmt.Errorf("error loading moves by type id %s in dataloader %w", id, err)
 			}
 
-			return moveLists, errors
+			return moveConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				ml := model.NewEmptyMoveList()
-				moveLists[i] = &ml
+				ml := model.NewEmptyMoveConnection()
+				moveConnections[i] = &ml
 			}
 
-			return moveLists, nil
+			return moveConnections, nil
 		}
 
 		for _, result := range results {
-			ml := moveListsById[result.TypeID]
+			ml := moveConnectionsById[result.TypeID]
 			if ml == nil {
-				empty := model.NewEmptyMoveList()
-				moveListsById[result.TypeID] = &empty
+				empty := model.NewEmptyMoveConnection()
+				moveConnectionsById[result.TypeID] = &empty
 			}
-			m := model.NewMoveFromDb(result)
-			moveListsById[result.TypeID].AddMove(&m)
+			m := model.NewMoveEdgeFromDb(result)
+			moveConnectionsById[result.TypeID].AddEdge(&m)
 		}
 
 		for i, id := range ids {
-			moveList := moveListsById[id]
+			moveConnection := moveConnectionsById[id]
 
-			if moveList == nil {
-				empty := model.NewEmptyMoveList()
-				moveList = &empty
+			if moveConnection == nil {
+				empty := model.NewEmptyMoveConnection()
+				moveConnection = &empty
 			}
 
-			moveLists[i] = moveList
+			moveConnections[i] = moveConnection
 		}
 
-		return moveLists, nil
+		return moveConnections, nil
 	}
 }

@@ -80,51 +80,71 @@ func TestNewMoveFromDb_WithFullData(t *testing.T) {
 	}
 }
 
-func TestNewMoveList(t *testing.T) {
-	moves := []*Move{
-		{
-			ID: "123-456",
+func TestNewMoveEdgeFromDb(t *testing.T) {
+	move := db.MoveModel{
+		InnerMove: db.InnerMove{
+			ID:          "123",
+			Slug:        "some-move",
+			Name:        "Some Move",
+			DamageClass: db.DamageClassPHYSICAL,
+			Target:      db.MoveTargetALLOTHERPOKEMON,
+			TypeID:      "some-type-id",
 		},
-		{
-			ID: "456-789",
+	}
+	exp := MoveEdge{
+		Cursor: move.ID,
+		Node: &Move{
+			ID:           move.ID,
+			Slug:         move.Slug,
+			Name:         move.Name,
+			Accuracy:     nil,
+			Pp:           nil,
+			Power:        nil,
+			DamageClass:  DamageClassPhysical,
+			Effect:       nil,
+			EffectChance: nil,
+			Target:       MoveTargetAllOtherPokemon,
+			TypeID:       move.TypeID,
 		},
 	}
 
-	exp := MoveList{
-		Total: 2,
-		Moves: moves,
-	}
-
-	got := NewMoveList(moves)
+	got := NewMoveEdgeFromDb(move)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyMoveList(t *testing.T) {
-	exp := MoveList{
-		Total: 0,
-		Moves: []*Move{},
+func TestNewEmptyMoveConnection(t *testing.T) {
+	exp := MoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*MoveEdge{},
 	}
 
-	got := NewEmptyMoveList()
+	got := NewEmptyMoveConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestMoveList_AddMove(t *testing.T) {
-	moves := MoveList{}
-	move1 := &Move{}
-	move2 := &Move{}
-	moves.AddMove(move1)
-	moves.AddMove(move2)
+func TestMoveConnection_AddEdge(t *testing.T) {
+	moves := NewEmptyMoveConnection()
+	move1 := &MoveEdge{Cursor: "1"}
+	move2 := &MoveEdge{Cursor: "2"}
+	moves.AddEdge(move1)
+	moves.AddEdge(move2)
 
-	if moves.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", moves.Total)
+	if *moves.PageInfo.StartCursor != move1.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", move1.Cursor, *moves.PageInfo.StartCursor)
 	}
 
-	if !reflect.DeepEqual([]*Move{move1, move2}, moves.Moves) {
+	if *moves.PageInfo.EndCursor != move2.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", move2.Cursor, *moves.PageInfo.StartCursor)
+	}
+
+	if !reflect.DeepEqual([]*MoveEdge{move1, move2}, moves.Edges) {
 		t.Errorf("the moves added do not match")
 	}
 }

@@ -3,7 +3,7 @@ package model
 import "bekapod/pkmn-team-graphql/data/db"
 
 func NewTeamFromDb(dbTeam db.TeamModel) Team {
-	teamMembers := NewEmptyTeamMemberList()
+	teamMembers := NewEmptyTeamMemberConnection()
 	team := Team{
 		ID:      dbTeam.ID,
 		Name:    dbTeam.Name,
@@ -11,28 +11,35 @@ func NewTeamFromDb(dbTeam db.TeamModel) Team {
 	}
 
 	for _, tm := range dbTeam.TeamMembers() {
-		teamMember := NewTeamMemberFromDb(tm)
-		teamMembers.AddTeamMember(&teamMember)
+		teamMember := NewTeamMemberEdgeFromDb(tm)
+		teamMembers.AddEdge(&teamMember)
 	}
 
 	return team
 }
 
-func NewTeamList(teams []*Team) TeamList {
-	return TeamList{
-		Total: len(teams),
-		Teams: teams,
+func NewTeamEdgeFromDb(dbTeam db.TeamModel) TeamEdge {
+	node := NewTeamFromDb(dbTeam)
+	return TeamEdge{
+		Cursor: dbTeam.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyTeamList() TeamList {
-	return TeamList{
-		Total: 0,
-		Teams: []*Team{},
+func NewEmptyTeamConnection() TeamConnection {
+	return TeamConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TeamEdge{},
 	}
 }
 
-func (l *TeamList) AddTeam(t *Team) {
-	l.Total++
-	l.Teams = append(l.Teams, t)
+func (c *TeamConnection) AddEdge(e *TeamEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

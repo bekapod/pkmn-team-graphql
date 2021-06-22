@@ -20,8 +20,8 @@ func NewTeam(client *db.PrismaClient) Team {
 	}
 }
 
-func (r Team) GetTeams(ctx context.Context) (*model.TeamList, error) {
-	teams := model.NewEmptyTeamList()
+func (r Team) GetTeams(ctx context.Context) (*model.TeamConnection, error) {
+	teams := model.NewEmptyTeamConnection()
 
 	results, err := r.client.Team.FindMany().
 		With(db.Team.TeamMembers.Fetch().With(
@@ -39,8 +39,8 @@ func (r Team) GetTeams(ctx context.Context) (*model.TeamList, error) {
 	}
 
 	for _, result := range results {
-		team := model.NewTeamFromDb(result)
-		teams.AddTeam(&team)
+		team := model.NewTeamEdgeFromDb(result)
+		teams.AddEdge(&team)
 	}
 
 	return &teams, nil
@@ -195,6 +195,5 @@ func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMembe
 	}
 
 	teamMember := model.NewTeamMemberFromDb(*result)
-	teamMember.Team.Members.RemoveTeamMember(id)
 	return &teamMember, nil
 }

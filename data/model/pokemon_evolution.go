@@ -3,6 +3,7 @@ package model
 import "bekapod/pkmn-team-graphql/data/db"
 
 type PokemonEvolution struct {
+	ID                    string           `json:"id"`
 	FromPokemonID         string           `json:"fromPokemonId"`
 	ToPokemonID           string           `json:"toPokemonId"`
 	PokemonID             string           `json:"pokemonId"`
@@ -11,7 +12,7 @@ type PokemonEvolution struct {
 	Gender                Gender           `json:"gender"`
 	HeldItemID            *string          `json:"heldItemId"`
 	KnownMoveID           *string          `json:"knownMoveId"`
-	KnownMoveTypeID       *string          `json:"knownMoveTypeID"`
+	KnownMoveTypeID       *string          `json:"knownMoveTypeId"`
 	MinLevel              *int             `json:"minLevel"`
 	MinHappiness          *int             `json:"minHappiness"`
 	MinBeauty             *int             `json:"minBeauty"`
@@ -27,6 +28,8 @@ type PokemonEvolution struct {
 	TakeDamage            *int             `json:"takeDamage"`
 	CriticalHits          *int             `json:"criticalHits"`
 }
+
+func (PokemonEvolution) IsNode() {}
 
 func NewPokemonEvolutionFromDb(dbPokemonEvolution db.PokemonEvolutionModel) PokemonEvolution {
 	pe := PokemonEvolution{
@@ -127,21 +130,28 @@ func NewPokemonEvolutionFromDb(dbPokemonEvolution db.PokemonEvolutionModel) Poke
 	return pe
 }
 
-func NewPokemonEvolutionList(pokemonEvolutions []*PokemonEvolution) PokemonEvolutionList {
-	return PokemonEvolutionList{
-		Total:             len(pokemonEvolutions),
-		PokemonEvolutions: pokemonEvolutions,
+func NewPokemonEvolutionEdgeFromDb(dbPokemonEvolution db.PokemonEvolutionModel) PokemonEvolutionEdge {
+	node := NewPokemonEvolutionFromDb(dbPokemonEvolution)
+	return PokemonEvolutionEdge{
+		Cursor: dbPokemonEvolution.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyPokemonEvolutionList() PokemonEvolutionList {
-	return PokemonEvolutionList{
-		Total:             0,
-		PokemonEvolutions: []*PokemonEvolution{},
+func NewEmptyPokemonEvolutionConnection() PokemonEvolutionConnection {
+	return PokemonEvolutionConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonEvolutionEdge{},
 	}
 }
 
-func (l *PokemonEvolutionList) AddPokemonEvolution(pe *PokemonEvolution) {
-	l.Total++
-	l.PokemonEvolutions = append(l.PokemonEvolutions, pe)
+func (c *PokemonEvolutionConnection) AddEdge(e *PokemonEvolutionEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// TypeListLoaderConfig captures the config to create a new TypeListLoader
-type TypeListLoaderConfig struct {
+// MoveConnectionLoaderConfig captures the config to create a new MoveConnectionLoader
+type MoveConnectionLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.TypeList, []error)
+	Fetch func(keys []string) ([]*model.MoveConnection, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type TypeListLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewTypeListLoader creates a new TypeListLoader given a fetch, wait, and maxBatch
-func NewTypeListLoader(config TypeListLoaderConfig) *TypeListLoader {
-	return &TypeListLoader{
+// NewMoveConnectionLoader creates a new MoveConnectionLoader given a fetch, wait, and maxBatch
+func NewMoveConnectionLoader(config MoveConnectionLoaderConfig) *MoveConnectionLoader {
+	return &MoveConnectionLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// TypeListLoader batches and caches requests
-type TypeListLoader struct {
+// MoveConnectionLoader batches and caches requests
+type MoveConnectionLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.TypeList, []error)
+	fetch func(keys []string) ([]*model.MoveConnection, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type TypeListLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.TypeList
+	cache map[string]*model.MoveConnection
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *typeListLoaderBatch
+	batch *moveConnectionLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type typeListLoaderBatch struct {
+type moveConnectionLoaderBatch struct {
 	keys    []string
-	data    []*model.TypeList
+	data    []*model.MoveConnection
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a TypeList by key, batching and caching will be applied automatically
-func (l *TypeListLoader) Load(key string) (*model.TypeList, error) {
+// Load a MoveConnection by key, batching and caching will be applied automatically
+func (l *MoveConnectionLoader) Load(key string) (*model.MoveConnection, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a TypeList.
+// LoadThunk returns a function that when called will block waiting for a MoveConnection.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *TypeListLoader) LoadThunk(key string) func() (*model.TypeList, error) {
+func (l *MoveConnectionLoader) LoadThunk(key string) func() (*model.MoveConnection, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.TypeList, error) {
+		return func() (*model.MoveConnection, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &typeListLoaderBatch{done: make(chan struct{})}
+		l.batch = &moveConnectionLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.TypeList, error) {
+	return func() (*model.MoveConnection, error) {
 		<-batch.done
 
-		var data *model.TypeList
+		var data *model.MoveConnection
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *TypeListLoader) LoadThunk(key string) func() (*model.TypeList, error) {
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *TypeListLoader) LoadAll(keys []string) ([]*model.TypeList, []error) {
-	results := make([]func() (*model.TypeList, error), len(keys))
+func (l *MoveConnectionLoader) LoadAll(keys []string) ([]*model.MoveConnection, []error) {
+	results := make([]func() (*model.MoveConnection, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	typeLists := make([]*model.TypeList, len(keys))
+	moveConnections := make([]*model.MoveConnection, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		typeLists[i], errors[i] = thunk()
+		moveConnections[i], errors[i] = thunk()
 	}
-	return typeLists, errors
+	return moveConnections, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a TypeLists.
+// LoadAllThunk returns a function that when called will block waiting for a MoveConnections.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *TypeListLoader) LoadAllThunk(keys []string) func() ([]*model.TypeList, []error) {
-	results := make([]func() (*model.TypeList, error), len(keys))
+func (l *MoveConnectionLoader) LoadAllThunk(keys []string) func() ([]*model.MoveConnection, []error) {
+	results := make([]func() (*model.MoveConnection, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.TypeList, []error) {
-		typeLists := make([]*model.TypeList, len(keys))
+	return func() ([]*model.MoveConnection, []error) {
+		moveConnections := make([]*model.MoveConnection, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			typeLists[i], errors[i] = thunk()
+			moveConnections[i], errors[i] = thunk()
 		}
-		return typeLists, errors
+		return moveConnections, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *TypeListLoader) Prime(key string, value *model.TypeList) bool {
+func (l *MoveConnectionLoader) Prime(key string, value *model.MoveConnection) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *TypeListLoader) Prime(key string, value *model.TypeList) bool {
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *TypeListLoader) Clear(key string) {
+func (l *MoveConnectionLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *TypeListLoader) unsafeSet(key string, value *model.TypeList) {
+func (l *MoveConnectionLoader) unsafeSet(key string, value *model.MoveConnection) {
 	if l.cache == nil {
-		l.cache = map[string]*model.TypeList{}
+		l.cache = map[string]*model.MoveConnection{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *typeListLoaderBatch) keyIndex(l *TypeListLoader, key string) int {
+func (b *moveConnectionLoaderBatch) keyIndex(l *MoveConnectionLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *typeListLoaderBatch) keyIndex(l *TypeListLoader, key string) int {
 	return pos
 }
 
-func (b *typeListLoaderBatch) startTimer(l *TypeListLoader) {
+func (b *moveConnectionLoaderBatch) startTimer(l *MoveConnectionLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *typeListLoaderBatch) startTimer(l *TypeListLoader) {
 	b.end(l)
 }
 
-func (b *typeListLoaderBatch) end(l *TypeListLoader) {
+func (b *moveConnectionLoaderBatch) end(l *MoveConnectionLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }
