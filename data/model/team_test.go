@@ -4,6 +4,7 @@ import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/go-test/deep"
 )
@@ -11,8 +12,10 @@ import (
 func TestNewTeamEdgeFromDb(t *testing.T) {
 	team := db.TeamModel{
 		InnerTeam: db.InnerTeam{
-			ID:   "123",
-			Name: "Some team",
+			ID:        "123",
+			Name:      "Some team",
+			CreatedAt: time.Date(2020, time.July, 11, 0, 0, 0, 0, time.UTC),
+			UpdatedAt: time.Date(2021, time.January, 10, 0, 0, 0, 0, time.UTC),
 		},
 		RelationsTeam: db.RelationsTeam{
 			TeamMembers: []db.TeamMemberModel{
@@ -165,9 +168,11 @@ func TestNewTeamEdgeFromDb(t *testing.T) {
 	exp := TeamEdge{
 		Cursor: team.ID,
 		Node: &Team{
-			ID:      team.ID,
-			Name:    team.Name,
-			Members: &expTeamMembers,
+			ID:        team.ID,
+			Name:      team.Name,
+			Members:   &expTeamMembers,
+			CreatedAt: team.CreatedAt,
+			UpdatedAt: team.UpdatedAt,
 		},
 	}
 

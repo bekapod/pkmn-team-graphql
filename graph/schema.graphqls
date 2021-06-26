@@ -1,3 +1,5 @@
+scalar Time
+
 type Query {
   abilityById(id: ID!): Ability
   abilities: AbilityConnection!
@@ -282,6 +284,8 @@ type TeamEdge {
 type Team implements Node {
   id: ID!
   name: String!
+  createdAt: Time!
+  updatedAt: Time!
   members: TeamMemberConnection!
 }
 

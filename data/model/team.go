@@ -5,9 +5,11 @@ import "bekapod/pkmn-team-graphql/data/db"
 func NewTeamFromDb(dbTeam db.TeamModel) Team {
 	teamMembers := NewEmptyTeamMemberConnection()
 	team := Team{
-		ID:      dbTeam.ID,
-		Name:    dbTeam.Name,
-		Members: &teamMembers,
+		ID:        dbTeam.ID,
+		Name:      dbTeam.Name,
+		Members:   &teamMembers,
+		CreatedAt: dbTeam.CreatedAt,
+		UpdatedAt: dbTeam.UpdatedAt,
 	}
 
 	for _, tm := range dbTeam.TeamMembers() {

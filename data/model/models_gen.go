@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"time"
 )
 
 type Node interface {
@@ -133,9 +134,11 @@ type PokemonWithTypeConnection struct {
 }
 
 type Team struct {
-	ID      string                `json:"id"`
-	Name    string                `json:"name"`
-	Members *TeamMemberConnection `json:"members"`
+	ID        string                `json:"id"`
+	Name      string                `json:"name"`
+	CreatedAt time.Time             `json:"createdAt"`
+	UpdatedAt time.Time             `json:"updatedAt"`
+	Members   *TeamMemberConnection `json:"members"`
 }
 
 func (Team) IsNode() {}
