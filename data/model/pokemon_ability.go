@@ -2,39 +2,74 @@ package model
 
 import "bekapod/pkmn-team-graphql/data/db"
 
-type PokemonAbility struct {
-	AbilityID string `json:"typeId"`
-	PokemonID string `json:"pokemonId"`
-	Slot      int    `json:"slot"`
-	IsHidden  bool   `json:"isHidden"`
+type PokemonAbilityEdge struct {
+	Cursor   string `json:"cursor"`
+	Slot     int    `json:"slot"`
+	IsHidden bool   `json:"isHidden"`
+	NodeID   string `json:"nodeId"`
 }
 
-func NewPokemonAbilityFromDb(dbPokemonAbility db.PokemonAbilityModel) PokemonAbility {
-	pa := PokemonAbility{
-		AbilityID: dbPokemonAbility.AbilityID,
-		PokemonID: dbPokemonAbility.PokemonID,
-		Slot:      dbPokemonAbility.Slot,
-		IsHidden:  dbPokemonAbility.IsHidden,
+type PokemonWithAbilityEdge struct {
+	Cursor   string `json:"cursor"`
+	Slot     int    `json:"slot"`
+	IsHidden bool   `json:"isHidden"`
+	NodeID   string `json:"nodeId"`
+}
+
+func NewPokemonAbilityEdgeFromDb(dbPokemonAbility db.PokemonAbilityModel) PokemonAbilityEdge {
+	pa := PokemonAbilityEdge{
+		Cursor:   dbPokemonAbility.ID,
+		NodeID:   dbPokemonAbility.AbilityID,
+		Slot:     dbPokemonAbility.Slot,
+		IsHidden: dbPokemonAbility.IsHidden,
 	}
 
 	return pa
 }
 
-func NewPokemonAbilityList(pokemonAbilities []*PokemonAbility) PokemonAbilityList {
-	return PokemonAbilityList{
-		Total:            len(pokemonAbilities),
-		PokemonAbilities: pokemonAbilities,
+func NewEmptyPokemonAbilityConnection() PokemonAbilityConnection {
+	return PokemonAbilityConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonAbilityEdge{},
 	}
 }
 
-func NewEmptyPokemonAbilityList() PokemonAbilityList {
-	return PokemonAbilityList{
-		Total:            0,
-		PokemonAbilities: []*PokemonAbility{},
+func (c *PokemonAbilityConnection) AddEdge(e *PokemonAbilityEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
+}
+
+func NewPokemonWithAbilityEdgeFromDb(dbPokemonAbility db.PokemonAbilityModel) PokemonWithAbilityEdge {
+	pa := PokemonWithAbilityEdge{
+		Cursor:   dbPokemonAbility.ID,
+		NodeID:   dbPokemonAbility.PokemonID,
+		Slot:     dbPokemonAbility.Slot,
+		IsHidden: dbPokemonAbility.IsHidden,
+	}
+
+	return pa
+}
+
+func NewEmptyPokemonWithAbilityConnection() PokemonWithAbilityConnection {
+	return PokemonWithAbilityConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonWithAbilityEdge{},
 	}
 }
 
-func (l *PokemonAbilityList) AddPokemonAbility(pt *PokemonAbility) {
-	l.Total++
-	l.PokemonAbilities = append(l.PokemonAbilities, pt)
+func (c *PokemonWithAbilityConnection) AddEdge(e *PokemonWithAbilityEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

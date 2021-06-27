@@ -9,10 +9,10 @@ import (
 	"bekapod/pkmn-team-graphql/data/model"
 )
 
-// PokemonTypeListLoaderConfig captures the config to create a new PokemonTypeListLoader
-type PokemonTypeListLoaderConfig struct {
+// TypeConnectionLoaderConfig captures the config to create a new TypeConnectionLoader
+type TypeConnectionLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*model.PokemonTypeList, []error)
+	Fetch func(keys []string) ([]*model.TypeConnection, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type PokemonTypeListLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewPokemonTypeListLoader creates a new PokemonTypeListLoader given a fetch, wait, and maxBatch
-func NewPokemonTypeListLoader(config PokemonTypeListLoaderConfig) *PokemonTypeListLoader {
-	return &PokemonTypeListLoader{
+// NewTypeConnectionLoader creates a new TypeConnectionLoader given a fetch, wait, and maxBatch
+func NewTypeConnectionLoader(config TypeConnectionLoaderConfig) *TypeConnectionLoader {
+	return &TypeConnectionLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// PokemonTypeListLoader batches and caches requests
-type PokemonTypeListLoader struct {
+// TypeConnectionLoader batches and caches requests
+type TypeConnectionLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*model.PokemonTypeList, []error)
+	fetch func(keys []string) ([]*model.TypeConnection, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type PokemonTypeListLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*model.PokemonTypeList
+	cache map[string]*model.TypeConnection
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *pokemonTypeListLoaderBatch
+	batch *typeConnectionLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type pokemonTypeListLoaderBatch struct {
+type typeConnectionLoaderBatch struct {
 	keys    []string
-	data    []*model.PokemonTypeList
+	data    []*model.TypeConnection
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a PokemonTypeList by key, batching and caching will be applied automatically
-func (l *PokemonTypeListLoader) Load(key string) (*model.PokemonTypeList, error) {
+// Load a TypeConnection by key, batching and caching will be applied automatically
+func (l *TypeConnectionLoader) Load(key string) (*model.TypeConnection, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a PokemonTypeList.
+// LoadThunk returns a function that when called will block waiting for a TypeConnection.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonTypeListLoader) LoadThunk(key string) func() (*model.PokemonTypeList, error) {
+func (l *TypeConnectionLoader) LoadThunk(key string) func() (*model.TypeConnection, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*model.PokemonTypeList, error) {
+		return func() (*model.TypeConnection, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &pokemonTypeListLoaderBatch{done: make(chan struct{})}
+		l.batch = &typeConnectionLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*model.PokemonTypeList, error) {
+	return func() (*model.TypeConnection, error) {
 		<-batch.done
 
-		var data *model.PokemonTypeList
+		var data *model.TypeConnection
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,43 +113,43 @@ func (l *PokemonTypeListLoader) LoadThunk(key string) func() (*model.PokemonType
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *PokemonTypeListLoader) LoadAll(keys []string) ([]*model.PokemonTypeList, []error) {
-	results := make([]func() (*model.PokemonTypeList, error), len(keys))
+func (l *TypeConnectionLoader) LoadAll(keys []string) ([]*model.TypeConnection, []error) {
+	results := make([]func() (*model.TypeConnection, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	pokemonTypeLists := make([]*model.PokemonTypeList, len(keys))
+	typeConnections := make([]*model.TypeConnection, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		pokemonTypeLists[i], errors[i] = thunk()
+		typeConnections[i], errors[i] = thunk()
 	}
-	return pokemonTypeLists, errors
+	return typeConnections, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a PokemonTypeLists.
+// LoadAllThunk returns a function that when called will block waiting for a TypeConnections.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *PokemonTypeListLoader) LoadAllThunk(keys []string) func() ([]*model.PokemonTypeList, []error) {
-	results := make([]func() (*model.PokemonTypeList, error), len(keys))
+func (l *TypeConnectionLoader) LoadAllThunk(keys []string) func() ([]*model.TypeConnection, []error) {
+	results := make([]func() (*model.TypeConnection, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*model.PokemonTypeList, []error) {
-		pokemonTypeLists := make([]*model.PokemonTypeList, len(keys))
+	return func() ([]*model.TypeConnection, []error) {
+		typeConnections := make([]*model.TypeConnection, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			pokemonTypeLists[i], errors[i] = thunk()
+			typeConnections[i], errors[i] = thunk()
 		}
-		return pokemonTypeLists, errors
+		return typeConnections, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *PokemonTypeListLoader) Prime(key string, value *model.PokemonTypeList) bool {
+func (l *TypeConnectionLoader) Prime(key string, value *model.TypeConnection) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
@@ -163,22 +163,22 @@ func (l *PokemonTypeListLoader) Prime(key string, value *model.PokemonTypeList) 
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *PokemonTypeListLoader) Clear(key string) {
+func (l *TypeConnectionLoader) Clear(key string) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *PokemonTypeListLoader) unsafeSet(key string, value *model.PokemonTypeList) {
+func (l *TypeConnectionLoader) unsafeSet(key string, value *model.TypeConnection) {
 	if l.cache == nil {
-		l.cache = map[string]*model.PokemonTypeList{}
+		l.cache = map[string]*model.TypeConnection{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *pokemonTypeListLoaderBatch) keyIndex(l *PokemonTypeListLoader, key string) int {
+func (b *typeConnectionLoaderBatch) keyIndex(l *TypeConnectionLoader, key string) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +202,7 @@ func (b *pokemonTypeListLoaderBatch) keyIndex(l *PokemonTypeListLoader, key stri
 	return pos
 }
 
-func (b *pokemonTypeListLoaderBatch) startTimer(l *PokemonTypeListLoader) {
+func (b *typeConnectionLoaderBatch) startTimer(l *TypeConnectionLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +218,7 @@ func (b *pokemonTypeListLoaderBatch) startTimer(l *PokemonTypeListLoader) {
 	b.end(l)
 }
 
-func (b *pokemonTypeListLoaderBatch) end(l *PokemonTypeListLoader) {
+func (b *typeConnectionLoaderBatch) end(l *TypeConnectionLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }

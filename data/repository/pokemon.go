@@ -18,8 +18,8 @@ func NewPokemon(client *db.PrismaClient) Pokemon {
 	}
 }
 
-func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
-	pokemon := model.NewEmptyPokemonList()
+func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonConnection, error) {
+	pokemon := model.NewEmptyPokemonConnection()
 
 	results, err := r.client.Pokemon.FindMany().
 		With(db.Pokemon.EggGroups.Fetch()).
@@ -34,8 +34,8 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonList, error) {
 	}
 
 	for _, result := range results {
-		p := model.NewPokemonFromDb(result)
-		pokemon.AddPokemon(&p)
+		p := model.NewPokemonEdgeFromDb(result)
+		pokemon.AddEdge(&p)
 	}
 
 	return &pokemon, nil

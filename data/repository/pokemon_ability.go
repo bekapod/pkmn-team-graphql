@@ -17,108 +17,108 @@ func NewPokemonAbility(client *db.PrismaClient) PokemonAbility {
 	}
 }
 
-func (r PokemonAbility) PokemonAbilityByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonAbilityList, []error) {
-	return func(ids []string) ([]*model.PokemonAbilityList, []error) {
-		pokemonAbilityListsById := map[string]*model.PokemonAbilityList{}
+func (r PokemonAbility) PokemonAbilityByPokemonIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonAbilityConnection, []error) {
+	return func(ids []string) ([]*model.PokemonAbilityConnection, []error) {
+		pokemonAbilityConnectionsById := map[string]*model.PokemonAbilityConnection{}
 		results, err := r.client.PokemonAbility.
 			FindMany(db.PokemonAbility.PokemonID.In(ids)).
 			Exec(ctx)
-		pokemonAbilityLists := make([]*model.PokemonAbilityList, len(ids))
+		pokemonAbilityConnections := make([]*model.PokemonAbilityConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				al := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityLists[i] = &al
+				al := model.NewEmptyPokemonAbilityConnection()
+				pokemonAbilityConnections[i] = &al
 				errors[i] = fmt.Errorf("error loading pokemon ability by pokemon id %s in dataloader %w", id, err)
 			}
 
-			return pokemonAbilityLists, errors
+			return pokemonAbilityConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				al := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityLists[i] = &al
+				c := model.NewEmptyPokemonAbilityConnection()
+				pokemonAbilityConnections[i] = &c
 			}
 
-			return pokemonAbilityLists, nil
+			return pokemonAbilityConnections, nil
 		}
 
 		for _, result := range results {
-			al := pokemonAbilityListsById[result.PokemonID]
+			al := pokemonAbilityConnectionsById[result.PokemonID]
 			if al == nil {
-				empty := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityListsById[result.PokemonID] = &empty
+				empty := model.NewEmptyPokemonAbilityConnection()
+				pokemonAbilityConnectionsById[result.PokemonID] = &empty
 			}
-			a := model.NewPokemonAbilityFromDb(result)
-			pokemonAbilityListsById[result.PokemonID].AddPokemonAbility(&a)
+			e := model.NewPokemonAbilityEdgeFromDb(result)
+			pokemonAbilityConnectionsById[result.PokemonID].AddEdge(&e)
 		}
 
 		for i, id := range ids {
-			pokemonAbilityList := pokemonAbilityListsById[id]
+			pokemonAbilityConnection := pokemonAbilityConnectionsById[id]
 
-			if pokemonAbilityList == nil {
-				empty := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityList = &empty
+			if pokemonAbilityConnection == nil {
+				empty := model.NewEmptyPokemonAbilityConnection()
+				pokemonAbilityConnection = &empty
 			}
 
-			pokemonAbilityLists[i] = pokemonAbilityList
+			pokemonAbilityConnections[i] = pokemonAbilityConnection
 		}
 
-		return pokemonAbilityLists, nil
+		return pokemonAbilityConnections, nil
 	}
 }
 
-func (r PokemonAbility) PokemonAbilityByAbilityIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonAbilityList, []error) {
-	return func(ids []string) ([]*model.PokemonAbilityList, []error) {
-		pokemonAbilityListsById := map[string]*model.PokemonAbilityList{}
+func (r PokemonAbility) PokemonAbilityByAbilityIdDataLoader(ctx context.Context) func(ids []string) ([]*model.PokemonWithAbilityConnection, []error) {
+	return func(ids []string) ([]*model.PokemonWithAbilityConnection, []error) {
+		pokemonAbilityConnectionsById := map[string]*model.PokemonWithAbilityConnection{}
 		results, err := r.client.PokemonAbility.
 			FindMany(db.PokemonAbility.AbilityID.In(ids)).
 			Exec(ctx)
-		pokemonAbilityLists := make([]*model.PokemonAbilityList, len(ids))
+		pokemonAbilityConnections := make([]*model.PokemonWithAbilityConnection, len(ids))
 
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				al := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityLists[i] = &al
+				al := model.NewEmptyPokemonWithAbilityConnection()
+				pokemonAbilityConnections[i] = &al
 				errors[i] = fmt.Errorf("error loading pokemon ability by ability id %s in dataloader %w", id, err)
 			}
 
-			return pokemonAbilityLists, errors
+			return pokemonAbilityConnections, errors
 		}
 
 		if len(results) == 0 {
 			for i := range ids {
-				al := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityLists[i] = &al
+				al := model.NewEmptyPokemonWithAbilityConnection()
+				pokemonAbilityConnections[i] = &al
 			}
 
-			return pokemonAbilityLists, nil
+			return pokemonAbilityConnections, nil
 		}
 
 		for _, result := range results {
-			al := pokemonAbilityListsById[result.AbilityID]
+			al := pokemonAbilityConnectionsById[result.AbilityID]
 			if al == nil {
-				empty := model.NewEmptyPokemonAbilityList()
-				pokemonAbilityListsById[result.AbilityID] = &empty
+				empty := model.NewEmptyPokemonWithAbilityConnection()
+				pokemonAbilityConnectionsById[result.AbilityID] = &empty
 			}
-			a := model.NewPokemonAbilityFromDb(result)
-			pokemonAbilityListsById[result.AbilityID].AddPokemonAbility(&a)
+			a := model.NewPokemonWithAbilityEdgeFromDb(result)
+			pokemonAbilityConnectionsById[result.AbilityID].AddEdge(&a)
 		}
 
 		for i, id := range ids {
-			pokemonAbilityList := pokemonAbilityListsById[id]
+			pokemonAbilityList := pokemonAbilityConnectionsById[id]
 
 			if pokemonAbilityList == nil {
-				empty := model.NewEmptyPokemonAbilityList()
+				empty := model.NewEmptyPokemonWithAbilityConnection()
 				pokemonAbilityList = &empty
 			}
 
-			pokemonAbilityLists[i] = pokemonAbilityList
+			pokemonAbilityConnections[i] = pokemonAbilityList
 		}
 
-		return pokemonAbilityLists, nil
+		return pokemonAbilityConnections, nil
 	}
 }

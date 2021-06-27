@@ -11,6 +11,7 @@ import (
 func TestNewPokemonEvolutionFromDb_WithNulls(t *testing.T) {
 	pokemonEvolution := db.PokemonEvolutionModel{
 		InnerPokemonEvolution: db.InnerPokemonEvolution{
+			ID:                 "evolution-id",
 			FromPokemonID:      "pokemon-1",
 			ToPokemonID:        "pokeemon-2",
 			Trigger:            db.EvolutionTriggerUSEITEM,
@@ -22,6 +23,7 @@ func TestNewPokemonEvolutionFromDb_WithNulls(t *testing.T) {
 		},
 	}
 	exp := PokemonEvolution{
+		ID:                 pokemonEvolution.ID,
 		FromPokemonID:      pokemonEvolution.FromPokemonID,
 		ToPokemonID:        pokemonEvolution.ToPokemonID,
 		Trigger:            EvolutionTriggerUseItem,
@@ -38,7 +40,7 @@ func TestNewPokemonEvolutionFromDb_WithNulls(t *testing.T) {
 	}
 }
 
-func TestNewPokemonEvolutionFromDb_WithFullDate(t *testing.T) {
+func TestNewPokemonEvolutionFromDb_WithFullData(t *testing.T) {
 	itemId := "item-id"
 	heldItemId := "held-item-id"
 	knownMoveId := "known-move-id"
@@ -56,6 +58,7 @@ func TestNewPokemonEvolutionFromDb_WithFullDate(t *testing.T) {
 
 	pokemonEvolution := db.PokemonEvolutionModel{
 		InnerPokemonEvolution: db.InnerPokemonEvolution{
+			ID:                    "evolution-id",
 			FromPokemonID:         "pokemon-1",
 			ToPokemonID:           "pokemon-2",
 			Trigger:               db.EvolutionTriggerUSEITEM,
@@ -81,6 +84,7 @@ func TestNewPokemonEvolutionFromDb_WithFullDate(t *testing.T) {
 		},
 	}
 	exp := PokemonEvolution{
+		ID:                    pokemonEvolution.ID,
 		FromPokemonID:         pokemonEvolution.FromPokemonID,
 		ToPokemonID:           pokemonEvolution.ToPokemonID,
 		Trigger:               EvolutionTriggerUseItem,
@@ -111,51 +115,64 @@ func TestNewPokemonEvolutionFromDb_WithFullDate(t *testing.T) {
 	}
 }
 
-func TestNewPokemonEvolutionList(t *testing.T) {
-	pokemonEvolutions := []*PokemonEvolution{
-		{
-			FromPokemonID: "pokemon-1",
+func TestNewPokemonEvolutionEdgeFromDb(t *testing.T) {
+	pokemonEvolution := db.PokemonEvolutionModel{
+		InnerPokemonEvolution: db.InnerPokemonEvolution{
+			ID:                 "123",
+			FromPokemonID:      "pokemon-1",
+			ToPokemonID:        "pokeemon-2",
+			Trigger:            db.EvolutionTriggerUSEITEM,
+			Gender:             db.GenderFEMALE,
+			NeedsOverworldRain: false,
+			TimeOfDay:          db.TimeOfDayANY,
+			TurnUpsideDown:     true,
+			Spin:               false,
 		},
-		{
-			FromPokemonID: "pokemon-1",
+	}
+	exp := PokemonEvolutionEdge{
+		Cursor: pokemonEvolution.ID,
+		Node: &PokemonEvolution{
+			ID:                 pokemonEvolution.ID,
+			FromPokemonID:      pokemonEvolution.FromPokemonID,
+			ToPokemonID:        pokemonEvolution.ToPokemonID,
+			Trigger:            EvolutionTriggerUseItem,
+			Gender:             GenderFemale,
+			NeedsOverworldRain: pokemonEvolution.NeedsOverworldRain,
+			TimeOfDay:          TimeOfDayAny,
+			TurnUpsideDown:     pokemonEvolution.TurnUpsideDown,
+			Spin:               pokemonEvolution.Spin,
 		},
 	}
 
-	exp := PokemonEvolutionList{
-		Total:             2,
-		PokemonEvolutions: pokemonEvolutions,
-	}
-
-	got := NewPokemonEvolutionList(pokemonEvolutions)
+	got := NewPokemonEvolutionEdgeFromDb(pokemonEvolution)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyPokemonEvolutionList(t *testing.T) {
-	exp := PokemonEvolutionList{
-		Total:             0,
-		PokemonEvolutions: []*PokemonEvolution{},
+func TestNewEmptyPokemonEvolutionConnection(t *testing.T) {
+	exp := PokemonEvolutionConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonEvolutionEdge{},
 	}
 
-	got := NewEmptyPokemonEvolutionList()
+	got := NewEmptyPokemonEvolutionConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestPokemonEvolutionList_AddPokemonEvolution(t *testing.T) {
-	pokemonEvolutions := PokemonEvolutionList{}
-	pokemonEvolution1 := &PokemonEvolution{}
-	pokemonEvolution2 := &PokemonEvolution{}
-	pokemonEvolutions.AddPokemonEvolution(pokemonEvolution1)
-	pokemonEvolutions.AddPokemonEvolution(pokemonEvolution2)
+func TestPokemonEvolutionConnection_AddEdge(t *testing.T) {
+	pokemonEvolutions := NewEmptyPokemonEvolutionConnection()
+	pokemonEvolution1 := &PokemonEvolutionEdge{}
+	pokemonEvolution2 := &PokemonEvolutionEdge{}
+	pokemonEvolutions.AddEdge(pokemonEvolution1)
+	pokemonEvolutions.AddEdge(pokemonEvolution2)
 
-	if pokemonEvolutions.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", pokemonEvolutions.Total)
-	}
-
-	if !reflect.DeepEqual([]*PokemonEvolution{pokemonEvolution1, pokemonEvolution2}, pokemonEvolutions.PokemonEvolutions) {
+	if !reflect.DeepEqual([]*PokemonEvolutionEdge{pokemonEvolution1, pokemonEvolution2}, pokemonEvolutions.Edges) {
 		t.Errorf("the pokemon evolutions added do not match")
 	}
 }

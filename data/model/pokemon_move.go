@@ -2,17 +2,24 @@ package model
 
 import "bekapod/pkmn-team-graphql/data/db"
 
-type PokemonMove struct {
-	MoveID         string          `json:"typeId"`
-	PokemonID      string          `json:"pokemonId"`
+type PokemonMoveEdge struct {
+	Cursor         string          `json:"cursor"`
+	NodeID         string          `json:"nodeId"`
 	LearnMethod    MoveLearnMethod `json:"learnMethod"`
 	LevelLearnedAt int             `json:"levelLearnedAt"`
 }
 
-func NewPokemonMoveFromDb(dbPokemonMove db.PokemonMoveModel) PokemonMove {
-	pm := PokemonMove{
-		MoveID:         dbPokemonMove.MoveID,
-		PokemonID:      dbPokemonMove.PokemonID,
+type PokemonWithMoveEdge struct {
+	Cursor         string          `json:"cursor"`
+	NodeID         string          `json:"nodeId"`
+	LearnMethod    MoveLearnMethod `json:"learnMethod"`
+	LevelLearnedAt int             `json:"levelLearnedAt"`
+}
+
+func NewPokemonMoveEdgeFromDb(dbPokemonMove db.PokemonMoveModel) PokemonMoveEdge {
+	pm := PokemonMoveEdge{
+		Cursor:         dbPokemonMove.ID,
+		NodeID:         dbPokemonMove.MoveID,
 		LearnMethod:    MoveLearnMethod(dbPokemonMove.LearnMethod),
 		LevelLearnedAt: dbPokemonMove.LevelLearnedAt,
 	}
@@ -20,21 +27,49 @@ func NewPokemonMoveFromDb(dbPokemonMove db.PokemonMoveModel) PokemonMove {
 	return pm
 }
 
-func NewPokemonMoveList(pokemonMoves []*PokemonMove) PokemonMoveList {
-	return PokemonMoveList{
-		Total:        len(pokemonMoves),
-		PokemonMoves: pokemonMoves,
+func NewEmptyPokemonMoveConnection() PokemonMoveConnection {
+	return PokemonMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonMoveEdge{},
 	}
 }
 
-func NewEmptyPokemonMoveList() PokemonMoveList {
-	return PokemonMoveList{
-		Total:        0,
-		PokemonMoves: []*PokemonMove{},
+func (c *PokemonMoveConnection) AddEdge(e *PokemonMoveEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
+}
+
+func NewPokemonWithMoveEdgeFromDb(dbPokemonMove db.PokemonMoveModel) PokemonWithMoveEdge {
+	pm := PokemonWithMoveEdge{
+		Cursor:         dbPokemonMove.ID,
+		NodeID:         dbPokemonMove.PokemonID,
+		LearnMethod:    MoveLearnMethod(dbPokemonMove.LearnMethod),
+		LevelLearnedAt: dbPokemonMove.LevelLearnedAt,
+	}
+
+	return pm
+}
+
+func NewEmptyPokemonWithMoveConnection() PokemonWithMoveConnection {
+	return PokemonWithMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonWithMoveEdge{},
 	}
 }
 
-func (l *PokemonMoveList) AddPokemonMove(pm *PokemonMove) {
-	l.Total++
-	l.PokemonMoves = append(l.PokemonMoves, pm)
+func (c *PokemonWithMoveConnection) AddEdge(e *PokemonWithMoveEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

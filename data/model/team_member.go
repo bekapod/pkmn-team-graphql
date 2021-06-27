@@ -3,63 +3,53 @@ package model
 import "bekapod/pkmn-team-graphql/data/db"
 
 type TeamMember struct {
-	ID        string              `json:"id"`
-	Slot      int                 `json:"slot"`
-	PokemonID string              `json:"pokemonId"`
-	Moves     *TeamMemberMoveList `json:"moves"`
-	Team      *Team               `json:"team"`
+	ID        string                    `json:"id"`
+	PokemonID *string                   `json:"pokemonId"`
+	Moves     *TeamMemberMoveConnection `json:"moves"`
 }
 
+func (TeamMember) IsNode() {}
+
 func NewTeamMemberFromDb(dbTeamMember db.TeamMemberModel) TeamMember {
-	teamMemberMoves := NewEmptyTeamMemberMoveList()
-	teamMember := TeamMember{
+	teamMemberMoves := NewEmptyTeamMemberMoveConnection()
+
+	for _, move := range dbTeamMember.Moves() {
+		edge := NewTeamMemberMoveEdgeFromDb(move)
+		teamMemberMoves.AddEdge(&edge)
+	}
+
+	return TeamMember{
 		ID:        dbTeamMember.ID,
-		Slot:      dbTeamMember.Slot,
-		PokemonID: dbTeamMember.PokemonID,
+		PokemonID: &dbTeamMember.PokemonID,
 		Moves:     &teamMemberMoves,
 	}
+}
 
-	for _, tmm := range dbTeamMember.Moves() {
-		teamMemberMove := NewTeamMemberMoveFromDb(tmm)
-		teamMember.Moves.AddTeamMemberMove(&teamMemberMove)
-	}
-
-	if dbTeam := dbTeamMember.RelationsTeamMember.Team; dbTeam != nil {
-		team := NewTeamFromDb(*dbTeam)
-		teamMember.Team = &team
+func NewTeamMemberEdgeFromDb(dbTeamMember db.TeamMemberModel) TeamMemberEdge {
+	node := NewTeamMemberFromDb(dbTeamMember)
+	teamMember := TeamMemberEdge{
+		Cursor: dbTeamMember.ID,
+		Node:   &node,
+		Slot:   &dbTeamMember.Slot,
 	}
 
 	return teamMember
 }
 
-func NewTeamMemberList(teams []*TeamMember) TeamMemberList {
-	return TeamMemberList{
-		Total:       len(teams),
-		TeamMembers: teams,
+func NewEmptyTeamMemberConnection() TeamMemberConnection {
+	return TeamMemberConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TeamMemberEdge{},
 	}
 }
 
-func NewEmptyTeamMemberList() TeamMemberList {
-	return TeamMemberList{
-		Total:       0,
-		TeamMembers: []*TeamMember{},
+func (c *TeamMemberConnection) AddEdge(e *TeamMemberEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
 	}
-}
-
-func (l *TeamMemberList) AddTeamMember(tm *TeamMember) {
-	l.Total++
-	l.TeamMembers = append(l.TeamMembers, tm)
-}
-
-func (l *TeamMemberList) RemoveTeamMember(id string) {
-	teamMembers := make([]*TeamMember, 0)
-
-	for _, member := range l.TeamMembers {
-		if member.ID != id {
-			teamMembers = append(teamMembers, member)
-		}
-	}
-
-	l.Total = len(teamMembers)
-	l.TeamMembers = teamMembers
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

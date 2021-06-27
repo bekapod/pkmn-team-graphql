@@ -9,6 +9,8 @@ type Ability struct {
 	Effect *string `json:"effect"`
 }
 
+func (Ability) IsNode() {}
+
 func NewAbilityFromDb(dbAbility db.AbilityModel) Ability {
 	a := Ability{
 		ID:   dbAbility.ID,
@@ -25,21 +27,28 @@ func NewAbilityFromDb(dbAbility db.AbilityModel) Ability {
 	return a
 }
 
-func NewAbilityList(abilities []*Ability) AbilityList {
-	return AbilityList{
-		Total:     len(abilities),
-		Abilities: abilities,
+func NewAbilityEdgeFromDb(dbAbility db.AbilityModel) AbilityEdge {
+	node := NewAbilityFromDb(dbAbility)
+	return AbilityEdge{
+		Cursor: dbAbility.ID,
+		Node:   &node,
 	}
 }
 
-func NewEmptyAbilityList() AbilityList {
-	return AbilityList{
-		Total:     0,
-		Abilities: []*Ability{},
+func NewEmptyAbilityConnection() AbilityConnection {
+	return AbilityConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*AbilityEdge{},
 	}
 }
 
-func (l *AbilityList) AddAbility(a *Ability) {
-	l.Total++
-	l.Abilities = append(l.Abilities, a)
+func (c *AbilityConnection) AddEdge(e *AbilityEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
+	}
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

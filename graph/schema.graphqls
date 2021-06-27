@@ -1,21 +1,25 @@
+scalar Time
+
 type Query {
   abilityById(id: ID!): Ability
-  abilities: AbilityList!
+  abilities: AbilityConnection!
   moveById(id: ID!): Move
-  moves: MoveList!
+  moves: MoveConnection!
   pokemonById(id: ID!): Pokemon
-  pokemon: PokemonList!
+  pokemon: PokemonConnection!
   teamById(id: ID!): Team
-  teams: TeamList!
+  teams: TeamConnection!
   typeById(id: ID!): Type
-  types: TypeList!
+  types: TypeConnection!
 }
 
 type Mutation {
   createTeam(input: CreateTeamInput!): Team!
   updateTeam(input: UpdateTeamInput!): Team!
+  updateTeamMember(input: UpdateTeamMemberInput!): TeamMember!
   deleteTeam(id: ID!): Team!
-  removeTeamMember(id: ID!): TeamMember!
+  deleteTeamMember(id: ID!): TeamMember!
+  deleteTeamMemberMove(id: ID!): Move!
 }
 
 input CreateTeamInput {
@@ -26,7 +30,7 @@ input CreateTeamInput {
 input UpdateTeamInput {
   id: ID!
   name: String
-  members: [UpdateTeamMemberInput!]
+  members: [CreateOrUpdateTeamMemberInput!]
 }
 
 input CreateTeamMemberInput {
@@ -34,13 +38,37 @@ input CreateTeamMemberInput {
   slot: Int!
 }
 
-input UpdateTeamMemberInput {
+input CreateOrUpdateTeamMemberInput {
   id: ID
   pokemonId: ID
   slot: Int
 }
 
-type Pokemon {
+input UpdateTeamMemberInput {
+  id: ID!
+  pokemonId: ID
+  slot: Int
+  moves: [CreateOrUpdateTeamMemberMoveInput!]
+}
+
+input CreateOrUpdateTeamMemberMoveInput {
+  id: ID
+  pokemonMoveId: ID
+  slot: Int
+}
+
+interface Node {
+  id: ID!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Pokemon implements Node {
   id: ID!
   name: String!
   slug: String!
@@ -63,32 +91,60 @@ type Pokemon {
   weight: Int!
   isDefaultVariant: Boolean!
   genus: String!
-  abilities: PokemonAbilityList!
-  types: PokemonTypeList!
-  moves: PokemonMoveList!
-  eggGroups: EggGroupList!
-  evolvesTo: PokemonEvolutionList!
-  evolvesFrom: PokemonEvolutionList!
+  abilities: PokemonAbilityConnection!
+  types: PokemonTypeConnection!
+  moves: PokemonMoveConnection!
+  eggGroups: EggGroupConnection!
+  evolvesTo: PokemonEvolutionConnection!
+  evolvesFrom: PokemonEvolutionConnection!
 }
 
-type PokemonList {
-  total: Int!
-  pokemon: [Pokemon!]!
+type PokemonConnection {
+  edges: [PokemonEdge]
+  pageInfo: PageInfo!
 }
 
-type PokemonAbility {
-  slot: Int!
-  isHidden: Boolean!
-  ability: Ability!
-  pokemon: Pokemon!
+type PokemonEdge {
+  cursor: String!
+  node: Pokemon
 }
 
-type PokemonAbilityList {
-  total: Int!
-  pokemonAbilities: [PokemonAbility!]!
+type PokemonAbilityConnection {
+  edges: [PokemonAbilityEdge]
+  pageInfo: PageInfo!
 }
 
-type PokemonEvolution {
+type PokemonAbilityEdge {
+  cursor: String!
+  slot: Int
+  isHidden: Boolean
+  node: Ability
+}
+
+type PokemonWithAbilityConnection {
+  edges: [PokemonWithAbilityEdge]
+  pageInfo: PageInfo!
+}
+
+type PokemonWithAbilityEdge {
+  cursor: String!
+  slot: Int
+  isHidden: Boolean
+  node: Pokemon
+}
+
+type PokemonEvolutionConnection {
+  edges: [PokemonEvolutionEdge]
+  pageInfo: PageInfo!
+}
+
+type PokemonEvolutionEdge {
+  cursor: String!
+  node: PokemonEvolution
+}
+
+type PokemonEvolution implements Node {
+  id: ID!
   pokemon: Pokemon!
   trigger: EvolutionTrigger!
   item: Item
@@ -112,59 +168,87 @@ type PokemonEvolution {
   criticalHits: Int
 }
 
-type PokemonEvolutionList {
-  total: Int!
-  pokemonEvolutions: [PokemonEvolution!]!
+type PokemonMoveConnection {
+  edges: [PokemonMoveEdge]
+  pageInfo: PageInfo!
 }
 
-type PokemonMove {
-  move: Move!
-  pokemon: Pokemon!
-  learnMethod: MoveLearnMethod!
-  levelLearnedAt: Int!
+type PokemonMoveEdge {
+  cursor: String!
+  node: Move
+  learnMethod: MoveLearnMethod
+  levelLearnedAt: Int
 }
 
-type PokemonMoveList {
-  total: Int!
-  pokemonMoves: [PokemonMove!]!
+type PokemonWithMoveConnection {
+  edges: [PokemonWithMoveEdge]
+  pageInfo: PageInfo!
 }
 
-type PokemonType {
-  type: Type!
-  pokemon: Pokemon!
-  slot: Int!
+type PokemonWithMoveEdge {
+  cursor: String!
+  node: Pokemon
+  learnMethod: MoveLearnMethod
+  levelLearnedAt: Int
 }
 
-type PokemonTypeList {
-  total: Int!
-  pokemonTypes: [PokemonType!]!
+type PokemonTypeConnection {
+  edges: [PokemonTypeEdge]
+  pageInfo: PageInfo!
 }
 
-type Ability {
+type PokemonTypeEdge {
+  cursor: String!
+  node: Type
+  slot: Int
+}
+
+type PokemonWithTypeConnection {
+  edges: [PokemonWithTypeEdge]
+  pageInfo: PageInfo!
+}
+
+type PokemonWithTypeEdge {
+  cursor: String!
+  node: Pokemon
+  slot: Int
+}
+
+type AbilityConnection {
+  edges: [AbilityEdge]
+  pageInfo: PageInfo!
+}
+
+type AbilityEdge {
+  cursor: String!
+  node: Ability
+}
+
+type Ability implements Node {
   id: ID!
   slug: String!
   name: String!
   effect: String
-  pokemon: PokemonAbilityList!
+  pokemon: PokemonWithAbilityConnection!
 }
 
-type AbilityList {
-  total: Int!
-  abilities: [Ability!]!
+type EggGroupConnection {
+  edges: [EggGroupEdge]
+  pageInfo: PageInfo!
 }
 
-type EggGroup {
+type EggGroupEdge {
+  cursor: String!
+  node: EggGroup
+}
+
+type EggGroup implements Node {
   id: ID!
   name: String!
   slug: String!
 }
 
-type EggGroupList {
-  total: Int!
-  eggGroups: [EggGroup!]!
-}
-
-type Item {
+type Item implements Node {
   id: ID!
   slug: String!
   name: String!
@@ -177,7 +261,17 @@ type Item {
   attributes: [ItemAttribute!]!
 }
 
-type Move {
+type MoveConnection {
+  edges: [MoveEdge]
+  pageInfo: PageInfo!
+}
+
+type MoveEdge {
+  cursor: String!
+  node: Move
+}
+
+type Move implements Node {
   id: ID!
   slug: String!
   name: String!
@@ -189,66 +283,79 @@ type Move {
   effectChance: Int
   target: MoveTarget!
   type: Type!
-  pokemon: PokemonMoveList!
+  pokemon: PokemonWithMoveConnection!
 }
 
-type MoveList {
-  total: Int!
-  moves: [Move!]!
+type TeamConnection {
+  edges: [TeamEdge]
+  pageInfo: PageInfo!
 }
 
-type Team {
+type TeamEdge {
+  cursor: String!
+  node: Team
+}
+
+type Team implements Node {
   id: ID!
   name: String!
-  members: TeamMemberList!
+  createdAt: Time!
+  updatedAt: Time!
+  members: TeamMemberConnection!
 }
 
-type TeamList {
-  total: Int!
-  teams: [Team!]!
+type TeamMemberConnection {
+  edges: [TeamMemberEdge]
+  pageInfo: PageInfo!
 }
 
-type TeamMember {
+type TeamMemberEdge {
+  cursor: String!
+  node: TeamMember
+  slot: Int
+}
+
+type TeamMember implements Node {
   id: ID!
-  slot: Int!
   pokemon: Pokemon!
-  moves: TeamMemberMoveList!
-  team: Team
+  moves: TeamMemberMoveConnection!
 }
 
-type TeamMemberList {
-  total: Int!
-  teamMembers: [TeamMember!]!
+type TeamMemberMoveConnection {
+  edges: [TeamMemberMoveEdge]
+  pageInfo: PageInfo!
 }
 
-type TeamMemberMove {
-  id: ID!
-  slot: Int!
-  move: PokemonMove!
+type TeamMemberMoveEdge {
+  cursor: String!
+  node: Move
+  slot: Int
+  learnMethod: MoveLearnMethod
+  levelLearnedAt: Int
 }
 
-type TeamMemberMoveList {
-  total: Int!
-  teamMemberMoves: [TeamMemberMove!]!
+type TypeConnection {
+  edges: [TypeEdge]
+  pageInfo: PageInfo!
 }
 
-type Type {
+type TypeEdge {
+  cursor: String!
+  node: Type
+}
+
+type Type implements Node {
   id: ID!
   slug: String!
   name: String!
-  pokemon: PokemonTypeList!
-  moves: MoveList!
-  noDamageTo: TypeList!
-  halfDamageTo: TypeList!
-  doubleDamageTo: TypeList!
-  noDamageFrom: TypeList!
-  halfDamageFrom: TypeList!
-  doubleDamageFrom: TypeList!
-}
-
-type TypeList {
-  total: Int!
-  types: [Type!]!
+  pokemon: PokemonWithTypeConnection!
+  moves: MoveConnection!
+  noDamageTo: TypeConnection!
+  halfDamageTo: TypeConnection!
+  doubleDamageTo: TypeConnection!
+  noDamageFrom: TypeConnection!
+  halfDamageFrom: TypeConnection!
+  doubleDamageFrom: TypeConnection!
 }
 
 enum Color {

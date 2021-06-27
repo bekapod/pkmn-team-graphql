@@ -28,51 +28,60 @@ func TestNewTypeFromDb(t *testing.T) {
 	}
 }
 
-func TestNewTypeList(t *testing.T) {
-	types := []*Type{
-		{
-			ID: "123-456",
+func TestNewTypeEdgeFromDb(t *testing.T) {
+	typ := db.TypeModel{
+		InnerType: db.InnerType{
+			ID:   "123",
+			Slug: "some-type",
+			Name: "Some Type",
 		},
-		{
-			ID: "456-789",
+	}
+	exp := TypeEdge{
+		Cursor: typ.ID,
+		Node: &Type{
+			ID:   typ.ID,
+			Slug: typ.Slug,
+			Name: typ.Name,
 		},
 	}
 
-	exp := TypeList{
-		Total: 2,
-		Types: types,
-	}
-
-	got := NewTypeList(types)
+	got := NewTypeEdgeFromDb(typ)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyTypeList(t *testing.T) {
-	exp := TypeList{
-		Total: 0,
-		Types: []*Type{},
+func TestNewEmptyTypeConnection(t *testing.T) {
+	exp := TypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TypeEdge{},
 	}
 
-	got := NewEmptyTypeList()
+	got := NewEmptyTypeConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestTypeList_AddType(t *testing.T) {
-	types := TypeList{}
-	type1 := &Type{}
-	type2 := &Type{}
-	types.AddType(type1)
-	types.AddType(type2)
+func TestTypeConnection_AddType(t *testing.T) {
+	types := NewEmptyTypeConnection()
+	type1 := &TypeEdge{}
+	type2 := &TypeEdge{}
+	types.AddEdge(type1)
+	types.AddEdge(type2)
 
-	if types.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", types.Total)
+	if *types.PageInfo.StartCursor != type1.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", type1.Cursor, *types.PageInfo.StartCursor)
 	}
 
-	if !reflect.DeepEqual([]*Type{type1, type2}, types.Types) {
+	if *types.PageInfo.EndCursor != type2.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", type2.Cursor, *types.PageInfo.StartCursor)
+	}
+
+	if !reflect.DeepEqual([]*TypeEdge{type1, type2}, types.Edges) {
 		t.Errorf("the types added do not match")
 	}
 }

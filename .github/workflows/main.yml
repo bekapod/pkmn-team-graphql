@@ -28,14 +28,14 @@ jobs:
           go run github.com/prisma/prisma-client-go prefetch
           go run github.com/prisma/prisma-client-go generate --schema data/schema.prisma
 
-      - name: Vet
-        run: go vet .
+      # - name: Vet
+      #   run: go vet .
 
       - name: Lint
         run: golint .
 
-      - name: Static Check
-        run: staticcheck ./...
+      # - name: Static Check
+      #   run: staticcheck ./...
 
       # - name: Test
       #   run: go test ./...

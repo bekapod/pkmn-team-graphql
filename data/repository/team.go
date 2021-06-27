@@ -20,12 +20,14 @@ func NewTeam(client *db.PrismaClient) Team {
 	}
 }
 
-func (r Team) GetTeams(ctx context.Context) (*model.TeamList, error) {
-	teams := model.NewEmptyTeamList()
+func (r Team) GetTeams(ctx context.Context) (*model.TeamConnection, error) {
+	teams := model.NewEmptyTeamConnection()
 
 	results, err := r.client.Team.FindMany().
 		With(db.Team.TeamMembers.Fetch().With(
-			db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+			db.TeamMember.Moves.Fetch().With(
+				db.TeamMemberMove.PokemonMove.Fetch(),
+			).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 		).OrderBy(db.TeamMember.Slot.Order(db.ASC))).
 		OrderBy(db.Team.CreatedAt.Order(db.DESC)).
 		Exec(ctx)
@@ -39,8 +41,8 @@ func (r Team) GetTeams(ctx context.Context) (*model.TeamList, error) {
 	}
 
 	for _, result := range results {
-		team := model.NewTeamFromDb(result)
-		teams.AddTeam(&team)
+		team := model.NewTeamEdgeFromDb(result)
+		teams.AddEdge(&team)
 	}
 
 	return &teams, nil
@@ -50,7 +52,7 @@ func (r Team) GetTeamById(ctx context.Context, id string) (*model.Team, error) {
 	result, err := r.client.Team.
 		FindUnique(db.Team.ID.Equals(id)).
 		With(db.Team.TeamMembers.Fetch().With(
-			db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+			db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 		).OrderBy(db.TeamMember.Slot.Order(db.ASC))).
 		Exec(ctx)
 
@@ -64,6 +66,24 @@ func (r Team) GetTeamById(ctx context.Context, id string) (*model.Team, error) {
 
 	team := model.NewTeamFromDb(*result)
 	return &team, nil
+}
+
+func (r Team) GetTeamMemberById(ctx context.Context, id string) (*model.TeamMember, error) {
+	result, err := r.client.TeamMember.
+		FindUnique(db.TeamMember.ID.Equals(id)).
+		With(db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC))).
+		Exec(ctx)
+
+	if errors.Is(err, db.ErrNotFound) {
+		return nil, fmt.Errorf("couldn't find team member by id: %s", id)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error getting team member by id: %s, error: %s", id, err)
+	}
+
+	teamMember := model.NewTeamMemberFromDb(*result)
+	return &teamMember, nil
 }
 
 func (r Team) CreateTeam(ctx context.Context, input model.CreateTeamInput) (*model.Team, error) {
@@ -142,11 +162,57 @@ func (r Team) UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*mod
 	return r.GetTeamById(ctx, result.ID)
 }
 
+func (r Team) UpdateTeamMember(ctx context.Context, input model.UpdateTeamMemberInput) (*model.TeamMember, error) {
+	result, err := r.client.TeamMember.
+		FindUnique(db.TeamMember.ID.Equals(input.ID)).
+		Update(
+			db.TeamMember.Pokemon.Link(db.Pokemon.ID.EqualsIfPresent(input.PokemonID)),
+			db.TeamMember.Slot.SetIfPresent(input.Slot),
+		).
+		Exec(ctx)
+
+	if err != nil {
+		return nil, fmt.Errorf("error updating team member (%s) %s", input.ID, err)
+	}
+
+	transactions := make([]transaction.Param, 0)
+	for _, teamMemberMoveInput := range input.Moves {
+		var tx transaction.Param
+		if teamMemberMoveInput.ID != nil {
+			tx = r.client.TeamMemberMove.
+				FindUnique(db.TeamMemberMove.ID.Equals(*teamMemberMoveInput.ID)).
+				Update(
+					db.TeamMemberMove.Slot.SetIfPresent(teamMemberMoveInput.Slot),
+					db.TeamMemberMove.PokemonMove.Link(db.PokemonMove.ID.EqualsIfPresent(teamMemberMoveInput.PokemonMoveID)),
+				).
+				Tx()
+		} else {
+			tx = r.client.TeamMemberMove.
+				CreateOne(
+					db.TeamMemberMove.Slot.SetIfPresent(teamMemberMoveInput.Slot),
+					db.TeamMemberMove.TeamMember.Link(db.TeamMember.ID.Equals(input.ID)),
+					db.TeamMemberMove.PokemonMove.Link(db.PokemonMove.ID.EqualsIfPresent(teamMemberMoveInput.PokemonMoveID)),
+				).
+				Tx()
+		}
+
+		transactions = append(transactions, tx)
+	}
+
+	err2 := r.client.Prisma.Transaction(transactions...).Exec(ctx)
+	if err2 != nil {
+		r.client.TeamMember.FindUnique(db.TeamMember.ID.Equals(result.ID)).Delete().Exec(ctx)
+		return nil, fmt.Errorf("error updating team member moves %s", err2)
+	}
+
+	return r.GetTeamMemberById(ctx, result.ID)
+}
+
 func (r Team) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
 	result, err := r.client.Team.
 		FindUnique(db.Team.ID.Equals(id)).
 		With(db.Team.TeamMembers.Fetch().With(
-			db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+			db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 		).OrderBy(db.TeamMember.Slot.Order(db.ASC))).
 		Exec(ctx)
 
@@ -178,10 +244,10 @@ func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMembe
 		With(
 			db.TeamMember.Team.Fetch().With(
 				db.Team.TeamMembers.Fetch().With(
-					db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+					db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 				).OrderBy(db.TeamMember.Slot.Order(db.ASC)),
 			),
-			db.TeamMember.Moves.Fetch().OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
+			db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 		).
 		Delete().
 		Exec(ctx)
@@ -195,6 +261,24 @@ func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMembe
 	}
 
 	teamMember := model.NewTeamMemberFromDb(*result)
-	teamMember.Team.Members.RemoveTeamMember(id)
 	return &teamMember, nil
+}
+
+func (r Team) DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error) {
+	result, err := r.client.TeamMemberMove.
+		FindUnique(db.TeamMemberMove.ID.Equals(id)).
+		With(db.TeamMemberMove.PokemonMove.Fetch().With(db.PokemonMove.Move.Fetch())).
+		Delete().
+		Exec(ctx)
+
+	if errors.Is(err, db.ErrNotFound) {
+		return nil, fmt.Errorf("couldn't find team member move by id: %s", id)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error deleting team member by id %s: %s", id, err)
+	}
+
+	move := model.NewMoveFromDb(*result.PokemonMove().Move())
+	return &move, nil
 }

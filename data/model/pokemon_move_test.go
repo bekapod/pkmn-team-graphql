@@ -8,75 +8,102 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestNewPokemonMoveFromDb(t *testing.T) {
+func TestNewPokemonMoveEdgeFromDb(t *testing.T) {
 	pokemonMove := db.PokemonMoveModel{
 		InnerPokemonMove: db.InnerPokemonMove{
+			ID:             "123",
 			MoveID:         "move-1",
 			PokemonID:      "pokemon-1",
 			LearnMethod:    db.MoveLearnMethodSTADIUMSURFINGPIKACHU,
 			LevelLearnedAt: 30,
 		},
 	}
-	exp := PokemonMove{
-		MoveID:         pokemonMove.MoveID,
-		PokemonID:      pokemonMove.PokemonID,
+	exp := PokemonMoveEdge{
+		Cursor:         pokemonMove.ID,
+		NodeID:         pokemonMove.MoveID,
 		LearnMethod:    MoveLearnMethodStadiumSurfingPikachu,
 		LevelLearnedAt: pokemonMove.LevelLearnedAt,
 	}
 
-	got := NewPokemonMoveFromDb(pokemonMove)
+	got := NewPokemonMoveEdgeFromDb(pokemonMove)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewPokemonMoveList(t *testing.T) {
-	pokemonMoves := []*PokemonMove{
-		{
-			MoveID:    "move-1",
-			PokemonID: "pokemon-1",
+func TestNewEmptyPokemonMoveConnection(t *testing.T) {
+	exp := PokemonMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
 		},
-		{
-			MoveID:    "move-2",
-			PokemonID: "pokemon-1",
+		Edges: []*PokemonMoveEdge{},
+	}
+
+	got := NewEmptyPokemonMoveConnection()
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
+func TestPokemonMoveConnection_AddEdge(t *testing.T) {
+	pokemonMoves := NewEmptyPokemonMoveConnection()
+	pokemonMove1 := &PokemonMoveEdge{}
+	pokemonMove2 := &PokemonMoveEdge{}
+	pokemonMoves.AddEdge(pokemonMove1)
+	pokemonMoves.AddEdge(pokemonMove2)
+
+	if !reflect.DeepEqual([]*PokemonMoveEdge{pokemonMove1, pokemonMove2}, pokemonMoves.Edges) {
+		t.Errorf("the pokemon moves added do not match")
+	}
+}
+
+func TestNewPokemonWithMoveEdgeFromDb(t *testing.T) {
+	pokemonMove := db.PokemonMoveModel{
+		InnerPokemonMove: db.InnerPokemonMove{
+			ID:             "123",
+			MoveID:         "move-1",
+			PokemonID:      "pokemon-1",
+			LearnMethod:    db.MoveLearnMethodSTADIUMSURFINGPIKACHU,
+			LevelLearnedAt: 30,
 		},
 	}
-
-	exp := PokemonMoveList{
-		Total:        2,
-		PokemonMoves: pokemonMoves,
+	exp := PokemonWithMoveEdge{
+		Cursor:         pokemonMove.ID,
+		NodeID:         pokemonMove.PokemonID,
+		LearnMethod:    MoveLearnMethodStadiumSurfingPikachu,
+		LevelLearnedAt: pokemonMove.LevelLearnedAt,
 	}
 
-	got := NewPokemonMoveList(pokemonMoves)
+	got := NewPokemonWithMoveEdgeFromDb(pokemonMove)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyPokemonMoveList(t *testing.T) {
-	exp := PokemonMoveList{
-		Total:        0,
-		PokemonMoves: []*PokemonMove{},
+func TestNewEmptyPokemonWithMoveConnection(t *testing.T) {
+	exp := PokemonWithMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonWithMoveEdge{},
 	}
 
-	got := NewEmptyPokemonMoveList()
+	got := NewEmptyPokemonWithMoveConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestPokemonMoveList_AddPokemonMove(t *testing.T) {
-	pokemonMoves := PokemonMoveList{}
-	pokemonMove1 := &PokemonMove{}
-	pokemonMove2 := &PokemonMove{}
-	pokemonMoves.AddPokemonMove(pokemonMove1)
-	pokemonMoves.AddPokemonMove(pokemonMove2)
+func TestPokemonWithMoveConnection_AddEdge(t *testing.T) {
+	pokemonMoves := NewEmptyPokemonWithMoveConnection()
+	pokemonMove1 := &PokemonWithMoveEdge{}
+	pokemonMove2 := &PokemonWithMoveEdge{}
+	pokemonMoves.AddEdge(pokemonMove1)
+	pokemonMoves.AddEdge(pokemonMove2)
 
-	if pokemonMoves.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", pokemonMoves.Total)
-	}
-
-	if !reflect.DeepEqual([]*PokemonMove{pokemonMove1, pokemonMove2}, pokemonMoves.PokemonMoves) {
+	if !reflect.DeepEqual([]*PokemonWithMoveEdge{pokemonMove1, pokemonMove2}, pokemonMoves.Edges) {
 		t.Errorf("the pokemon moves added do not match")
 	}
 }

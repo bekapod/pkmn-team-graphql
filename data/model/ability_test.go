@@ -52,51 +52,53 @@ func TestNewAbilityFromDb_WithoutEffect(t *testing.T) {
 	}
 }
 
-func TestNewAbilityList(t *testing.T) {
-	abilities := []*Ability{
-		{
-			ID: "123-456",
+func TestNewAbilityEdgeFromDb(t *testing.T) {
+	ability := db.AbilityModel{
+		InnerAbility: db.InnerAbility{
+			ID:   "123",
+			Slug: "some-ability",
+			Name: "Some Ability",
 		},
-		{
-			ID: "456-789",
+	}
+	exp := AbilityEdge{
+		Cursor: ability.ID,
+		Node: &Ability{
+			ID:     ability.ID,
+			Slug:   ability.Slug,
+			Name:   ability.Name,
+			Effect: nil,
 		},
 	}
 
-	exp := AbilityList{
-		Total:     2,
-		Abilities: abilities,
-	}
-
-	got := NewAbilityList(abilities)
+	got := NewAbilityEdgeFromDb(ability)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyAbilityList(t *testing.T) {
-	exp := AbilityList{
-		Total:     0,
-		Abilities: []*Ability{},
+func TestNewEmptyAbilityConnection(t *testing.T) {
+	exp := AbilityConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*AbilityEdge{},
 	}
 
-	got := NewEmptyAbilityList()
+	got := NewEmptyAbilityConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestAbilityList_AddAbility(t *testing.T) {
-	abilities := AbilityList{}
-	ability1 := &Ability{}
-	ability2 := &Ability{}
-	abilities.AddAbility(ability1)
-	abilities.AddAbility(ability2)
+func TestAbilityConnection_AddEdge(t *testing.T) {
+	abilities := NewEmptyAbilityConnection()
+	ability1 := &AbilityEdge{}
+	ability2 := &AbilityEdge{}
+	abilities.AddEdge(ability1)
+	abilities.AddEdge(ability2)
 
-	if abilities.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", abilities.Total)
-	}
-
-	if !reflect.DeepEqual([]*Ability{ability1, ability2}, abilities.Abilities) {
-		t.Errorf("the abilities added do not match")
+	if !reflect.DeepEqual([]*AbilityEdge{ability1, ability2}, abilities.Edges) {
+		t.Errorf("the edges added do not match")
 	}
 }

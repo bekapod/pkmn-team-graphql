@@ -2,35 +2,38 @@ package model
 
 import "bekapod/pkmn-team-graphql/data/db"
 
-type TeamMemberMove struct {
-	ID            string `json:"id"`
-	Slot          int    `json:"slot"`
-	PokemonMoveID string `json:"pokemonMoveId"`
+type TeamMemberMoveEdge struct {
+	Cursor         string          `json:"cursor"`
+	NodeID         string          `json:"nodeId"`
+	LearnMethod    MoveLearnMethod `json:"learnMethod"`
+	LevelLearnedAt int             `json:"levelLearnedAt"`
+	Slot           int             `json:"slot"`
 }
 
-func NewTeamMemberMoveFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMemberMove {
-	return TeamMemberMove{
-		ID:            dbTeamMemberMove.ID,
-		Slot:          dbTeamMemberMove.Slot,
-		PokemonMoveID: dbTeamMemberMove.PokemonMoveID,
+func NewTeamMemberMoveEdgeFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMemberMoveEdge {
+	return TeamMemberMoveEdge{
+		Cursor:         dbTeamMemberMove.ID,
+		NodeID:         dbTeamMemberMove.PokemonMove().MoveID,
+		LearnMethod:    MoveLearnMethod(dbTeamMemberMove.PokemonMove().LearnMethod),
+		LevelLearnedAt: dbTeamMemberMove.PokemonMove().LevelLearnedAt,
+		Slot:           dbTeamMemberMove.Slot,
 	}
 }
 
-func NewTeamMemberMoveList(teams []*TeamMemberMove) TeamMemberMoveList {
-	return TeamMemberMoveList{
-		Total:           len(teams),
-		TeamMemberMoves: teams,
+func NewEmptyTeamMemberMoveConnection() TeamMemberMoveConnection {
+	return TeamMemberMoveConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TeamMemberMoveEdge{},
 	}
 }
 
-func NewEmptyTeamMemberMoveList() TeamMemberMoveList {
-	return TeamMemberMoveList{
-		Total:           0,
-		TeamMemberMoves: []*TeamMemberMove{},
+func (c *TeamMemberMoveConnection) AddEdge(e *TeamMemberMoveEdge) {
+	if c.PageInfo.StartCursor == nil {
+		c.PageInfo.StartCursor = &e.Cursor
 	}
-}
-
-func (l *TeamMemberMoveList) AddTeamMemberMove(tm *TeamMemberMove) {
-	l.Total++
-	l.TeamMemberMoves = append(l.TeamMemberMoves, tm)
+	c.PageInfo.EndCursor = &e.Cursor
+	c.Edges = append(c.Edges, e)
 }

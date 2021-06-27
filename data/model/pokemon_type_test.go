@@ -8,18 +8,19 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestNewPokemonTypeFromDb(t *testing.T) {
+func TestNewPokemonTypeEdgeFromDb(t *testing.T) {
 	pokemonType := db.PokemonTypeModel{
 		InnerPokemonType: db.InnerPokemonType{
+			ID:        "123",
 			TypeID:    "type-1",
 			PokemonID: "pokemon-1",
 			Slot:      2,
 		},
 	}
-	exp := PokemonType{
-		TypeID:    pokemonType.TypeID,
-		PokemonID: pokemonType.PokemonID,
-		Slot:      pokemonType.Slot,
+	exp := PokemonTypeEdge{
+		Cursor: pokemonType.ID,
+		NodeID: pokemonType.TypeID,
+		Slot:   pokemonType.Slot,
 	}
 
 	got := NewPokemonTypeFromDb(pokemonType)
@@ -28,53 +29,93 @@ func TestNewPokemonTypeFromDb(t *testing.T) {
 	}
 }
 
-func TestNewPokemonTypeList(t *testing.T) {
-	pokemonTypes := []*PokemonType{
-		{
+func TestNewEmptyPokemonTypeConnection(t *testing.T) {
+	exp := PokemonTypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonTypeEdge{},
+	}
+
+	got := NewEmptyPokemonTypeConnection()
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+
+func TestPokemonTypeConnection_AddEdge(t *testing.T) {
+	pokemonTypes := NewEmptyPokemonTypeConnection()
+	pokemonType1 := &PokemonTypeEdge{Cursor: "1"}
+	pokemonType2 := &PokemonTypeEdge{Cursor: "2"}
+	pokemonTypes.AddEdge(pokemonType1)
+	pokemonTypes.AddEdge(pokemonType2)
+
+	if *pokemonTypes.PageInfo.StartCursor != pokemonType1.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", pokemonType1.Cursor, *pokemonTypes.PageInfo.StartCursor)
+	}
+
+	if *pokemonTypes.PageInfo.EndCursor != pokemonType2.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", pokemonType2.Cursor, *pokemonTypes.PageInfo.StartCursor)
+	}
+
+	if !reflect.DeepEqual([]*PokemonTypeEdge{pokemonType1, pokemonType2}, pokemonTypes.Edges) {
+		t.Errorf("the pokemon types added do not match")
+	}
+}
+
+func TestNewPokemonWithTypeEdgeFromDb(t *testing.T) {
+	pokemonType := db.PokemonTypeModel{
+		InnerPokemonType: db.InnerPokemonType{
+			ID:        "123",
 			TypeID:    "type-1",
 			PokemonID: "pokemon-1",
-		},
-		{
-			TypeID:    "type-2",
-			PokemonID: "pokemon-1",
+			Slot:      2,
 		},
 	}
-
-	exp := PokemonTypeList{
-		Total:        2,
-		PokemonTypes: pokemonTypes,
+	exp := PokemonWithTypeEdge{
+		Cursor: pokemonType.ID,
+		NodeID: pokemonType.PokemonID,
+		Slot:   pokemonType.Slot,
 	}
 
-	got := NewPokemonTypeList(pokemonTypes)
+	got := NewPokemonWithTypeFromDb(pokemonType)
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyPokemonTypeList(t *testing.T) {
-	exp := PokemonTypeList{
-		Total:        0,
-		PokemonTypes: []*PokemonType{},
+func TestNewEmptyPokemonWithTypeConnection(t *testing.T) {
+	exp := PokemonWithTypeConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*PokemonWithTypeEdge{},
 	}
 
-	got := NewEmptyPokemonTypeList()
+	got := NewEmptyPokemonWithTypeConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestPokemonTypeList_AddPokemonType(t *testing.T) {
-	pokemonTypes := PokemonTypeList{}
-	pokemonType1 := &PokemonType{}
-	pokemonType2 := &PokemonType{}
-	pokemonTypes.AddPokemonType(pokemonType1)
-	pokemonTypes.AddPokemonType(pokemonType2)
+func TestPokemonWithTypeConnection_AddEdge(t *testing.T) {
+	pokemonTypes := NewEmptyPokemonWithTypeConnection()
+	pokemonType1 := &PokemonWithTypeEdge{Cursor: "1"}
+	pokemonType2 := &PokemonWithTypeEdge{Cursor: "2"}
+	pokemonTypes.AddEdge(pokemonType1)
+	pokemonTypes.AddEdge(pokemonType2)
 
-	if pokemonTypes.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", pokemonTypes.Total)
+	if *pokemonTypes.PageInfo.StartCursor != pokemonType1.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", pokemonType1.Cursor, *pokemonTypes.PageInfo.StartCursor)
 	}
 
-	if !reflect.DeepEqual([]*PokemonType{pokemonType1, pokemonType2}, pokemonTypes.PokemonTypes) {
+	if *pokemonTypes.PageInfo.EndCursor != pokemonType2.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", pokemonType2.Cursor, *pokemonTypes.PageInfo.StartCursor)
+	}
+
+	if !reflect.DeepEqual([]*PokemonWithTypeEdge{pokemonType1, pokemonType2}, pokemonTypes.Edges) {
 		t.Errorf("the pokemon types added do not match")
 	}
 }

@@ -9,80 +9,24 @@ import (
 )
 
 func TestNewTeamMemberFromDb(t *testing.T) {
-	team := db.TeamModel{
-		InnerTeam: db.InnerTeam{
-			ID:   "123",
-			Name: "Some team",
+	teamMemberMoves := []*TeamMemberMoveEdge{
+		{
+			Cursor:         "team-member-move-1",
+			NodeID:         "move-1",
+			LearnMethod:    MoveLearnMethodEgg,
+			LevelLearnedAt: 0,
 		},
-		RelationsTeam: db.RelationsTeam{
-			TeamMembers: []db.TeamMemberModel{
-				{
-					InnerTeamMember: db.InnerTeamMember{
-						ID:        "team-member-1",
-						Slot:      1,
-						PokemonID: "pokemon-1",
-					},
-					RelationsTeamMember: db.RelationsTeamMember{
-						Moves: []db.TeamMemberMoveModel{
-							{
-								InnerTeamMemberMove: db.InnerTeamMemberMove{
-									ID:            "team-member-move-1",
-									Slot:          1,
-									PokemonMoveID: "pokemon-move-id-1",
-								},
-							},
-							{
-								InnerTeamMemberMove: db.InnerTeamMemberMove{
-									ID:            "team-member-move-2",
-									Slot:          2,
-									PokemonMoveID: "pokemon-move-id-2",
-								},
-							},
-						},
-					},
-				},
-				{
-					InnerTeamMember: db.InnerTeamMember{
-						ID:        "team-member-2",
-						Slot:      2,
-						PokemonID: "pokemon-2",
-					},
-					RelationsTeamMember: db.RelationsTeamMember{
-						Moves: []db.TeamMemberMoveModel{},
-					},
-				},
-			},
+		{
+			Cursor:         "team-member-move-2",
+			NodeID:         "move-2",
+			LearnMethod:    MoveLearnMethodLevelUp,
+			LevelLearnedAt: 22,
 		},
 	}
-	teamMemberMoves := []*TeamMemberMove{
-		{
-			ID:            "team-member-move-1",
-			Slot:          1,
-			PokemonMoveID: "pokemon-move-id-1",
-		},
-		{
-			ID:            "team-member-move-2",
-			Slot:          2,
-			PokemonMoveID: "pokemon-move-id-2",
-		},
-	}
-	expTeamMemberMoves := NewTeamMemberMoveList(teamMemberMoves)
-	emptyTeamMemberMoves := NewEmptyTeamMemberMoveList()
-	teamMembers := []*TeamMember{
-		{
-			ID:        "team-member-1",
-			Slot:      1,
-			PokemonID: "pokemon-1",
-			Moves:     &expTeamMemberMoves,
-		},
-		{
-			ID:        "team-member-2",
-			Slot:      2,
-			PokemonID: "pokemon-2",
-			Moves:     &emptyTeamMemberMoves,
-		},
-	}
-	expTeamMembers := NewTeamMemberList(teamMembers)
+	expTeamMemberMoves := NewEmptyTeamMemberMoveConnection()
+	expTeamMemberMoves.AddEdge(teamMemberMoves[0])
+	expTeamMemberMoves.AddEdge(teamMemberMoves[1])
+
 	teamMember := db.TeamMemberModel{
 		InnerTeamMember: db.InnerTeamMember{
 			ID:        "team-member-1",
@@ -90,36 +34,52 @@ func TestNewTeamMemberFromDb(t *testing.T) {
 			PokemonID: "pokemon-2",
 		},
 		RelationsTeamMember: db.RelationsTeamMember{
-			Team: &team,
 			Moves: []db.TeamMemberMoveModel{
 				{
 					InnerTeamMemberMove: db.InnerTeamMemberMove{
 						ID:            "team-member-move-1",
-						Slot:          1,
-						PokemonMoveID: "pokemon-move-id-1",
+						Slot:          2,
+						TeamMemberID:  "team-member-id",
+						PokemonMoveID: "pokemon-move-id",
+					},
+					RelationsTeamMemberMove: db.RelationsTeamMemberMove{
+						PokemonMove: &db.PokemonMoveModel{
+							InnerPokemonMove: db.InnerPokemonMove{
+								ID:             "123",
+								MoveID:         "move-1",
+								PokemonID:      "pokemon-1",
+								LearnMethod:    db.MoveLearnMethodEGG,
+								LevelLearnedAt: 0,
+							},
+						},
 					},
 				},
 				{
 					InnerTeamMemberMove: db.InnerTeamMemberMove{
 						ID:            "team-member-move-2",
 						Slot:          2,
-						PokemonMoveID: "pokemon-move-id-2",
+						TeamMemberID:  "team-member-id",
+						PokemonMoveID: "pokemon-move-id",
+					},
+					RelationsTeamMemberMove: db.RelationsTeamMemberMove{
+						PokemonMove: &db.PokemonMoveModel{
+							InnerPokemonMove: db.InnerPokemonMove{
+								ID:             "123",
+								MoveID:         "move-2",
+								PokemonID:      "pokemon-1",
+								LearnMethod:    db.MoveLearnMethodLEVELUP,
+								LevelLearnedAt: 22,
+							},
+						},
 					},
 				},
 			},
 		},
 	}
-	expTeam := Team{
-		ID:      team.ID,
-		Name:    team.Name,
-		Members: &expTeamMembers,
-	}
 	exp := TeamMember{
 		ID:        teamMember.ID,
-		Slot:      teamMember.Slot,
-		PokemonID: teamMember.PokemonID,
+		PokemonID: &teamMember.PokemonID,
 		Moves:     &expTeamMemberMoves,
-		Team:      &expTeam,
 	}
 
 	got := NewTeamMemberFromDb(teamMember)
@@ -128,68 +88,119 @@ func TestNewTeamMemberFromDb(t *testing.T) {
 	}
 }
 
-func TestNewTeamMemberList(t *testing.T) {
-	teamMembers := []*TeamMember{
+func TestNewTeamMemberEdgeFromDb(t *testing.T) {
+	teamMemberMoves := []*TeamMemberMoveEdge{
 		{
-			ID: "123-456",
+			Cursor:         "team-member-move-1",
+			NodeID:         "move-1",
+			LearnMethod:    MoveLearnMethodEgg,
+			LevelLearnedAt: 0,
 		},
 		{
-			ID: "456-789",
+			Cursor:         "team-member-move-2",
+			NodeID:         "move-2",
+			LearnMethod:    MoveLearnMethodLevelUp,
+			LevelLearnedAt: 22,
+		},
+	}
+	expTeamMemberMoves := NewEmptyTeamMemberMoveConnection()
+	expTeamMemberMoves.AddEdge(teamMemberMoves[0])
+	expTeamMemberMoves.AddEdge(teamMemberMoves[1])
+	teamMember := db.TeamMemberModel{
+		InnerTeamMember: db.InnerTeamMember{
+			ID:        "team-member-1",
+			Slot:      2,
+			PokemonID: "pokemon-2",
+		},
+		RelationsTeamMember: db.RelationsTeamMember{
+			Moves: []db.TeamMemberMoveModel{
+				{
+					InnerTeamMemberMove: db.InnerTeamMemberMove{
+						ID:            "team-member-move-1",
+						Slot:          2,
+						TeamMemberID:  "team-member-id",
+						PokemonMoveID: "pokemon-move-1",
+					},
+					RelationsTeamMemberMove: db.RelationsTeamMemberMove{
+						PokemonMove: &db.PokemonMoveModel{
+							InnerPokemonMove: db.InnerPokemonMove{
+								ID:             "pokemon-move-1",
+								MoveID:         "move-1",
+								PokemonID:      "pokemon-1",
+								LearnMethod:    db.MoveLearnMethodEGG,
+								LevelLearnedAt: 0,
+							},
+						},
+					},
+				},
+				{
+					InnerTeamMemberMove: db.InnerTeamMemberMove{
+						ID:            "team-member-move-2",
+						Slot:          2,
+						TeamMemberID:  "team-member-id",
+						PokemonMoveID: "pokemon-move-2",
+					},
+					RelationsTeamMemberMove: db.RelationsTeamMemberMove{
+						PokemonMove: &db.PokemonMoveModel{
+							InnerPokemonMove: db.InnerPokemonMove{
+								ID:             "pokemon-move-2",
+								MoveID:         "move-2",
+								PokemonID:      "pokemon-1",
+								LearnMethod:    db.MoveLearnMethodLEVELUP,
+								LevelLearnedAt: 22,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	exp := TeamMemberEdge{
+		Cursor: teamMember.ID,
+		Slot:   &teamMember.Slot,
+		Node: &TeamMember{
+			ID:        teamMember.ID,
+			PokemonID: &teamMember.PokemonID,
+			Moves:     &expTeamMemberMoves,
 		},
 	}
 
-	exp := TeamMemberList{
-		Total:       2,
-		TeamMembers: teamMembers,
+	got := NewTeamMemberEdgeFromDb(teamMember)
+	if diff := deep.Equal(exp, got); diff != nil {
+		t.Error(diff)
+	}
+}
+func TestNewEmptyTeamMemberConnection(t *testing.T) {
+	exp := TeamMemberConnection{
+		PageInfo: &PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+		},
+		Edges: []*TeamMemberEdge{},
 	}
 
-	got := NewTeamMemberList(teamMembers)
+	got := NewEmptyTeamMemberConnection()
 	if diff := deep.Equal(exp, got); diff != nil {
 		t.Error(diff)
 	}
 }
 
-func TestNewEmptyTeamMemberList(t *testing.T) {
-	exp := TeamMemberList{
-		Total:       0,
-		TeamMembers: []*TeamMember{},
+func TestTeamMemberConnection_AddEdge(t *testing.T) {
+	teamMembers := NewEmptyTeamMemberConnection()
+	teamMember1 := &TeamMemberEdge{Cursor: "1"}
+	teamMember2 := &TeamMemberEdge{Cursor: "2"}
+	teamMembers.AddEdge(teamMember1)
+	teamMembers.AddEdge(teamMember2)
+
+	if *teamMembers.PageInfo.StartCursor != teamMember1.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", teamMember1.Cursor, *teamMembers.PageInfo.StartCursor)
 	}
 
-	got := NewEmptyTeamMemberList()
-	if diff := deep.Equal(exp, got); diff != nil {
-		t.Error(diff)
-	}
-}
-
-func TestTeamMemberList_AddTeamMember(t *testing.T) {
-	teamMembers := TeamMemberList{}
-	teamMember1 := &TeamMember{}
-	teamMember2 := &TeamMember{}
-	teamMembers.AddTeamMember(teamMember1)
-	teamMembers.AddTeamMember(teamMember2)
-
-	if teamMembers.Total != 2 {
-		t.Errorf("expected Total of 2, but got %d instead", teamMembers.Total)
+	if *teamMembers.PageInfo.EndCursor != teamMember2.Cursor {
+		t.Errorf("expected start cursor to be %s but got %s", teamMember2.Cursor, *teamMembers.PageInfo.StartCursor)
 	}
 
-	if !reflect.DeepEqual([]*TeamMember{teamMember1, teamMember2}, teamMembers.TeamMembers) {
+	if !reflect.DeepEqual([]*TeamMemberEdge{teamMember1, teamMember2}, teamMembers.Edges) {
 		t.Errorf("the teamMembers added do not match")
-	}
-}
-
-func TestTeamMemberList_RemoveTeamMember(t *testing.T) {
-	teamMembers := TeamMemberList{}
-	teamMember1 := &TeamMember{ID: "team-member-1"}
-	teamMember2 := &TeamMember{ID: "team-member-2"}
-	teamMembers.AddTeamMember(teamMember1)
-	teamMembers.AddTeamMember(teamMember2)
-	teamMembers.RemoveTeamMember(teamMember2.ID)
-
-	if teamMembers.Total != 1 {
-		t.Errorf("expected Total of 1, but got %d instead", teamMembers.Total)
-	}
-
-	if !reflect.DeepEqual([]*TeamMember{teamMember1}, teamMembers.TeamMembers) {
-		t.Errorf("the teamMembers do not match")
 	}
 }
