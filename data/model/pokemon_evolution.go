@@ -33,6 +33,7 @@ func (PokemonEvolution) IsNode() {}
 
 func NewPokemonEvolutionFromDb(dbPokemonEvolution db.PokemonEvolutionModel) PokemonEvolution {
 	pe := PokemonEvolution{
+		ID:                 dbPokemonEvolution.ID,
 		FromPokemonID:      dbPokemonEvolution.FromPokemonID,
 		ToPokemonID:        dbPokemonEvolution.ToPokemonID,
 		Trigger:            EvolutionTrigger(dbPokemonEvolution.Trigger),

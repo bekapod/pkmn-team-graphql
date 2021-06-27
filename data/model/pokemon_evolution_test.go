@@ -11,6 +11,7 @@ import (
 func TestNewPokemonEvolutionFromDb_WithNulls(t *testing.T) {
 	pokemonEvolution := db.PokemonEvolutionModel{
 		InnerPokemonEvolution: db.InnerPokemonEvolution{
+			ID:                 "evolution-id",
 			FromPokemonID:      "pokemon-1",
 			ToPokemonID:        "pokeemon-2",
 			Trigger:            db.EvolutionTriggerUSEITEM,
@@ -22,6 +23,7 @@ func TestNewPokemonEvolutionFromDb_WithNulls(t *testing.T) {
 		},
 	}
 	exp := PokemonEvolution{
+		ID:                 pokemonEvolution.ID,
 		FromPokemonID:      pokemonEvolution.FromPokemonID,
 		ToPokemonID:        pokemonEvolution.ToPokemonID,
 		Trigger:            EvolutionTriggerUseItem,
@@ -56,6 +58,7 @@ func TestNewPokemonEvolutionFromDb_WithFullData(t *testing.T) {
 
 	pokemonEvolution := db.PokemonEvolutionModel{
 		InnerPokemonEvolution: db.InnerPokemonEvolution{
+			ID:                    "evolution-id",
 			FromPokemonID:         "pokemon-1",
 			ToPokemonID:           "pokemon-2",
 			Trigger:               db.EvolutionTriggerUSEITEM,
@@ -81,6 +84,7 @@ func TestNewPokemonEvolutionFromDb_WithFullData(t *testing.T) {
 		},
 	}
 	exp := PokemonEvolution{
+		ID:                    pokemonEvolution.ID,
 		FromPokemonID:         pokemonEvolution.FromPokemonID,
 		ToPokemonID:           pokemonEvolution.ToPokemonID,
 		Trigger:               EvolutionTriggerUseItem,
@@ -128,6 +132,7 @@ func TestNewPokemonEvolutionEdgeFromDb(t *testing.T) {
 	exp := PokemonEvolutionEdge{
 		Cursor: pokemonEvolution.ID,
 		Node: &PokemonEvolution{
+			ID:                 pokemonEvolution.ID,
 			FromPokemonID:      pokemonEvolution.FromPokemonID,
 			ToPokemonID:        pokemonEvolution.ToPokemonID,
 			Trigger:            EvolutionTriggerUseItem,
