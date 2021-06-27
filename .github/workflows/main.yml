@@ -34,8 +34,8 @@ jobs:
       - name: Lint
         run: golint .
 
-      - name: Static Check
-        run: staticcheck ./...
+      # - name: Static Check
+      #   run: staticcheck ./...
 
       - name: Test
         run: go test ./...
