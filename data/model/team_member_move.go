@@ -7,6 +7,7 @@ type TeamMemberMoveEdge struct {
 	NodeID         string          `json:"nodeId"`
 	LearnMethod    MoveLearnMethod `json:"learnMethod"`
 	LevelLearnedAt int             `json:"levelLearnedAt"`
+	Slot           int             `json:"slot"`
 }
 
 func NewTeamMemberMoveEdgeFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMemberMoveEdge {
@@ -15,6 +16,7 @@ func NewTeamMemberMoveEdgeFromDb(dbTeamMemberMove db.TeamMemberMoveModel) TeamMe
 		NodeID:         dbTeamMemberMove.PokemonMove().MoveID,
 		LearnMethod:    MoveLearnMethod(dbTeamMemberMove.PokemonMove().LearnMethod),
 		LevelLearnedAt: dbTeamMemberMove.PokemonMove().LevelLearnedAt,
+		Slot:           dbTeamMemberMove.Slot,
 	}
 }
 

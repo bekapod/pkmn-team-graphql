@@ -131,10 +131,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTeam       func(childComplexity int, input model.CreateTeamInput) int
-		DeleteTeam       func(childComplexity int, id string) int
-		RemoveTeamMember func(childComplexity int, id string) int
-		UpdateTeam       func(childComplexity int, input model.UpdateTeamInput) int
+		CreateTeam           func(childComplexity int, input model.CreateTeamInput) int
+		DeleteTeam           func(childComplexity int, id string) int
+		DeleteTeamMember     func(childComplexity int, id string) int
+		DeleteTeamMemberMove func(childComplexity int, id string) int
+		UpdateTeam           func(childComplexity int, input model.UpdateTeamInput) int
+		UpdateTeamMember     func(childComplexity int, input model.UpdateTeamMemberInput) int
 	}
 
 	PageInfo struct {
@@ -348,6 +350,7 @@ type ComplexityRoot struct {
 		LearnMethod    func(childComplexity int) int
 		LevelLearnedAt func(childComplexity int) int
 		Node           func(childComplexity int) int
+		Slot           func(childComplexity int) int
 	}
 
 	Type struct {
@@ -385,8 +388,10 @@ type MoveResolver interface {
 type MutationResolver interface {
 	CreateTeam(ctx context.Context, input model.CreateTeamInput) (*model.Team, error)
 	UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*model.Team, error)
+	UpdateTeamMember(ctx context.Context, input model.UpdateTeamMemberInput) (*model.TeamMember, error)
 	DeleteTeam(ctx context.Context, id string) (*model.Team, error)
-	RemoveTeamMember(ctx context.Context, id string) (*model.TeamMember, error)
+	DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error)
+	DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error)
 }
 type PokemonResolver interface {
 	Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityConnection, error)
@@ -790,17 +795,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string)), true
 
-	case "Mutation.removeTeamMember":
-		if e.complexity.Mutation.RemoveTeamMember == nil {
+	case "Mutation.deleteTeamMember":
+		if e.complexity.Mutation.DeleteTeamMember == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_removeTeamMember_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteTeamMember_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.RemoveTeamMember(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTeamMember(childComplexity, args["id"].(string)), true
+
+	case "Mutation.deleteTeamMemberMove":
+		if e.complexity.Mutation.DeleteTeamMemberMove == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTeamMemberMove_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTeamMemberMove(childComplexity, args["id"].(string)), true
 
 	case "Mutation.updateTeam":
 		if e.complexity.Mutation.UpdateTeam == nil {
@@ -813,6 +830,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTeam(childComplexity, args["input"].(model.UpdateTeamInput)), true
+
+	case "Mutation.updateTeamMember":
+		if e.complexity.Mutation.UpdateTeamMember == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTeamMember_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTeamMember(childComplexity, args["input"].(model.UpdateTeamMemberInput)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -1742,6 +1771,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TeamMemberMoveEdge.Node(childComplexity), true
 
+	case "TeamMemberMoveEdge.slot":
+		if e.complexity.TeamMemberMoveEdge.Slot == nil {
+			break
+		}
+
+		return e.complexity.TeamMemberMoveEdge.Slot(childComplexity), true
+
 	case "Type.doubleDamageFrom":
 		if e.complexity.Type.DoubleDamageFrom == nil {
 			break
@@ -1929,8 +1965,10 @@ type Query {
 type Mutation {
   createTeam(input: CreateTeamInput!): Team!
   updateTeam(input: UpdateTeamInput!): Team!
+  updateTeamMember(input: UpdateTeamMemberInput!): TeamMember!
   deleteTeam(id: ID!): Team!
-  removeTeamMember(id: ID!): TeamMember!
+  deleteTeamMember(id: ID!): TeamMember!
+  deleteTeamMemberMove(id: ID!): Move!
 }
 
 input CreateTeamInput {
@@ -1941,7 +1979,7 @@ input CreateTeamInput {
 input UpdateTeamInput {
   id: ID!
   name: String
-  members: [UpdateTeamMemberInput!]
+  members: [CreateOrUpdateTeamMemberInput!]
 }
 
 input CreateTeamMemberInput {
@@ -1949,9 +1987,22 @@ input CreateTeamMemberInput {
   slot: Int!
 }
 
-input UpdateTeamMemberInput {
+input CreateOrUpdateTeamMemberInput {
   id: ID
   pokemonId: ID
+  slot: Int
+}
+
+input UpdateTeamMemberInput {
+  id: ID!
+  pokemonId: ID
+  slot: Int
+  moves: [CreateOrUpdateTeamMemberMoveInput!]
+}
+
+input CreateOrUpdateTeamMemberMoveInput {
+  id: ID
+  pokemonMoveId: ID
   slot: Int
 }
 
@@ -2227,6 +2278,7 @@ type TeamMemberMoveConnection {
 type TeamMemberMoveEdge {
   cursor: String!
   node: Move
+  slot: Int
   learnMethod: MoveLearnMethod
   levelLearnedAt: Int
 }
@@ -2437,6 +2489,36 @@ func (ec *executionContext) field_Mutation_createTeam_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteTeamMemberMove_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTeamMember_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2452,18 +2534,18 @@ func (ec *executionContext) field_Mutation_deleteTeam_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_removeTeamMember_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_updateTeamMember_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 model.UpdateTeamMemberInput
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNUpdateTeamMemberInput2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["input"] = arg0
 	return args, nil
 }
 
@@ -4113,6 +4195,48 @@ func (ec *executionContext) _Mutation_updateTeam(ctx context.Context, field grap
 	return ec.marshalNTeam2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeam(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTeamMember_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTeamMember(rctx, args["input"].(model.UpdateTeamMemberInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.TeamMember)
+	fc.Result = res
+	return ec.marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4155,7 +4279,7 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 	return ec.marshalNTeam2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeam(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_removeTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4172,7 +4296,7 @@ func (ec *executionContext) _Mutation_removeTeamMember(ctx context.Context, fiel
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_removeTeamMember_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteTeamMember_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4180,7 +4304,7 @@ func (ec *executionContext) _Mutation_removeTeamMember(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().RemoveTeamMember(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTeamMember(rctx, args["id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4195,6 +4319,48 @@ func (ec *executionContext) _Mutation_removeTeamMember(ctx context.Context, fiel
 	res := resTmp.(*model.TeamMember)
 	fc.Result = res
 	return ec.marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTeamMemberMove(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTeamMemberMove_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTeamMemberMove(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Move)
+	fc.Result = res
+	return ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
@@ -8580,6 +8746,38 @@ func (ec *executionContext) _TeamMemberMoveEdge_node(ctx context.Context, field 
 	return ec.marshalOMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TeamMemberMoveEdge_slot(ctx context.Context, field graphql.CollectedField, obj *model.TeamMemberMoveEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TeamMemberMoveEdge",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Slot, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TeamMemberMoveEdge_learnMethod(ctx context.Context, field graphql.CollectedField, obj *model.TeamMemberMoveEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10250,6 +10448,78 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateOrUpdateTeamMemberInput(ctx context.Context, obj interface{}) (model.CreateOrUpdateTeamMemberInput, error) {
+	var it model.CreateOrUpdateTeamMemberInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "pokemonId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pokemonId"))
+			it.PokemonID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "slot":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slot"))
+			it.Slot, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateOrUpdateTeamMemberMoveInput(ctx context.Context, obj interface{}) (model.CreateOrUpdateTeamMemberMoveInput, error) {
+	var it model.CreateOrUpdateTeamMemberMoveInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "pokemonMoveId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("pokemonMoveId"))
+			it.PokemonMoveID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "slot":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slot"))
+			it.Slot, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateTeamInput(ctx context.Context, obj interface{}) (model.CreateTeamInput, error) {
 	var it model.CreateTeamInput
 	var asMap = obj.(map[string]interface{})
@@ -10332,7 +10602,7 @@ func (ec *executionContext) unmarshalInputUpdateTeamInput(ctx context.Context, o
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("members"))
-			it.Members, err = ec.unmarshalOUpdateTeamMemberInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInputᚄ(ctx, v)
+			it.Members, err = ec.unmarshalOCreateOrUpdateTeamMemberInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10352,7 +10622,7 @@ func (ec *executionContext) unmarshalInputUpdateTeamMemberInput(ctx context.Cont
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10369,6 +10639,14 @@ func (ec *executionContext) unmarshalInputUpdateTeamMemberInput(ctx context.Cont
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slot"))
 			it.Slot, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "moves":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("moves"))
+			it.Moves, err = ec.unmarshalOCreateOrUpdateTeamMemberMoveInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberMoveInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10889,13 +11167,23 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "updateTeamMember":
+			out.Values[i] = ec._Mutation_updateTeamMember(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "deleteTeam":
 			out.Values[i] = ec._Mutation_deleteTeam(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "removeTeamMember":
-			out.Values[i] = ec._Mutation_removeTeamMember(ctx, field)
+		case "deleteTeamMember":
+			out.Values[i] = ec._Mutation_deleteTeamMember(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteTeamMemberMove":
+			out.Values[i] = ec._Mutation_deleteTeamMemberMove(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -12269,6 +12557,8 @@ func (ec *executionContext) _TeamMemberMoveEdge(ctx context.Context, sel ast.Sel
 				res = ec._TeamMemberMoveEdge_node(ctx, field, obj)
 				return res
 			})
+		case "slot":
+			out.Values[i] = ec._TeamMemberMoveEdge_slot(ctx, field, obj)
 		case "learnMethod":
 			out.Values[i] = ec._TeamMemberMoveEdge_learnMethod(ctx, field, obj)
 		case "levelLearnedAt":
@@ -12775,6 +13065,16 @@ func (ec *executionContext) marshalNColor2bekapodᚋpkmnᚑteamᚑgraphqlᚋdata
 	return v
 }
 
+func (ec *executionContext) unmarshalNCreateOrUpdateTeamMemberInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberInput(ctx context.Context, v interface{}) (*model.CreateOrUpdateTeamMemberInput, error) {
+	res, err := ec.unmarshalInputCreateOrUpdateTeamMemberInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNCreateOrUpdateTeamMemberMoveInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberMoveInput(ctx context.Context, v interface{}) (*model.CreateOrUpdateTeamMemberMoveInput, error) {
+	res, err := ec.unmarshalInputCreateOrUpdateTeamMemberMoveInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateTeamInput2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateTeamInput(ctx context.Context, v interface{}) (model.CreateTeamInput, error) {
 	res, err := ec.unmarshalInputCreateTeamInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -12931,6 +13231,20 @@ func (ec *executionContext) unmarshalNItemCategory2bekapodᚋpkmnᚑteamᚑgraph
 
 func (ec *executionContext) marshalNItemCategory2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐItemCategory(ctx context.Context, sel ast.SelectionSet, v model.ItemCategory) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v model.Move) graphql.Marshaler {
+	return ec._Move(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Move(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNMoveConnection2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveConnection(ctx context.Context, sel ast.SelectionSet, v model.MoveConnection) graphql.Marshaler {
@@ -13259,9 +13573,9 @@ func (ec *executionContext) unmarshalNUpdateTeamInput2bekapodᚋpkmnᚑteamᚑgr
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNUpdateTeamMemberInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInput(ctx context.Context, v interface{}) (*model.UpdateTeamMemberInput, error) {
+func (ec *executionContext) unmarshalNUpdateTeamMemberInput2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInput(ctx context.Context, v interface{}) (model.UpdateTeamMemberInput, error) {
 	res, err := ec.unmarshalInputUpdateTeamMemberInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -13569,6 +13883,54 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOCreateOrUpdateTeamMemberInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberInputᚄ(ctx context.Context, v interface{}) ([]*model.CreateOrUpdateTeamMemberInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.CreateOrUpdateTeamMemberInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreateOrUpdateTeamMemberInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOCreateOrUpdateTeamMemberMoveInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberMoveInputᚄ(ctx context.Context, v interface{}) ([]*model.CreateOrUpdateTeamMemberMoveInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.CreateOrUpdateTeamMemberMoveInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNCreateOrUpdateTeamMemberMoveInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateOrUpdateTeamMemberMoveInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOCreateTeamMemberInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐCreateTeamMemberInputᚄ(ctx context.Context, v interface{}) ([]*model.CreateTeamMemberInput, error) {
@@ -14396,30 +14758,6 @@ func (ec *executionContext) marshalOTypeEdge2ᚖbekapodᚋpkmnᚑteamᚑgraphql�
 		return graphql.Null
 	}
 	return ec._TypeEdge(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOUpdateTeamMemberInput2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInputᚄ(ctx context.Context, v interface{}) ([]*model.UpdateTeamMemberInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*model.UpdateTeamMemberInput, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUpdateTeamMemberInput2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐUpdateTeamMemberInput(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

@@ -16,8 +16,10 @@ type Query {
 type Mutation {
   createTeam(input: CreateTeamInput!): Team!
   updateTeam(input: UpdateTeamInput!): Team!
+  updateTeamMember(input: UpdateTeamMemberInput!): TeamMember!
   deleteTeam(id: ID!): Team!
-  removeTeamMember(id: ID!): TeamMember!
+  deleteTeamMember(id: ID!): TeamMember!
+  deleteTeamMemberMove(id: ID!): Move!
 }
 
 input CreateTeamInput {
@@ -28,7 +30,7 @@ input CreateTeamInput {
 input UpdateTeamInput {
   id: ID!
   name: String
-  members: [UpdateTeamMemberInput!]
+  members: [CreateOrUpdateTeamMemberInput!]
 }
 
 input CreateTeamMemberInput {
@@ -36,9 +38,22 @@ input CreateTeamMemberInput {
   slot: Int!
 }
 
-input UpdateTeamMemberInput {
+input CreateOrUpdateTeamMemberInput {
   id: ID
   pokemonId: ID
+  slot: Int
+}
+
+input UpdateTeamMemberInput {
+  id: ID!
+  pokemonId: ID
+  slot: Int
+  moves: [CreateOrUpdateTeamMemberMoveInput!]
+}
+
+input CreateOrUpdateTeamMemberMoveInput {
+  id: ID
+  pokemonMoveId: ID
   slot: Int
 }
 
@@ -314,6 +329,7 @@ type TeamMemberMoveConnection {
 type TeamMemberMoveEdge {
   cursor: String!
   node: Move
+  slot: Int
   learnMethod: MoveLearnMethod
   levelLearnedAt: Int
 }

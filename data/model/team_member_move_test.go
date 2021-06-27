@@ -33,6 +33,7 @@ func TestNewTeamMemberMoveEdgeFromDb(t *testing.T) {
 		NodeID:         "move-1",
 		LearnMethod:    MoveLearnMethod(teamMemberMove.PokemonMove().LearnMethod),
 		LevelLearnedAt: teamMemberMove.PokemonMove().LevelLearnedAt,
+		Slot:           teamMemberMove.Slot,
 	}
 
 	got := NewTeamMemberMoveEdgeFromDb(teamMemberMove)

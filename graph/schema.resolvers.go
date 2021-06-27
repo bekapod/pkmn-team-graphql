@@ -29,12 +29,20 @@ func (r *mutationResolver) UpdateTeam(ctx context.Context, input model.UpdateTea
 	return r.TeamRepository.UpdateTeam(ctx, input)
 }
 
+func (r *mutationResolver) UpdateTeamMember(ctx context.Context, input model.UpdateTeamMemberInput) (*model.TeamMember, error) {
+	return r.TeamRepository.UpdateTeamMember(ctx, input)
+}
+
 func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
 	return r.TeamRepository.DeleteTeam(ctx, id)
 }
 
-func (r *mutationResolver) RemoveTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
+func (r *mutationResolver) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
 	return r.TeamRepository.DeleteTeamMember(ctx, id)
+}
+
+func (r *mutationResolver) DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error) {
+	return r.TeamRepository.DeleteTeamMemberMove(ctx, id)
 }
 
 func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityConnection, error) {

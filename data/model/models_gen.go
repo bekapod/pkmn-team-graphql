@@ -23,6 +23,18 @@ type AbilityEdge struct {
 	Node   *Ability `json:"node"`
 }
 
+type CreateOrUpdateTeamMemberInput struct {
+	ID        *string `json:"id"`
+	PokemonID *string `json:"pokemonId"`
+	Slot      *int    `json:"slot"`
+}
+
+type CreateOrUpdateTeamMemberMoveInput struct {
+	ID            *string `json:"id"`
+	PokemonMoveID *string `json:"pokemonMoveId"`
+	Slot          *int    `json:"slot"`
+}
+
 type CreateTeamInput struct {
 	Name    string                   `json:"name"`
 	Members []*CreateTeamMemberInput `json:"members"`
@@ -180,15 +192,16 @@ type TypeEdge struct {
 }
 
 type UpdateTeamInput struct {
-	ID      string                   `json:"id"`
-	Name    *string                  `json:"name"`
-	Members []*UpdateTeamMemberInput `json:"members"`
+	ID      string                           `json:"id"`
+	Name    *string                          `json:"name"`
+	Members []*CreateOrUpdateTeamMemberInput `json:"members"`
 }
 
 type UpdateTeamMemberInput struct {
-	ID        *string `json:"id"`
-	PokemonID *string `json:"pokemonId"`
-	Slot      *int    `json:"slot"`
+	ID        string                               `json:"id"`
+	PokemonID *string                              `json:"pokemonId"`
+	Slot      *int                                 `json:"slot"`
+	Moves     []*CreateOrUpdateTeamMemberMoveInput `json:"moves"`
 }
 
 type Color string
