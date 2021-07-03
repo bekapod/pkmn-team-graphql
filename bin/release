@@ -1,2 +1,3 @@
 go run github.com/prisma/prisma-client-go migrate deploy --schema data/schema.prisma --preview-feature
-npx graphcdn push schema
+npm run generate:graphcdn-config
+npm run deploy:schema

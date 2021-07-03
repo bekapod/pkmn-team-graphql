@@ -3,3 +3,5 @@
 bin/pkmn-team-graphql
 seeds/
 coverage.out
+node_modules
+graphcdn.yml

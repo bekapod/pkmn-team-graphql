@@ -1,0 +1,20 @@
+{
+  "name": "pkmn-team-graphql",
+  "version": "1.0.0",
+  "engines": {
+    "node": "16.x"
+  },
+  "scripts": {
+    "generate:graphcdn-config": "envsub graphcdn-template.yml graphcdn.yml",
+    "deploy:schema": "graphcdn push schema"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bekapod/pkmn-team-graphql.git"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "envsub": "^4.0.7",
+    "graphcdn": "^1.0.7"
+  }
+}
