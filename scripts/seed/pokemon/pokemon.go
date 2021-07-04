@@ -128,6 +128,7 @@ func main() {
 		"http://localhost/api/v2/pokemon-species/798/",
 		"http://localhost/api/v2/pokemon-species/799/",
 		"http://localhost/api/v2/pokemon-species/800/",
+		"http://localhost/api/v2/pokemon-species/801/",
 		"http://localhost/api/v2/pokemon-species/803/",
 		"http://localhost/api/v2/pokemon-species/804/",
 		"http://localhost/api/v2/pokemon-species/805/",
@@ -164,11 +165,20 @@ func main() {
 			if err != nil {
 				log.Logger.Fatal(err)
 			}
-			englishFlavourText, _ := pokeapi.GetEnglishFlavourTextEntry(fullPokemonSpecies.FlavourTextEntries, fullPokemonSpecies.Name)
+			englishFlavourTexts, _ := pokeapi.GetEnglishFlavourTextEntries(fullPokemonSpecies.FlavourTextEntries, fullPokemonSpecies.Name)
 			var description *string
-			if englishFlavourText != nil {
-				description = &englishFlavourText.FlavourText
+			descriptions := make([]string, 0)
+			if englishFlavourTexts != nil {
+				for _, flavourText := range *englishFlavourTexts {
+					descriptions = append(descriptions, flavourText.FlavourText)
+				}
 			}
+
+			if len(descriptions) > 0 {
+				d := strings.Join(descriptions, "\n\n")
+				description = &d
+			}
+
 			englishGenus, err := pokeapi.GetEnglishGenus(fullPokemonSpecies.Genera, fullPokemonSpecies.Name)
 			if err != nil {
 				log.Logger.Fatal(err)
@@ -214,7 +224,7 @@ func main() {
 						db.Pokemon.Weight.Set(pokemon.Weight),
 						db.Pokemon.Habitat.SetIfPresent(habitat),
 						db.Pokemon.Description.SetIfPresent(description),
-						db.Pokemon.Sprite.SetIfPresent(&pokemon.Sprites.FrontDefault),
+						db.Pokemon.Sprite.SetIfPresent(pokemon.Sprites.FrontDefault),
 						db.Pokemon.EggGroups.Link(eggGroups...),
 						db.Pokemon.UpdatedAt.Set(time.Now())).
 					Update(
@@ -237,7 +247,7 @@ func main() {
 						db.Pokemon.Weight.Set(pokemon.Weight),
 						db.Pokemon.Habitat.SetIfPresent(habitat),
 						db.Pokemon.Description.SetIfPresent(description),
-						db.Pokemon.Sprite.SetIfPresent(&pokemon.Sprites.FrontDefault),
+						db.Pokemon.Sprite.SetIfPresent(pokemon.Sprites.FrontDefault),
 						db.Pokemon.EggGroups.Link(eggGroups...),
 						db.Pokemon.UpdatedAt.Set(time.Now())).
 					Exec(ctx)

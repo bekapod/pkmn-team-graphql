@@ -589,11 +589,16 @@ func GetEnglishEffectEntry(effectEntries []EffectEntry, resourceName string) (*E
 	return nil, fmt.Errorf("no english effect entry found for %s", resourceName)
 }
 
-func GetEnglishFlavourTextEntry(flavourTextEntries []FlavourTextEntry, resourceName string) (*FlavourTextEntry, error) {
+func GetEnglishFlavourTextEntries(flavourTextEntries []FlavourTextEntry, resourceName string) (*[]FlavourTextEntry, error) {
+	entries := make([]FlavourTextEntry, 0)
 	for i := range flavourTextEntries {
-		if flavourTextEntries[i].Language.Name == "en" && (flavourTextEntries[i].VersionGroup.Name == "ultra-sun-ultra-moon" || flavourTextEntries[i].Version.Name == "ultra-moon" || flavourTextEntries[i].Version.Name == "lets-go-pikachu") {
-			return &flavourTextEntries[i], nil
+		if flavourTextEntries[i].Language.Name == "en" && flavourTextEntries[i].Version.Name == "sword" {
+			entries = append(entries, flavourTextEntries[i])
 		}
+	}
+
+	if len(entries) > 0 {
+		return &entries, nil
 	}
 
 	return nil, fmt.Errorf("no english flavour text entry found for %s", resourceName)
@@ -789,14 +794,14 @@ type Pokemon struct {
 	} `json:"abilities"`
 	Moves   []PokemonMove `json:"moves"`
 	Sprites struct {
-		FrontDefault     string `json:"front_default"`
-		FrontFemale      string `json:"front_female"`
-		FrontShiny       string `json:"front_shiny"`
-		FrontShinyFemale string `json:"front_shiny_female"`
-		BackDefault      string `json:"back_default"`
-		BackFemale       string `json:"back_female"`
-		BackShiny        string `json:"back_shiny"`
-		BackShinyFemale  string `json:"back_shiny_female"`
+		FrontDefault     *string `json:"front_default"`
+		FrontFemale      string  `json:"front_female"`
+		FrontShiny       string  `json:"front_shiny"`
+		FrontShinyFemale string  `json:"front_shiny_female"`
+		BackDefault      string  `json:"back_default"`
+		BackFemale       string  `json:"back_female"`
+		BackShiny        string  `json:"back_shiny"`
+		BackShinyFemale  string  `json:"back_shiny_female"`
 		Other            struct {
 			DreamWorld struct {
 				FrontDefault string `json:"front_default"`
