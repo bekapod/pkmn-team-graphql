@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"strconv"
@@ -24,10 +23,6 @@ func New() Config {
 		DatabaseUrl: os.Getenv("DATABASE_URL"),
 		Tracing:     tracing,
 	}
-}
-
-func (c Config) AppHostWithPort() string {
-	return fmt.Sprintf("%s:%s", c.AppHost, c.Port)
 }
 
 func (c Config) DatabaseName() string {

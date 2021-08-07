@@ -1,9 +1,0 @@
-name: pkmn-team
-schema: "https://${APP_HOST}/graphql"
-originUrl: "https://${APP_HOST}/graphql"
-rules:
-  - description: Cache everything (default)
-    maxAge: 900
-    swr: 900
-    types:
-      Query: true

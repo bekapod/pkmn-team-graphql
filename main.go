@@ -59,8 +59,8 @@ func main() {
 		close(httpWait)
 	}()
 
-	log.Logger.Infof("use https://%s/playground for the GraphQL playground", cfg.AppHostWithPort())
-	log.Logger.Infof("use https://%s/graphql for the GraphQL API", cfg.AppHostWithPort())
+	log.Logger.Infof("use %splayground for the GraphQL playground", cfg.AppHost)
+	log.Logger.Infof("use %sgraphql for the GraphQL API", cfg.AppHost)
 
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.Logger.Fatalf("failed to start HTTP server: %s", err)

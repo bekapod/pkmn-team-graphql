@@ -28,20 +28,6 @@ func TestNew(t *testing.T) {
 	os.Clearenv()
 }
 
-func TestConfig_AppHostWithPort(t *testing.T) {
-	cfg := Config{
-		AppHost:     "localhost",
-		Port:        "1234",
-		DatabaseUrl: "postgres://user:pass@host:1234/database-name?sslmode=disable",
-		Tracing:     false,
-	}
-
-	exp := "localhost:1234"
-	if got := cfg.AppHostWithPort(); exp != got {
-		t.Errorf("expected '%s' but got '%s' instead", exp, got)
-	}
-}
-
 func TestConfig_DatabaseName(t *testing.T) {
 	cfg := Config{
 		AppHost:     "localhost",
