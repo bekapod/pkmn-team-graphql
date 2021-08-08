@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"fmt"
 )
@@ -30,7 +31,8 @@ func (r PokemonEvolution) PokemonEvolutionByFromPokemonIdDataLoader(ctx context.
 			for i, id := range ids {
 				el := model.NewEmptyPokemonEvolutionConnection()
 				pokemonEvolutionConnections[i] = &el
-				errors[i] = fmt.Errorf("error loading pokemon evolution by from pokemon id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon evolution by FROM pokemon id")
+				errors[i] = fmt.Errorf("error loading pokemon evolution by from pokemon id %s", id)
 			}
 
 			return pokemonEvolutionConnections, errors
@@ -84,7 +86,8 @@ func (r PokemonEvolution) PokemonEvolutionByToPokemonIdDataLoader(ctx context.Co
 			for i, id := range ids {
 				el := model.NewEmptyPokemonEvolutionConnection()
 				pokemonEvolutionConnections[i] = &el
-				errors[i] = fmt.Errorf("error loading pokemon evolution by to pokemon id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon evolution by TO pokemon id")
+				errors[i] = fmt.Errorf("error loading pokemon evolution by to pokemon id %s", id)
 			}
 
 			return pokemonEvolutionConnections, errors

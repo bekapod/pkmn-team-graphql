@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"fmt"
 )
@@ -30,7 +31,8 @@ func (r PokemonAbility) PokemonAbilityByPokemonIdDataLoader(ctx context.Context)
 			for i, id := range ids {
 				al := model.NewEmptyPokemonAbilityConnection()
 				pokemonAbilityConnections[i] = &al
-				errors[i] = fmt.Errorf("error loading pokemon ability by pokemon id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon ability by pokemon id")
+				errors[i] = fmt.Errorf("error loading pokemon ability by pokemon id %s", id)
 			}
 
 			return pokemonAbilityConnections, errors
@@ -83,7 +85,8 @@ func (r PokemonAbility) PokemonAbilityByAbilityIdDataLoader(ctx context.Context)
 			for i, id := range ids {
 				al := model.NewEmptyPokemonWithAbilityConnection()
 				pokemonAbilityConnections[i] = &al
-				errors[i] = fmt.Errorf("error loading pokemon ability by ability id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon ability by ability id")
+				errors[i] = fmt.Errorf("error loading pokemon ability by ability id %s", id)
 			}
 
 			return pokemonAbilityConnections, errors

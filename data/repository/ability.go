@@ -29,8 +29,8 @@ func (r Ability) GetAbilities(ctx context.Context) (*model.AbilityConnection, er
 	}
 
 	if err != nil {
-		log.Logger.WithField("r", results).Debug("resultssssss")
-		return &abilities, fmt.Errorf("error getting abilities: %s", err)
+		log.Logger.WithError(err).WithContext(ctx).Error("error getting abilities")
+		return &abilities, fmt.Errorf("error getting abilities")
 	}
 
 	for _, result := range results {
@@ -45,11 +45,13 @@ func (r Ability) GetAbilityById(ctx context.Context, id string) (*model.Ability,
 	result, err := r.client.Ability.FindUnique(db.Ability.ID.Equals(id)).Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find ability by id")
 		return nil, fmt.Errorf("couldn't find ability by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting ability by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting ability by id")
+		return nil, fmt.Errorf("error getting ability by id: %s", id)
 	}
 
 	a := model.NewAbilityFromDb(*result)
@@ -65,7 +67,8 @@ func (r Ability) AbilityByIdDataLoader(ctx context.Context) func(ids []string) (
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading ability by id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading ability by id")
+				errors[i] = fmt.Errorf("error loading ability by id %s", id)
 			}
 
 			return abilities, errors

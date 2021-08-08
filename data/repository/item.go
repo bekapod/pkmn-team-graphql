@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"fmt"
 )
@@ -26,7 +27,8 @@ func (r Item) ItemByIdDataLoader(ctx context.Context) func(ids []string) ([]*mod
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading ability by id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading item by id")
+				errors[i] = fmt.Errorf("error loading item by id %s", id)
 			}
 
 			return items, errors

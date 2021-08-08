@@ -3,9 +3,12 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"errors"
 	"fmt"
+
+	"github.com/sirupsen/logrus"
 )
 
 type Type struct {
@@ -28,7 +31,8 @@ func (r Type) GetTypes(ctx context.Context) (*model.TypeConnection, error) {
 	}
 
 	if err != nil {
-		return &types, fmt.Errorf("error getting types: %s", err)
+		log.Logger.WithError(err).Error("error getting types")
+		return &types, fmt.Errorf("error getting types")
 	}
 
 	for _, result := range results {
@@ -43,11 +47,13 @@ func (r Type) GetTypeById(ctx context.Context, id string) (*model.Type, error) {
 	result, err := r.client.Type.FindUnique(db.Type.ID.Equals(id)).Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find type by id")
 		return nil, fmt.Errorf("couldn't find type by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting type by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting type by id")
+		return nil, fmt.Errorf("error getting type by id: %s", id)
 	}
 
 	t := model.NewTypeFromDb(*result)
@@ -68,7 +74,8 @@ func (r Type) TypeByIdWithDamageRelationDataLoader(ctx context.Context, damageRe
 			for i, id := range ids {
 				tl := model.NewEmptyTypeConnection()
 				typeConnections[i] = &tl
-				errors[i] = fmt.Errorf("error loading type by damage relation %s & id %s in dataloader %w", damageRelation, id, err)
+				log.Logger.WithFields(logrus.Fields{"id": id, "damageRelation": damageRelation}).WithError(err).WithContext(ctx).Error("error loading type by damage relation")
+				errors[i] = fmt.Errorf("error loading type by damage relation %s & id %s", damageRelation, id)
 			}
 
 			return typeConnections, errors
@@ -117,7 +124,8 @@ func (r Type) TypeByIdDataLoader(ctx context.Context) func(ids []string) ([]*mod
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading type by id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading type by id")
+				errors[i] = fmt.Errorf("error loading type by id %s", id)
 			}
 
 			return types, errors

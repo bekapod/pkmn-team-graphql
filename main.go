@@ -21,7 +21,7 @@ import (
 func main() {
 	httpWait := make(chan struct{})
 	cfg := config.New()
-	log.Logger.WithField("config", cfg).Info("service starting")
+	log.Logger.Info("service starting")
 
 	client := db.NewClient()
 	if err := client.Prisma.Connect(); err != nil {

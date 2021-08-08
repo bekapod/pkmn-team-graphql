@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"errors"
 	"fmt"
@@ -28,7 +29,8 @@ func (r Move) GetMoves(ctx context.Context) (*model.MoveConnection, error) {
 	}
 
 	if err != nil {
-		return &moves, fmt.Errorf("error getting moves: %s", err)
+		log.Logger.WithError(err).WithContext(ctx).Error("error getting moves")
+		return &moves, fmt.Errorf("error getting moves")
 	}
 
 	for _, result := range results {
@@ -43,11 +45,13 @@ func (r Move) GetMoveById(ctx context.Context, id string) (*model.Move, error) {
 	result, err := r.client.Move.FindUnique(db.Move.ID.Equals(id)).Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find move by id")
 		return nil, fmt.Errorf("couldn't find move by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting move by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting move by id")
+		return nil, fmt.Errorf("error getting move by id: %s", id)
 	}
 
 	m := model.NewMoveFromDb(*result)
@@ -63,7 +67,8 @@ func (r Move) MoveByIdDataLoader(ctx context.Context) func(ids []string) ([]*mod
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading move by id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading move by id")
+				errors[i] = fmt.Errorf("error loading move by id %s", id)
 			}
 
 			return moves, errors
@@ -95,7 +100,8 @@ func (r Move) MovesByTypeIdDataLoader(ctx context.Context) func(ids []string) ([
 			for i, id := range ids {
 				ml := model.NewEmptyMoveConnection()
 				moveConnections[i] = &ml
-				errors[i] = fmt.Errorf("error loading moves by type id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading moves by type id")
+				errors[i] = fmt.Errorf("error loading moves by type id %s", id)
 			}
 
 			return moveConnections, errors

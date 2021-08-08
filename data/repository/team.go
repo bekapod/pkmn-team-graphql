@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"errors"
 	"fmt"
@@ -37,7 +38,8 @@ func (r Team) GetTeams(ctx context.Context) (*model.TeamConnection, error) {
 	}
 
 	if err != nil {
-		return &teams, fmt.Errorf("error getting teams: %s", err)
+		log.Logger.WithError(err).WithContext(ctx).Error("error getting teams")
+		return &teams, fmt.Errorf("error getting teams")
 	}
 
 	for _, result := range results {
@@ -57,11 +59,13 @@ func (r Team) GetTeamById(ctx context.Context, id string) (*model.Team, error) {
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team by id")
 		return nil, fmt.Errorf("couldn't find team by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting team by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting team by id")
+		return nil, fmt.Errorf("error getting team by id")
 	}
 
 	team := model.NewTeamFromDb(*result)
@@ -75,11 +79,13 @@ func (r Team) GetTeamMemberById(ctx context.Context, id string) (*model.TeamMemb
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team member by id")
 		return nil, fmt.Errorf("couldn't find team member by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting team member by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting team member by id")
+		return nil, fmt.Errorf("error getting team member by id: %s", id)
 	}
 
 	teamMember := model.NewTeamMemberFromDb(*result)
@@ -92,7 +98,8 @@ func (r Team) CreateTeam(ctx context.Context, input model.CreateTeamInput) (*mod
 		Exec(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("error creating team %s", err)
+		log.Logger.WithError(err).WithContext(ctx).Error("error creating team")
+		return nil, fmt.Errorf("error creating team")
 	}
 
 	transactions := make([]transaction.Param, 0)
@@ -111,7 +118,8 @@ func (r Team) CreateTeam(ctx context.Context, input model.CreateTeamInput) (*mod
 	err2 := r.client.Prisma.Transaction(transactions...).Exec(ctx)
 	if err2 != nil {
 		r.client.Team.FindUnique(db.Team.ID.Equals(result.ID)).Delete().Exec(ctx)
-		return nil, fmt.Errorf("error creating team members %s", err2)
+		log.Logger.WithError(err2).WithContext(ctx).Error("error creating team members")
+		return nil, fmt.Errorf("error creating team members")
 	}
 
 	return r.GetTeamById(ctx, result.ID)
@@ -126,7 +134,8 @@ func (r Team) UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*mod
 		Exec(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("error updating team %s", err)
+		log.Logger.WithError(err).WithContext(ctx).Error("error updating team")
+		return nil, fmt.Errorf("error updating team")
 	}
 
 	transactions := make([]transaction.Param, 0)
@@ -156,7 +165,8 @@ func (r Team) UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*mod
 	err2 := r.client.Prisma.Transaction(transactions...).Exec(ctx)
 	if err2 != nil {
 		r.client.Team.FindUnique(db.Team.ID.Equals(result.ID)).Delete().Exec(ctx)
-		return nil, fmt.Errorf("error updating team members %s", err2)
+		log.Logger.WithError(err2).WithContext(ctx).Error("error updating team members")
+		return nil, fmt.Errorf("error updating team members")
 	}
 
 	return r.GetTeamById(ctx, result.ID)
@@ -172,7 +182,8 @@ func (r Team) UpdateTeamMember(ctx context.Context, input model.UpdateTeamMember
 		Exec(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("error updating team member (%s) %s", input.ID, err)
+		log.Logger.WithField("id", input.ID).WithContext(ctx).WithError(err).Error("error updating team member")
+		return nil, fmt.Errorf("error updating team member %s", input.ID)
 	}
 
 	transactions := make([]transaction.Param, 0)
@@ -202,7 +213,8 @@ func (r Team) UpdateTeamMember(ctx context.Context, input model.UpdateTeamMember
 	err2 := r.client.Prisma.Transaction(transactions...).Exec(ctx)
 	if err2 != nil {
 		r.client.TeamMember.FindUnique(db.TeamMember.ID.Equals(result.ID)).Delete().Exec(ctx)
-		return nil, fmt.Errorf("error updating team member moves %s", err2)
+		log.Logger.WithField("id", result.ID).WithError(err2).WithContext(ctx).Error("error updating team member moves")
+		return nil, fmt.Errorf("error updating team member moves")
 	}
 
 	return r.GetTeamMemberById(ctx, result.ID)
@@ -217,21 +229,25 @@ func (r Team) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team by id")
 		return nil, fmt.Errorf("couldn't find team by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error finding team by id %s: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error finding team by id")
+		return nil, fmt.Errorf("error finding team by id %s", id)
 	}
 
 	_, err2 := r.client.TeamMember.FindMany(db.TeamMember.TeamID.Equals(id)).Delete().Exec(ctx)
 	if err2 != nil {
-		return nil, fmt.Errorf("error deleting team members by team id %s: %s", id, err2)
+		log.Logger.WithField("id", id).WithError(err2).WithContext(ctx).Error("error deleting team members by team id")
+		return nil, fmt.Errorf("error deleting team members by team id %s", id)
 	}
 
 	_, err3 := r.client.Team.FindUnique(db.Team.ID.Equals(id)).Delete().Exec(ctx)
 	if err3 != nil {
-		return nil, fmt.Errorf("error deleting team by id %s: %s", id, err3)
+		log.Logger.WithField("id", id).WithError(err3).WithContext(ctx).Error("error deleting team by id")
+		return nil, fmt.Errorf("error deleting team by id %s", id)
 	}
 
 	team := model.NewTeamFromDb(*result)
@@ -253,11 +269,13 @@ func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMembe
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team member by id")
 		return nil, fmt.Errorf("couldn't find team member by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error deleting team member by id %s: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error deleting team member by id")
+		return nil, fmt.Errorf("error deleting team member by id %s", id)
 	}
 
 	teamMember := model.NewTeamMemberFromDb(*result)
@@ -272,11 +290,13 @@ func (r Team) DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move,
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team member move by id")
 		return nil, fmt.Errorf("couldn't find team member move by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error deleting team member by id %s: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error deleting team member move by id")
+		return nil, fmt.Errorf("error deleting team member move by id %s", id)
 	}
 
 	move := model.NewMoveFromDb(*result.PokemonMove().Move())

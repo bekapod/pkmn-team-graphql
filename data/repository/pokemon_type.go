@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"fmt"
 )
@@ -30,7 +31,8 @@ func (r PokemonType) PokemonTypeByPokemonIdDataLoader(ctx context.Context) func(
 			for i, id := range ids {
 				tl := model.NewEmptyPokemonTypeConnection()
 				pokemonTypeConnections[i] = &tl
-				errors[i] = fmt.Errorf("error loading pokemon type by pokemon id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon type by pokemon id")
+				errors[i] = fmt.Errorf("error loading pokemon type by pokemon id %s", id)
 			}
 
 			return pokemonTypeConnections, errors
@@ -83,7 +85,8 @@ func (r PokemonType) PokemonTypeByTypeIdDataLoader(ctx context.Context) func(ids
 			for i, id := range ids {
 				tl := model.NewEmptyPokemonWithTypeConnection()
 				pokemonTypeConnections[i] = &tl
-				errors[i] = fmt.Errorf("error loading pokemon type by type id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error loading pokemon type by type id")
+				errors[i] = fmt.Errorf("error loading pokemon type by type id %s", id)
 			}
 
 			return pokemonTypeConnections, errors

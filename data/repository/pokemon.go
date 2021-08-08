@@ -3,6 +3,7 @@ package repository
 import (
 	"bekapod/pkmn-team-graphql/data/db"
 	"bekapod/pkmn-team-graphql/data/model"
+	"bekapod/pkmn-team-graphql/log"
 	"context"
 	"errors"
 	"fmt"
@@ -30,7 +31,8 @@ func (r Pokemon) GetPokemon(ctx context.Context) (*model.PokemonConnection, erro
 	}
 
 	if err != nil {
-		return &pokemon, fmt.Errorf("error getting pokemon: %s", err)
+		log.Logger.WithError(err).Error("error getting pokemon")
+		return &pokemon, fmt.Errorf("error getting pokemon")
 	}
 
 	for _, result := range results {
@@ -48,11 +50,13 @@ func (r Pokemon) GetPokemonById(ctx context.Context, id string) (*model.Pokemon,
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
+		log.Logger.WithField("id", id).Info("couldn't find pokemon by id")
 		return nil, fmt.Errorf("couldn't find pokemon by id: %s", id)
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("error getting pokemon by id: %s, error: %s", id, err)
+		log.Logger.WithField("id", id).WithError(err).Error("error getting pokemon by id")
+		return nil, fmt.Errorf("error getting pokemon by id: %s", id)
 	}
 
 	p := model.NewPokemonFromDb(*result)
@@ -68,7 +72,8 @@ func (r Pokemon) PokemonByIdDataLoader(ctx context.Context) func(ids []string) (
 		if err != nil {
 			errors := make([]error, len(ids))
 			for i, id := range ids {
-				errors[i] = fmt.Errorf("error loading type by id %s in dataloader %w", id, err)
+				log.Logger.WithField("id", id).WithError(err).Error("error loading pokemon by id")
+				errors[i] = fmt.Errorf("error loading pokemon by id %s", id)
 			}
 
 			return pokemon, errors
