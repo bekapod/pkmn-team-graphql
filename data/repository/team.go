@@ -218,49 +218,53 @@ func (r Team) UpdateTeamMember(ctx context.Context, input model.UpdateTeamMember
 	return r.GetTeamMemberById(ctx, result.ID)
 }
 
-func (r Team) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
-	result, err := r.client.Team.
-		FindUnique(db.Team.ID.Equals(id)).
+func (r Team) DeleteTeams(ctx context.Context, ids []string) ([]*model.Team, error) {
+	results, err := r.client.Team.
+		FindMany(db.Team.ID.In(ids)).
 		With(db.Team.TeamMembers.Fetch().With(
 			db.TeamMember.Moves.Fetch().With(db.TeamMemberMove.PokemonMove.Fetch()).OrderBy(db.TeamMemberMove.Slot.Order(db.ASC)),
 		).OrderBy(db.TeamMember.Slot.Order(db.ASC))).
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
-		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team by id")
-		return nil, fmt.Errorf("couldn't find team by id: %s", id)
+		log.Logger.WithField("ids", ids).WithContext(ctx).Info("couldn't find teams with ids for deletion")
+		return nil, fmt.Errorf("couldn't find team by id: %s", ids)
 	}
 
 	if err != nil {
-		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error finding team by id")
-		return nil, fmt.Errorf("error finding team by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err).WithContext(ctx).Error("error finding teams by ids for deletion")
+		return nil, fmt.Errorf("error finding teams by ids %s", ids)
 	}
 
-	_, err2 := r.client.TeamMemberMove.FindMany(db.TeamMemberMove.TeamMember.Where(db.TeamMember.TeamID.Equals(id))).Delete().Exec(ctx)
+	_, err2 := r.client.TeamMemberMove.FindMany(db.TeamMemberMove.TeamMember.Where(db.TeamMember.TeamID.In(ids))).Delete().Exec(ctx)
 	if err2 != nil {
-		log.Logger.WithField("id", id).WithError(err2).WithContext(ctx).Error("error deleting team member moves by team id")
-		return nil, fmt.Errorf("error deleting team member moves by team id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err2).WithContext(ctx).Error("error deleting team member moves by team ids")
+		return nil, fmt.Errorf("error deleting team member moves by team ids %s", ids)
 	}
 
-	_, err3 := r.client.TeamMember.FindMany(db.TeamMember.TeamID.Equals(id)).Delete().Exec(ctx)
+	_, err3 := r.client.TeamMember.FindMany(db.TeamMember.TeamID.In(ids)).Delete().Exec(ctx)
 	if err3 != nil {
-		log.Logger.WithField("id", id).WithError(err3).WithContext(ctx).Error("error deleting team members by team id")
-		return nil, fmt.Errorf("error deleting team members by team id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err3).WithContext(ctx).Error("error deleting team members by team ids")
+		return nil, fmt.Errorf("error deleting team members by team ids %s", ids)
 	}
 
-	_, err4 := r.client.Team.FindUnique(db.Team.ID.Equals(id)).Delete().Exec(ctx)
+	_, err4 := r.client.Team.FindMany(db.Team.ID.In(ids)).Delete().Exec(ctx)
 	if err4 != nil {
-		log.Logger.WithField("id", id).WithError(err4).WithContext(ctx).Error("error deleting team by id")
-		return nil, fmt.Errorf("error deleting team by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err4).WithContext(ctx).Error("error deleting team by id")
+		return nil, fmt.Errorf("error deleting team by id %s", ids)
 	}
 
-	team := model.NewTeamFromDb(*result)
-	return &team, nil
+	teams := make([]*model.Team, 0)
+	for _, result := range results {
+		team := model.NewTeamFromDb(result)
+		teams = append(teams, &team)
+	}
+	return teams, nil
 }
 
-func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
-	result, err := r.client.TeamMember.
-		FindUnique(db.TeamMember.ID.Equals(id)).
+func (r Team) DeleteTeamMembers(ctx context.Context, ids []string) ([]*model.TeamMember, error) {
+	results, err := r.client.TeamMember.
+		FindMany(db.TeamMember.ID.In(ids)).
 		With(
 			db.TeamMember.Team.Fetch().With(
 				db.Team.TeamMembers.Fetch().With(
@@ -272,50 +276,64 @@ func (r Team) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMembe
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
-		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team member by id for deletion")
-		return nil, fmt.Errorf("couldn't find team member by id for deletion: %s", id)
+		log.Logger.WithField("ids", ids).WithContext(ctx).Info("couldn't find team members by ids for deletion")
+		return nil, fmt.Errorf("couldn't find team members by ids for deletion: %s", ids)
 	}
 
 	if err != nil {
-		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error getting team member by id")
-		return nil, fmt.Errorf("error getting team member by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err).WithContext(ctx).Error("error getting team members by ids")
+		return nil, fmt.Errorf("error getting team members by ids %s", ids)
 	}
 
-	_, err2 := r.client.TeamMemberMove.FindMany(db.TeamMemberMove.TeamMemberID.Equals(id)).Delete().Exec(ctx)
+	_, err2 := r.client.TeamMemberMove.FindMany(db.TeamMemberMove.TeamMemberID.In(ids)).Delete().Exec(ctx)
 
 	if err2 != nil {
-		log.Logger.WithField("id", id).WithError(err2).WithContext(ctx).Error("error deleting moves for team member by id")
-		return nil, fmt.Errorf("error deleting moves for team member by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err2).WithContext(ctx).Error("error deleting moves for team members by ids")
+		return nil, fmt.Errorf("error deleting moves for team members by ids %s", ids)
 	}
 
-	_, err3 := r.client.TeamMember.FindUnique(db.TeamMember.ID.Equals(id)).Delete().Exec(ctx)
+	_, err3 := r.client.TeamMember.FindMany(db.TeamMember.ID.In(ids)).Delete().Exec(ctx)
 
 	if err3 != nil {
-		log.Logger.WithField("id", id).WithError(err3).WithContext(ctx).Error("error deleting team member by id")
-		return nil, fmt.Errorf("error deleting team member by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err3).WithContext(ctx).Error("error deleting team members by ids")
+		return nil, fmt.Errorf("error deleting team members by ids %s", ids)
 	}
 
-	teamMember := model.NewTeamMemberFromDb(*result)
-	return &teamMember, nil
+	teamMembers := make([]*model.TeamMember, 0)
+	for _, result := range results {
+		teamMember := model.NewTeamMemberFromDb(result)
+		teamMembers = append(teamMembers, &teamMember)
+	}
+	return teamMembers, nil
 }
 
-func (r Team) DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error) {
-	result, err := r.client.TeamMemberMove.
-		FindUnique(db.TeamMemberMove.ID.Equals(id)).
+func (r Team) DeleteTeamMemberMoves(ctx context.Context, ids []string) ([]*model.Move, error) {
+	results, err := r.client.TeamMemberMove.
+		FindMany(db.TeamMemberMove.ID.In(ids)).
 		With(db.TeamMemberMove.PokemonMove.Fetch().With(db.PokemonMove.Move.Fetch())).
-		Delete().
 		Exec(ctx)
 
 	if errors.Is(err, db.ErrNotFound) {
-		log.Logger.WithField("id", id).WithContext(ctx).Info("couldn't find team member move by id")
-		return nil, fmt.Errorf("couldn't find team member move by id: %s", id)
+		log.Logger.WithField("ids", ids).WithContext(ctx).Info("couldn't find team member moves by ids")
+		return nil, fmt.Errorf("couldn't find team member moves by ids: %s", ids)
 	}
 
 	if err != nil {
-		log.Logger.WithField("id", id).WithError(err).WithContext(ctx).Error("error deleting team member move by id")
-		return nil, fmt.Errorf("error deleting team member move by id %s", id)
+		log.Logger.WithField("ids", ids).WithError(err).WithContext(ctx).Error("error getting team member moves by ids for deletion")
+		return nil, fmt.Errorf("error getting team member moves by ids %s", ids)
 	}
 
-	move := model.NewMoveFromDb(*result.PokemonMove().Move())
-	return &move, nil
+	_, err2 := r.client.TeamMemberMove.FindMany(db.TeamMemberMove.ID.In(ids)).Delete().Exec(ctx)
+
+	if err2 != nil {
+		log.Logger.WithField("ids", ids).WithError(err2).WithContext(ctx).Error("error deleting team member moves by ids")
+		return nil, fmt.Errorf("error deleting team member moves by ids %s", ids)
+	}
+
+	moves := make([]*model.Move, 0)
+	for _, result := range results {
+		move := model.NewMoveFromDb(*result.PokemonMove().Move())
+		moves = append(moves, &move)
+	}
+	return moves, nil
 }

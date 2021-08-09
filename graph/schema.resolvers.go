@@ -33,16 +33,16 @@ func (r *mutationResolver) UpdateTeamMember(ctx context.Context, input model.Upd
 	return r.TeamRepository.UpdateTeamMember(ctx, input)
 }
 
-func (r *mutationResolver) DeleteTeam(ctx context.Context, id string) (*model.Team, error) {
-	return r.TeamRepository.DeleteTeam(ctx, id)
+func (r *mutationResolver) DeleteTeams(ctx context.Context, ids []string) ([]*model.Team, error) {
+	return r.TeamRepository.DeleteTeams(ctx, ids)
 }
 
-func (r *mutationResolver) DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error) {
-	return r.TeamRepository.DeleteTeamMember(ctx, id)
+func (r *mutationResolver) DeleteTeamMembers(ctx context.Context, ids []string) ([]*model.TeamMember, error) {
+	return r.TeamRepository.DeleteTeamMembers(ctx, ids)
 }
 
-func (r *mutationResolver) DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error) {
-	return r.TeamRepository.DeleteTeamMemberMove(ctx, id)
+func (r *mutationResolver) DeleteTeamMemberMoves(ctx context.Context, ids []string) ([]*model.Move, error) {
+	return r.TeamRepository.DeleteTeamMemberMoves(ctx, ids)
 }
 
 func (r *pokemonResolver) Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityConnection, error) {

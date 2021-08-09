@@ -131,12 +131,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateTeam           func(childComplexity int, input model.CreateTeamInput) int
-		DeleteTeam           func(childComplexity int, id string) int
-		DeleteTeamMember     func(childComplexity int, id string) int
-		DeleteTeamMemberMove func(childComplexity int, id string) int
-		UpdateTeam           func(childComplexity int, input model.UpdateTeamInput) int
-		UpdateTeamMember     func(childComplexity int, input model.UpdateTeamMemberInput) int
+		CreateTeam            func(childComplexity int, input model.CreateTeamInput) int
+		DeleteTeamMemberMoves func(childComplexity int, ids []string) int
+		DeleteTeamMembers     func(childComplexity int, ids []string) int
+		DeleteTeams           func(childComplexity int, ids []string) int
+		UpdateTeam            func(childComplexity int, input model.UpdateTeamInput) int
+		UpdateTeamMember      func(childComplexity int, input model.UpdateTeamMemberInput) int
 	}
 
 	PageInfo struct {
@@ -389,9 +389,9 @@ type MutationResolver interface {
 	CreateTeam(ctx context.Context, input model.CreateTeamInput) (*model.Team, error)
 	UpdateTeam(ctx context.Context, input model.UpdateTeamInput) (*model.Team, error)
 	UpdateTeamMember(ctx context.Context, input model.UpdateTeamMemberInput) (*model.TeamMember, error)
-	DeleteTeam(ctx context.Context, id string) (*model.Team, error)
-	DeleteTeamMember(ctx context.Context, id string) (*model.TeamMember, error)
-	DeleteTeamMemberMove(ctx context.Context, id string) (*model.Move, error)
+	DeleteTeams(ctx context.Context, ids []string) ([]*model.Team, error)
+	DeleteTeamMembers(ctx context.Context, ids []string) ([]*model.TeamMember, error)
+	DeleteTeamMemberMoves(ctx context.Context, ids []string) ([]*model.Move, error)
 }
 type PokemonResolver interface {
 	Abilities(ctx context.Context, obj *model.Pokemon) (*model.PokemonAbilityConnection, error)
@@ -783,41 +783,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTeam(childComplexity, args["input"].(model.CreateTeamInput)), true
 
-	case "Mutation.deleteTeam":
-		if e.complexity.Mutation.DeleteTeam == nil {
+	case "Mutation.deleteTeamMemberMoves":
+		if e.complexity.Mutation.DeleteTeamMemberMoves == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteTeam_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteTeamMemberMoves_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTeam(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTeamMemberMoves(childComplexity, args["ids"].([]string)), true
 
-	case "Mutation.deleteTeamMember":
-		if e.complexity.Mutation.DeleteTeamMember == nil {
+	case "Mutation.deleteTeamMembers":
+		if e.complexity.Mutation.DeleteTeamMembers == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteTeamMember_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteTeamMembers_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTeamMember(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTeamMembers(childComplexity, args["ids"].([]string)), true
 
-	case "Mutation.deleteTeamMemberMove":
-		if e.complexity.Mutation.DeleteTeamMemberMove == nil {
+	case "Mutation.deleteTeams":
+		if e.complexity.Mutation.DeleteTeams == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_deleteTeamMemberMove_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_deleteTeams_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTeamMemberMove(childComplexity, args["id"].(string)), true
+		return e.complexity.Mutation.DeleteTeams(childComplexity, args["ids"].([]string)), true
 
 	case "Mutation.updateTeam":
 		if e.complexity.Mutation.UpdateTeam == nil {
@@ -1966,9 +1966,9 @@ type Mutation {
   createTeam(input: CreateTeamInput!): Team!
   updateTeam(input: UpdateTeamInput!): Team!
   updateTeamMember(input: UpdateTeamMemberInput!): TeamMember!
-  deleteTeam(id: ID!): Team!
-  deleteTeamMember(id: ID!): TeamMember!
-  deleteTeamMemberMove(id: ID!): Move!
+  deleteTeams(ids: [ID!]!): [Team!]!
+  deleteTeamMembers(ids: [ID!]!): [TeamMember!]!
+  deleteTeamMemberMoves(ids: [ID!]!): [Move!]!
 }
 
 input CreateTeamInput {
@@ -2489,48 +2489,48 @@ func (ec *executionContext) field_Mutation_createTeam_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteTeamMemberMove_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteTeamMemberMoves_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 []string
+	if tmp, ok := rawArgs["ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
+		arg0, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["ids"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteTeamMember_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteTeamMembers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 []string
+	if tmp, ok := rawArgs["ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
+		arg0, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["ids"] = arg0
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_deleteTeam_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_deleteTeams_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 []string
+	if tmp, ok := rawArgs["ids"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ids"))
+		arg0, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["ids"] = arg0
 	return args, nil
 }
 
@@ -4237,7 +4237,7 @@ func (ec *executionContext) _Mutation_updateTeamMember(ctx context.Context, fiel
 	return ec.marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTeams(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4254,7 +4254,7 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteTeam_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteTeams_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4262,7 +4262,7 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeam(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTeams(rctx, args["ids"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4274,12 +4274,12 @@ func (ec *executionContext) _Mutation_deleteTeam(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Team)
+	res := resTmp.([]*model.Team)
 	fc.Result = res
-	return ec.marshalNTeam2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeam(ctx, field.Selections, res)
+	return ec.marshalNTeam2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTeamMembers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4296,7 +4296,7 @@ func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, fiel
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteTeamMember_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteTeamMembers_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4304,7 +4304,7 @@ func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeamMember(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTeamMembers(rctx, args["ids"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4316,12 +4316,12 @@ func (ec *executionContext) _Mutation_deleteTeamMember(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.TeamMember)
+	res := resTmp.([]*model.TeamMember)
 	fc.Result = res
-	return ec.marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx, field.Selections, res)
+	return ec.marshalNTeamMember2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMemberᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteTeamMemberMove(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_deleteTeamMemberMoves(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4338,7 +4338,7 @@ func (ec *executionContext) _Mutation_deleteTeamMemberMove(ctx context.Context, 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteTeamMemberMove_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_deleteTeamMemberMoves_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4346,7 +4346,7 @@ func (ec *executionContext) _Mutation_deleteTeamMemberMove(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTeamMemberMove(rctx, args["id"].(string))
+		return ec.resolvers.Mutation().DeleteTeamMemberMoves(rctx, args["ids"].([]string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4358,9 +4358,9 @@ func (ec *executionContext) _Mutation_deleteTeamMemberMove(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Move)
+	res := resTmp.([]*model.Move)
 	fc.Result = res
-	return ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, field.Selections, res)
+	return ec.marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
@@ -11172,18 +11172,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteTeam":
-			out.Values[i] = ec._Mutation_deleteTeam(ctx, field)
+		case "deleteTeams":
+			out.Values[i] = ec._Mutation_deleteTeams(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteTeamMember":
-			out.Values[i] = ec._Mutation_deleteTeamMember(ctx, field)
+		case "deleteTeamMembers":
+			out.Values[i] = ec._Mutation_deleteTeamMembers(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "deleteTeamMemberMove":
-			out.Values[i] = ec._Mutation_deleteTeamMemberMove(ctx, field)
+		case "deleteTeamMemberMoves":
+			out.Values[i] = ec._Mutation_deleteTeamMemberMoves(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -13140,6 +13140,36 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -13233,8 +13263,41 @@ func (ec *executionContext) marshalNItemCategory2bekapodᚋpkmnᚑteamᚑgraphql
 	return v
 }
 
-func (ec *executionContext) marshalNMove2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v model.Move) graphql.Marshaler {
-	return ec._Move(ctx, sel, &v)
+func (ec *executionContext) marshalNMove2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMoveᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Move) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNMove2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐMove(ctx context.Context, sel ast.SelectionSet, v *model.Move) graphql.Marshaler {
@@ -13457,6 +13520,43 @@ func (ec *executionContext) marshalNTeam2bekapodᚋpkmnᚑteamᚑgraphqlᚋdata�
 	return ec._Team(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNTeam2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Team) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTeam2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeam(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNTeam2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeam(ctx context.Context, sel ast.SelectionSet, v *model.Team) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -13483,6 +13583,43 @@ func (ec *executionContext) marshalNTeamConnection2ᚖbekapodᚋpkmnᚑteamᚑgr
 
 func (ec *executionContext) marshalNTeamMember2bekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx context.Context, sel ast.SelectionSet, v model.TeamMember) graphql.Marshaler {
 	return ec._TeamMember(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTeamMember2ᚕᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMemberᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.TeamMember) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNTeamMember2ᚖbekapodᚋpkmnᚑteamᚑgraphqlᚋdataᚋmodelᚐTeamMember(ctx context.Context, sel ast.SelectionSet, v *model.TeamMember) graphql.Marshaler {
